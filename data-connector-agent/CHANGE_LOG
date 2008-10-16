@@ -1,0 +1,6 @@
+11-05-07:  * Base client and server implementation with no frills.  
+             - Will connect to server and allow portforwarding back to client
+               server on local port.
+           * SSHD automatically compiles and gets configured
+           * Early convenience scripts for setting up the service, starting 
+           * Source and binary distribution targets.

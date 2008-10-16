@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project 
+    name="jsocks" 
+    default="all"
+    basedir=".">
+
+  <property name="version" value="1.0"/>
+
+  <!-- Define Directories. -->
+  <property name="projects.dir" value=".." />
+  <property name="COMPILE_DEBUG_FLAG" value="true" />
+  <property name="COMPILE_DEBUG_LEVEL" value="source,lines,vars" />
+
+  <property name="build" value="build" />
+  <property name="bin" value="bin" />
+  <property name="prod" value="${build}/prod" />
+  <property name="dist" value="dist" />
+  <property name="src" value="src/java" />
+  <property name="testsrc" value="src/javatests" />
+  <property name="classes" value="${prod}/classes" />
+  <property name="webdocs" value="src/webdocs" />
+
+  <property name="jar.dir" value="${bin}" />
+  <property name="googlecommon.jarfile" value="${jar.dir}/googlecommon.jar" />
+  <property 
+      name="jsocks-server.jarfile" 
+      value="${jar.dir}/jsocks-server.jar" />
+  <property 
+      name="jsocks-client.jarfile" 
+      value="${jar.dir}/jsocks-client.jar" />
+  <property 
+      name="binarydistro.tarfile"
+      value="${dist}/jsocks-${version}-${TODAY}-bin.tar.gz" />
+  <property 
+      name="sourcedistro.tarfile"
+      value="${dist}/jsocks-${version}-${TODAY}-src.tar.gz" />
+
+  <!-- common targets -->
+  <target name="init">    
+    <!-- setup environment -->
+    <tstamp>
+      <format property="timestamp" pattern="MMddyyyyhhmm"/>
+    </tstamp>
+    <mkdir dir="${build}" />
+    <mkdir dir="${bin}" />
+    <mkdir dir="${prod}" />
+    <mkdir dir="${dist}" />
+    <mkdir dir="${classes}" />
+    <mkdir dir="${jar.dir}" />  
+  </target>
+
+  <target name="clean" description="Deletes all build files.">
+    <delete dir="${build}" />
+    <delete dir="${dist}" />
+    <delete dir="${bin}" />
+  </target>
+
+  <!-- Compile third-party dependencies -->
+  <target name="third-party" depends="init">
+  </target>
+
+  <!-- GOOGLE COMMON CODE -->
+  <target name="compile-googlecommon" depends="init">
+    <javac 
+        srcdir="${src}" 
+        destdir="${classes}"
+        debug="${COMPILE_DEBUG_FLAG}"
+        debuglevel="${COMPILE_DEBUG_LEVEL}"
+        includes="com/google/common/**"
+        target="1.6"
+        source="1.6"/>
+  </target>
+
+  <target name="jar-googlecommon" depends="compile-googlecommon">
+    <jar jarfile="${googlecommon.jarfile}">
+      <fileset dir="${classes}" includes="com/google/common/**"/>
+      <manifest>
+        <attribute name="Implementation-Title" value="Google Common Utils"/>
+        <attribute name="Implementation-Version" value="${version} ${TODAY}"/>
+        <attribute name="Implementation-Vendor" value="Google Inc."/>
+      </manifest>
+    </jar>
+  </target>
+
+  <!-- SOCKS CODE -->
+  <target name="compile-jsocks" depends="third-party,compile-googlecommon,jar-googlecommon">
+    <!-- Compile java source files -->
+    <javac 
+        srcdir="${src}" 
+        destdir="${classes}"
+        debug="${COMPILE_DEBUG_FLAG}"
+        debuglevel="${COMPILE_DEBUG_LEVEL}"
+        includes="net/sourceforge/jsocks/**"
+        target="1.6"
+        source="1.6">
+      <classpath>
+        <pathelement path="third-party/apache-log4j/log4j-1.2.15.jar"/>
+        <pathelement path="third-party/apache-commons-logging/commons-logging-1.1.jar"/>
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="jar-jsocks-server" depends="compile-jsocks,jar-googlecommon">
+    <tstamp/>
+    <jar jarfile="${jsocks-server.jarfile}">
+      <fileset dir="${classes}" includes="net/sourceforge/jsocks/**"/>
+      <manifest>
+        <attribute name="Implementation-Title" value="Sourceforge JSOCKS"/>
+        <attribute name="Implementation-Version" value="${version} ${TODAY}"/>
+        <attribute name="Implementation-Vendor" value="Sourceforge"/>
+        <attribute name="Main-Class" value="net.sourceforge.jsocks.SOCKS"/>
+        <attribute 
+            name="Class-Path"
+            value="googlecommon.jar"/>
+      </manifest>
+    </jar>
+  </target>
+
+  <target name="jar-jsocks-client" depends="compile-jsocks">
+    <tstamp/>
+    <jar jarfile="${jsocks-client.jarfile}">
+      <fileset dir="${classes}" includes="net/sourceforge/jsocks/**"/>
+      <manifest>
+        <attribute name="Implementation-Title" value="Sourceforge JSOCKS"/>
+        <attribute name="Implementation-Version" value="${version} ${TODAY}"/>
+        <attribute name="Implementation-Vendor" value="Sourceforge"/>
+        <attribute name="Main-Class" value="net.sourceforge.jsocks.SocksEcho"/>
+        <attribute name="Class-Path" value="googlecommon.jar"/>
+      </manifest>
+    </jar>
+  </target>
+
+  <!-- Source Distribution -->
+  <target name="source-tar" depends="jar-jsocks-client,jar-jsocks-server">
+    <tar
+      longfile="gnu"
+      destfile="${dist}/jsocks-${version}-${timestamp}-src.tar.gz" 
+      compression="gzip">
+      <tarfileset dir="${basedir}" prefix="jsocks-${version}">
+        <include name="src/**"/>
+        <include name="build.xml"/>
+      </tarfileset>
+      <tarfileset 
+          dir="${basedir}/src/java/net/sourceforge/jsocks"
+          prefix="jsocks-${version}">
+        <include 
+            name="socks.properties" />
+      </tarfileset>
+    </tar>
+  </target>
+
+  <!-- Binary Distribution -->
+  <target name="binary-tar" depends="jar-jsocks-client,jar-jsocks-server">
+    <tar
+      longfile="gnu"
+      destfile="${dist}/jsocks-${version}-${timestamp}-bin.tar.gz" 
+      compression="gzip">
+      <tarfileset dir="${basedir}" prefix="jsocks-${version}">
+        <include name="build/**"/>
+        <include name="build.xml"/>
+        <include name="dist/**"/>
+        <exclude name="dist/*.tar.gz"/>
+      </tarfileset>
+      <tarfileset 
+          dir="${basedir}/src/java/net/sourceforge/jsocks"
+          prefix="jsocks-${version}">
+        <include 
+            name="socks.properties" />
+      </tarfileset>
+    </tar>
+  </target>
+
+  <target name="all" depends="binary-tar,source-tar"/>
+
+</project>
+

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project 
+    name="openssh-tunnel-server" 
+    default="copysshd"
+    basedir=".">
+
+  <property name="version" value="1.0"/>
+
+  <!-- Define Directories. -->
+
+  <property name="openssh_targz" value="dist/openssh-4.7p1.tar.gz" />
+  <property name="sshd" value="src/openssh-4.7p1/sshd" />
+  <property name="osrc" value="src" />
+  <property name="sbin" value="sbin" />
+  <property name="sshbin" value="bin" />
+  <property name="openssh_src" value="src/openssh-4.7p1"/>
+
+  <!-- common targets -->
+  <target name="init">    
+    <!-- setup environment -->
+    <tstamp>
+      <format property="timestamp" pattern="MMddyyyyhhmm"/>
+    </tstamp>
+    <mkdir dir="${sbin}"/>
+    <mkdir dir="${osrc}"/>
+    <mkdir dir="${sshbin}"/>
+  </target>
+
+  <target name="untar" depends="init">
+    <untar 
+        src="${openssh_targz}" 
+        dest="${osrc}/"
+        compression="gzip"/>
+  </target>
+
+  <target name="configure" depends="untar">
+    <exec 
+        dir="${openssh_src}"
+        executable="sh">
+      <arg value="configure"/>
+      <arg value="--without-kerberos5"/>
+      <arg value="--without-selinux"/>
+      <arg value="--without-pam"/>
+      <arg value="--without-sectok"/>
+      <arg value="--without-xauth"/>
+      <arg value="--without-4in6"/>
+    </exec>
+  </target>
+
+  <target name="makessh" depends="configure">
+    <exec
+        dir="${openssh_src}"
+        executable="make">
+      <arg value="sshd"/>
+    </exec>
+  </target>
+
+  <target name="copysshd" depends="makessh">
+    <copy file="${sshd}" todir="${sbin}"/>
+    <chmod file="${sbin}/sshd" perm="755"/>
+  </target>
+
+  <target name="clean" description="Deletes all build files.">
+    <delete dir="${sbin}" />
+    <delete dir="${osrc}" />
+    <delete dir="${sshbin}" />
+  </target>
+
+</project>
+

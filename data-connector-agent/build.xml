@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Copyright 2007 Google Inc. All rights reserved. 
+  
+Build File for tunnel-server client and reference server.
+
+  Interesting targets:
+   -all: builds distros
+   -install: builds jars and runs setup.sh
+   -clean: 
+   -jar: creates the jar file 
+   -util_jar: creates the utility jar - this should be deprecated.
+   -source-distro: creates the source.tar.gz for the whole project
+   -binary-distro: creates binary.tar.gz
+-->
+
+<project 
+    name="tunnel-server" 
+    default="all"
+    basedir=".">
+
+  <!-- PROPERTIES -->
+  <property name="version" value="1.0"/>
+
+  <property name="projects.dir" value=".." />
+  <property name="COMPILE_DEBUG_FLAG" value="true" />
+  <property name="COMPILE_DEBUG_LEVEL" value="source,lines,vars" />
+
+  <property name="build" value="build" />
+  <property name="bin" value="bin" />
+  <property name="prod" value="${build}/prod" />
+  <property name="dist" value="dist" />
+  <property name="src" value="src/java" />
+  <property name="classes" value="${prod}/classes" />
+  <property name="webdocs" value="src/webdocs" />
+  <property name="jar.dir" value="${bin}" />
+
+  <property 
+      name="client.jarfile" 
+      value="${jar.dir}/client.jar" />
+
+  <property 
+      name="util.jarfile" 
+      value="${jar.dir}/secure_link_util.jar" />
+
+  <property 
+      name="util-src.jarfile" 
+      value="${jar.dir}/secure_link_util-src.jar" />
+
+  <!-- TARGETS -->
+
+  <target name="init">    
+    <tstamp>
+      <format property="timestamp" pattern="MMddyyyyhhmm"/>
+    </tstamp>
+    <mkdir dir="${build}" />
+    <mkdir dir="${prod}" />
+    <mkdir dir="${dist}" />
+    <mkdir dir="${classes}" />
+    <mkdir dir="${jar.dir}" />  
+  </target>
+
+  <target name="clean" description="Deletes all build files.">
+    <delete dir="${build}" />
+    <delete dir="${bin}" />
+    <delete dir="third-party/openssh/${bin}" />
+    <delete file="third-party/openssh/etc/sshd_config"/>
+    <ant
+        antfile="build.xml"
+        dir="third-party/openssh"
+        target="clean"/>
+    <ant
+        antfile="build.xml"
+        dir="third-party/jsocks"
+        target="clean"/>
+    <ant
+        antfile="build.xml"
+        dir="third-party/wpg-proxy"
+        target="clean"/>
+     </target>
+
+  <target name="jsocks" depends="init">
+    <ant 
+        antfile="build.xml"
+        dir="third-party/jsocks"/>
+  </target>
+
+  <target name="wpg-proxy" depends="init">
+    <ant 
+        antfile="build.xml"
+        dir="third-party/wpg-proxy"/>
+  </target>
+
+  <target name="openssh" depends="init">
+    <ant 
+        antfile="build.xml"
+        dir="third-party/openssh"/>
+  </target>
+
+  <target name="setup" depends="jar">
+    <exec executable="${basedir}/setup.sh"/>
+  </target>
+
+  <target name="compile" depends="init">
+    <javac 
+        srcdir="${src}" 
+        destdir="${classes}"
+        debug="${COMPILE_DEBUG_FLAG}"
+        debuglevel="${COMPILE_DEBUG_LEVEL}"
+        includes="**"
+        >
+      <classpath>
+        <pathelement path="third-party/wpg-proxy/bin/wpgproxy.jar"/>
+        <pathelement path="third-party/jsocks/bin/jsocks-server.jar"/>
+        <pathelement path="third-party/commons-cli/commons-cli-1.1.jar"/>
+        <pathelement path="third-party/commons-logging/commons-logging-1.1.jar"/>
+        <pathelement path="third-party/apache-log4j/log4j-1.2.15.jar"/>
+        <pathelement path="third-party/easymock/easymock.jar"/>
+        <pathelement path="third-party/easymock/easymockclassextension.jar"/>
+        <pathelement path="third-party/jsch/jsch-20071024.jar"/>
+        <pathelement path="third-party/jline/jline-0.9.91.jar"/>
+        <pathelement path="third-party/json/json.jar"/>
+        <pathelement path="third-party/junit/junit-4.4.jar"/>
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="jar" depends="util_jar,util_src_jar,client_jar"/>
+
+  <target name="util_jar" depends="compile">
+    <tstamp/>
+    <jar jarfile="${util.jarfile}">
+      <fileset dir="${classes}"> 
+        <include name="com/google/securelink/util/**" />
+        <include name="com/google/securelink/client/**" />
+        <include name="com/google/securelink/json/**" />
+      </fileset>
+      <manifest>
+        <attribute name="Implementation-Title" value="Secure Link Client Util"/>
+        <attribute name="Implementation-Version" value="${version} ${TODAY}"/>
+        <attribute name="Implementation-Vendor" value="Google"/>
+      </manifest>
+    </jar>
+  </target>
+
+  <target name="util_src_jar" depends="init">
+    <tstamp/>
+    <jar jarfile="${util-src.jarfile}">
+      <fileset dir="${src}"> 
+        <include name="com/google/securelink/util/**" />
+        <include name="com/google/securelink/json/**" />
+      </fileset>
+      <manifest>
+        <attribute name="Implementation-Title" value="Secure Link Client Util"/>
+        <attribute name="Implementation-Version" value="${version} ${TODAY}"/>
+        <attribute name="Implementation-Vendor" value="Google"/>
+      </manifest>
+    </jar>
+  </target>
+
+  <target name="client_jar" depends="compile">
+    <tstamp/>
+    <jar jarfile="${client.jarfile}">
+      <fileset dir="${classes}" includes="**"/>
+      <manifest>
+        <attribute name="Implementation-Title" value="Secure Link Client"/>
+        <attribute name="Implementation-Version" value="${version} ${TODAY}"/>
+        <attribute name="Implementation-Vendor" value="Google"/>
+        <attribute name="Main-Class"
+              value="com.google.securelink.test.TestClient"/>
+      </manifest>
+    </jar>
+  </target>
+
+  <target name="source-distro" depends="clean,init">
+    <tar 
+        destfile="${dist}/tunnel-server-${version}-${timestamp}-src.tar.gz"
+        longfile="gnu"
+        compression="gzip"
+        excludes="third-party/jsch/com/**,tmp/**, third-party/*/docs/**">
+      <tarfileset dir=".">
+        <include name="build.xml"/>
+        <include name="src/**"/>
+        <include name="CHANGE_LOG"/>
+        <include name="COPYING"/>
+        <include name="config/*"/>
+        <include name="logging.properties"/>
+        <include name="rules.properties"/>
+        <include name="third-party/commons-*/**"/>
+        <include name="third-party/jline/**"/>
+        <include name="third-party/jsch/**"/>
+        <include name="third-party/jsocks/COPYING"/>
+        <include name="third-party/jsocks/build.xml"/>
+        <include name="third-party/jsocks/runsocks.sh"/>
+        <include name="third-party/jsocks/src/**"/>
+        <include name="third-party/jsocks/third-party/**"/>
+        <include name="third-party/wpg-proxy/src/**"/>
+        <include name="third-party/wpg-proxy/uml/**"/>
+        <include name="third-party/wpg-proxy/third-party/**"/>
+        <include name="third-party/wpg-proxy/resources/**"/>
+        <include name="third-party/wpg-proxy/lib/**"/>
+        <include name="third-party/wpg-proxy/*.html"/>
+        <include name="third-party/wpg-proxy/README"/>
+        <include name="third-party/wpg-proxy/*.xml"/>
+        <include name="third-party/wpg-proxy/build.properties"/>
+        <include name="third-party/wpg-proxy/license.txt"/>
+        <include name="third-party/openssh/CREDITS"/>
+        <include name="third-party/openssh/build.xml"/>
+        <include name="third-party/openssh/CREDITS"/>
+        <include name="third-party/openssh/LICENCE"/>
+        <include name="third-party/openssh/dist/**"/>
+        <include name="third-party/jsch/**"/>
+        <include name="third-party/jline/**"/>
+        <include name="third-party/json/**"/>
+        <include name="third-party/junit/**"/>
+        <include name="third-party/cglib/**"/>
+        <include name="third-party/easymock/**"/>
+        <include name="third-party/apache-log4j/**"/>
+     </tarfileset>
+      <tarfileset dir="." mode="600">
+        <include name="third-party/openssh/etc/*"/>
+        <include name="third-party/openssh/home/woodstock/.ssh/*"/>
+      </tarfileset>
+      <tarfileset dir="." mode="755">
+        <include name="third-party/openssh/sbin/*"/>
+        <include name="runclient.sh"/>
+        <include name="runserver.sh"/>
+        <include name="setup.sh"/>
+        <include name="start.sh"/>
+        <include name="stop.sh"/>
+      </tarfileset>
+    </tar>
+  </target>
+    
+  <target name="binary-distro" depends="jsocks,wpg-proxy,jar,openssh">
+    <tar 
+        destfile="${dist}/tunnel-server-${version}-${timestamp}-bin.tar.gz"
+        longfile="gnu"
+        basedir="."
+        includes="config/*,
+          COPYING,
+          CHANGE_LOG,
+          rules.properties,
+          logging.properties,
+          bin/**,
+          build/**,
+          third-party/wpg-proxy/bin/*.jar,
+          third-party/wpg-proxy/uml/**,
+          third-party/wpg-proxy/third-party/**,
+          third-party/wpg-proxy/resources/**,
+          third-party/wpg-proxy/lib/**,
+          third-party/wpg-proxy/*.html,
+          third-party/wpg-proxy/README,
+          third-party/wpg-proxy/license.txt,
+          third-party/jsocks/bin/*.jar,
+          third-party/jsocks/third-party/**,
+          third-party/jsocks/docs/*,
+          third-party/jsocks/COPYING,
+          third-party/openssh/CREDITS,
+          third-party/openssh/LICENCE,
+          third-party/openssh/dist/*.tmpl,
+          third-party/commons-*/*.txt,
+          third-party/commons-*/*.jar,
+          third-party/jsch/*.txt,
+          third-party/jsch/*.jar,
+          third-party/jline/*.txt,
+          third-party/jline/*.jar,
+          third-party/json/**,
+          third-party/junit/**,
+          third-party/cglib/**,
+          third-party/easymock/**,
+          third-party/apache-log4j/**"
+        compression="gzip">
+      <tarfileset dir="." mode="600">
+        <include name="third-party/openssh/etc/*"/>
+        <include name="third-party/openssh/home/woodstock/.ssh/*"/>
+      </tarfileset>
+      <tarfileset dir="." mode="755">
+        <include name="third-party/openssh/sbin/*"/>
+        <include name="runclient.sh"/>
+        <include name="runserver.sh"/>
+        <include name="setup.sh"/>
+        <include name="start.sh"/>
+        <include name="stop.sh"/>
+      </tarfileset>
+    </tar>
+  </target>
+
+  <target name="install" depends="jar">
+    <exec executable="sh">
+      <arg value="setup.sh"/>
+    </exec>
+  </target>
+
+  <target name="all" depends="source-distro,binary-distro,test,install"/>
+
+  <!-- Start of Testing-related stuff -->
+  <property name="testSrc.home"       value="src/javatests"/>
+  <property name="testClasses.home"   value="${build}/testClasses/"/>
+  <property name="testOutput.home"    value="${build}/testOutput"/>
+  <property name="junit.jar"          location="third-party/junit/junit-4.4.jar"/>
+
+  <path id="classpath.test">
+    <pathelement location="${testClasses.home}" />
+    <pathelement location="${client.jarfile}" />
+    <fileset dir="third-party">
+      <include name="**/*.jar"/>
+    </fileset>
+  </path>
+  
+  <target name="test" depends="jar,cleanTests,compileTests">
+      <mkdir dir="${testOutput.home}"/>
+      <junit haltonfailure="yes" printsummary="yes">
+        <classpath refid="classpath.test"/>
+        <formatter type="plain" usefile="true" />
+        <batchtest todir="${testOutput.home}">
+          <fileset dir="${testSrc.home}">
+            <include name="**/*Test.java"/>
+          </fileset>
+        </batchtest>
+      </junit>
+  </target>
+
+  <target name="compileTests" depends="cleanTests" description="Compile Tests">
+    <mkdir dir="${testClasses.home}"/>
+    <javac srcdir="${testSrc.home}" destdir="${testClasses.home}" classpathref="classpath.test"
+      debug="true" debuglevel="lines,vars,source">
+    </javac>
+  </target>
+
+  <target name="cleanTests"
+   description="Delete old build and dist directories">
+    <delete dir="${testClasses.home}"/>
+    <delete dir="${testOutput.home}"/>
+  </target>
+
+  <!-- End of Testing-related stuff -->
+</project>
+
