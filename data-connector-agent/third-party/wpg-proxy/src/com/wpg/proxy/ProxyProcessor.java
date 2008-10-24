@@ -141,7 +141,7 @@ public class ProxyProcessor {
     }
     int count = 1;
     for (HttpMessageHandler hml : handlers) {
-      logger.trace("Processing Request Handler " + (count++) + " of "
+      logger.debug("Processing Request Handler " + (count++) + " of "
           + handlers.size());
       if (response != null && request != null && e != null) {
         hml.failedResponse(response, request, e);
@@ -196,7 +196,7 @@ public class ProxyProcessor {
   private void stopTransaction(final long startTimeStamp, final int status) {
     long endTimeStamp = System.currentTimeMillis();
     long duration = endTimeStamp - startTimeStamp;
-    logger.trace("Duration: " + duration);
+    logger.debug("Duration: " + duration);
     ProxyStatistics.getSingleton().addDuration((double) (duration / 1000));
     ProxyStatistics.getSingleton().incrementTransactionCount(status);
   }
@@ -205,10 +205,10 @@ public class ProxyProcessor {
   private void processConnection(SelectionKey key) throws IOException {
     long startTimeStamp = System.currentTimeMillis();
     if (key.isValid() && key.isAcceptable()) {
-      logger.trace("Event found, isAcceptable");
+      logger.debug("Event found, isAcceptable");
       ServerSocketChannel server = (ServerSocketChannel) key.channel();
       SocketChannel client = server.accept();
-      logger.trace("Accepted connection from: " + client);
+      logger.debug("Accepted connection from: " + client);
 
       HttpMessageRequest request = null;
       try {
@@ -259,7 +259,7 @@ public class ProxyProcessor {
           clientKey.attach(buf);
           return;
         }
-        logger.trace("CONNECT method found, sending reply");
+        logger.debug("CONNECT method found, sending reply");
         
         SSLServerThread sslServerThread =
             new SSLServerThread(securePort, request.getToHost(), 443, client
@@ -317,11 +317,11 @@ public class ProxyProcessor {
         client.close();
         return;
       }
-      logger.trace("Finished Handler for request");
+      logger.debug("Finished Handler for request");
     }
 
     if (key.isValid() && key.isConnectable()) {
-      logger.trace("Event found, isConnectable");
+      logger.debug("Event found, isConnectable");
       SocketChannel sChannel = (SocketChannel) key.channel();
       if (!sChannel.finishConnect()) {
         key.cancel();
@@ -329,9 +329,9 @@ public class ProxyProcessor {
     }
 
      if (key.isValid() && key.isWritable()) {
-      logger.trace("Event found, isWritable");
+      logger.debug("Event found, isWritable");
       Object object = key.attachment();
-      logger.trace("Object: " + object.toString());
+      logger.debug("Object: " + object.toString());
       SocketChannel client = (SocketChannel) key.channel();
       logger.debug("Old Send Buffer Size: "
           + client.socket().getSendBufferSize());
@@ -374,7 +374,7 @@ public class ProxyProcessor {
       }
       /*
        * if( logger.isTraceEnabled() ) { byte[] buf = new byte[buffer.limit()];
-       * buffer.get(buf); logger.trace("Ouput to Browser: \n"+ new
+       * buffer.get(buf); logger.debug("Ouput to Browser: \n"+ new
        * String(buf).replaceAll("[\r]?\n","\r\nWire==> ") ); buffer.flip(); }
        */
       try {
@@ -415,7 +415,7 @@ public class ProxyProcessor {
     if (message == null) return null;
     boolean doSend = true;
     for (int i = 0; i < procs.size(); i++) {
-      logger.trace("Processing Processor " + (i + 1) + " of " + procs.size());
+      logger.debug("Processing Processor " + (i + 1) + " of " + procs.size());
       HttpMessageRequestProcessor hmreqp =
           (HttpMessageRequestProcessor) procs.elementAt(i);
       if (!hmreqp.doContinue(message)) break;
@@ -434,7 +434,7 @@ public class ProxyProcessor {
     if (message == null) return null;
     boolean doSend = true;
     for (int i = 0; i < procs.size(); i++) {
-      logger.trace("Processing Processor " + (i + 1) + " of " + procs.size());
+      logger.debug("Processing Processor " + (i + 1) + " of " + procs.size());
       HttpMessageResponseProcessor hmp =
           (HttpMessageResponseProcessor) procs.elementAt(i);
       if (!hmp.doContinue(message)) break;
@@ -451,7 +451,7 @@ public class ProxyProcessor {
   
   /** method to determine if the target of this request is the proxy server itself */
   private boolean isLocalRequest(final String targetHost, final int targetPort) {
-    logger.trace("Checking for local request: " + targetHost + ":" + targetPort
+    logger.debug("Checking for local request: " + targetHost + ":" + targetPort
         + " == " + inetAddr.getHostName() + ":" + this.port + " or "
         + inetAddr.getHostAddress());
     if ((inetAddr.getHostName().startsWith(targetHost) || targetHost
@@ -467,12 +467,12 @@ public class ProxyProcessor {
         && key.channel() instanceof SocketChannel) {
       SocketChannel client = (SocketChannel) key.channel();
       try {
-        logger.trace("processSecureConnection Event found, isWritable");
+        logger.debug("processSecureConnection Event found, isWritable");
         ByteBuffer buffer = (ByteBuffer) key.attachment();
         if (logger.isTraceEnabled()) {
           byte[] buf = new byte[buffer.limit()];
           buffer.get(buf);
-          // logger.trace("Ouput to Browser(SSL): \n"+
+          // logger.debug("Ouput to Browser(SSL): \n"+
           // new String(buf).replaceAll("[\r]?\n","\r\nWire==> ") );
           buffer.flip();
         }
@@ -514,11 +514,11 @@ public class ProxyProcessor {
     Vector<String> headers = new Vector<String>();
     while ((line = is.readLine()).length() > 0) {
       headers.addElement(line.replaceAll("[\r\n]+", ""));
-      logger.trace("request line: \"" + line + "\"");
+      logger.debug("request line: \"" + line + "\"");
       if (line.endsWith("\r\n\r\n")) break;
     }
     request.setHeaders(headers);
-    logger.trace("Finished Reading Header of Request");
+    logger.debug("Finished Reading Header of Request");
     char c;
     StringBuffer sb = new StringBuffer();
     while (is.ready()) {
@@ -528,7 +528,7 @@ public class ProxyProcessor {
     if (sb.toString().getBytes().length > 0)
       request.addToBody(sb.toString().getBytes(),
           sb.toString().getBytes().length);
-    logger.trace("Finished Reading Body of Request");
+    logger.debug("Finished Reading Body of Request");
     return request;
   }
 
@@ -536,7 +536,7 @@ public class ProxyProcessor {
   private HttpMessageResponse executeRequest(HttpMessageRequest request)
       throws Exception {
     URL url = request.getUri().toURL();
-    logger.trace("Opening socket to: " + url);
+    logger.debug("Opening socket to: " + url);
     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
     connection.setFollowRedirects(false);
     connection.setDoOutput(true);
@@ -564,7 +564,7 @@ public class ProxyProcessor {
        * OutputStreamWriter os = new OutputStreamWriter( new
        * BufferedOutputStream(connection.getOutputStream() ), "8859_1");
        * os.write( new String(request.getBodyContent()) );
-       * logger.trace("sending: "+ request.getBodyContent()); os.flush();
+       * logger.debug("sending: "+ request.getBodyContent()); os.flush();
        * os.close();
        */
       OutputStream writer = connection.getOutputStream();
@@ -617,7 +617,7 @@ public class ProxyProcessor {
         c = (char) br.read();
         sb.append(c);
       }
-      logger.trace("Set Body To: \n" + sb.toString());
+      logger.debug("Set Body To: \n" + sb.toString());
       br.close();
     }
     return response;
@@ -627,7 +627,7 @@ public class ProxyProcessor {
   /*
    * private SSLEngine initServer() { if( keyfile == null ) { logger.info("SSL
    * Not enabled, running unencrypted proxy only"); return null; } try {
-   * logger.trace("Starting SSL Init"); KeyStore ks =
+   * logger.debug("Starting SSL Init"); KeyStore ks =
    * KeyStore.getInstance("JKS"); ks.load( new FileInputStream(keyfile),
    * keystorePass);
    * 
@@ -642,7 +642,7 @@ public class ProxyProcessor {
    * 
    * SSLEngine engine = context.createSSLEngine();
    * engine.setUseClientMode(false); engine.beginHandshake();
-   * logger.trace("Finished SSL Init"); return engine; } catch( Exception e ) {
+   * logger.debug("Finished SSL Init"); return engine; } catch( Exception e ) {
    * logger.fatal("Error creating SSLEngine Exception: "+ e,e); } return null; }
    */
   private static class WorkAroundX509TrustManager implements X509TrustManager {
@@ -703,7 +703,7 @@ public class ProxyProcessor {
       SSLServerSocketFactory sockFactory = null;
 
 
-      logger.trace("Starting SSL Init");
+      logger.debug("Starting SSL Init");
       try {
         // This code creates a local ssl server for our man-in-the-middle stuff
         ks = KeyStore.getInstance("JKS");
@@ -767,7 +767,7 @@ public class ProxyProcessor {
             .getSupportedCipherSuites());
         targetSocket.setUseClientMode(true);
 
-        logger.trace("Finished SSL Init");
+        logger.debug("Finished SSL Init");
       } catch (Exception e) {
         logger.error("Error Initializing SSL: " + e, e);
       }
@@ -783,7 +783,7 @@ public class ProxyProcessor {
       try {
         LocalServer localServerThread = new LocalServer(serverSocket);
         localServerThread.start();
-        logger.trace("Started local server");
+        logger.debug("Started local server");
         SSLSocketFactory clientSocketFactory =
             (SSLSocketFactory) SSLSocketFactory.getDefault();
         localClientSocket =
@@ -792,11 +792,11 @@ public class ProxyProcessor {
         localClientSocket.setEnabledCipherSuites(serverSocket
             .getSupportedCipherSuites());
         localClientSocket.setUseClientMode(true);
-        logger.trace("Started local client");
+        logger.debug("Started local client");
         while (localServerThread.socket == null) {
         }
         Socket server = localServerThread.socket;
-        logger.trace("Connected local client to local server");
+        logger.debug("Connected local client to local server");
         IORedirector c2l, l2c, l2s, s2l, s2t, t2s;
 
         // write the connect dialog to the client
@@ -857,7 +857,7 @@ public class ProxyProcessor {
          * server.getOutputStream() ); t2s.setName("remoteServer->localServer");
          * t2s.start(); Thread.sleep(500);
          * 
-         * logger.trace("Everything setup, start another handshake");
+         * logger.debug("Everything setup, start another handshake");
          * localClientSocket.startHandshake();
          */
       } catch (IOException e) {
@@ -886,7 +886,7 @@ public class ProxyProcessor {
 
       public void run() {
         run = true;
-        logger.trace("Starting: " + getName());
+        logger.debug("Starting: " + getName());
         try {
           while (run) {
             int length = in.read(buffer);
@@ -939,7 +939,7 @@ public class ProxyProcessor {
    */
   private void processLocalRequest(HttpMessageRequest request,
       SocketChannel client) {
-    logger.trace("Processing a local statistics request");
+    logger.debug("Processing a local statistics request");
     try {
       client.configureBlocking(false);
       SelectionKey clientKey = client.register(selector, SelectionKey.OP_WRITE);
@@ -1007,9 +1007,9 @@ public class ProxyProcessor {
    * userOS.write("Proxy-agent: WPG-RecordingProxy/1.0\r\n" );
    * logger.info("Proxy-agent: WPG-RecordingProxy/1.0" ); userOS.write("\r\n");
    * userOS.flush(); int ch; StringBuffer sb = new StringBuffer();
-   * logger.trace("entering read from browser -> write to internal ssl"); while(
+   * logger.debug("entering read from browser -> write to internal ssl"); while(
    * (ch = userIS.read() ) != -1 ) { tcout.write(ch); sb.append(ch); }
-   * sb.append("\nBREAK\n"); logger.trace("entering read from internal ssl ->
+   * sb.append("\nBREAK\n"); logger.debug("entering read from internal ssl ->
    * write to browser"); while( (ch = tcin.read() ) != -1 ) { userOS.write(ch);
    * sb.append(ch); } logger.debug("Request: "+ sb.toString()); }
    * 

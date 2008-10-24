@@ -241,7 +241,7 @@ public class SSLByteChannel implements ByteChannel {
     if (ser == null) return ser;
     // log.finest(String.format("%s - %s\n", ser.getStatus().toString(),
     // ser.getHandshakeStatus().toString()));
-    logger.trace(ser.getStatus().toString() + " - "
+    logger.debug(ser.getStatus().toString() + " - "
         + ser.getHandshakeStatus().toString());
     while (ser.getHandshakeStatus() != SSLEngineResult.HandshakeStatus.FINISHED
         && ser.getHandshakeStatus() != SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING) {
@@ -265,7 +265,7 @@ public class SSLByteChannel implements ByteChannel {
     }
     switch (ser.getStatus()) {
       case CLOSED:
-        logger.trace("SSLEngine operations finishes, closing the socket");
+        logger.debug("SSLEngine operations finishes, closing the socket");
         try {
           wrappedChannel.close();
         } finally {

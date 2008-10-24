@@ -35,10 +35,10 @@ $WOODSTOCK_HOME/build/prod/classes/
 JVM_ARGS="-Djava.net.preferIPv4Stack=true"   
 
 while /bin/true; do
-  java com.google.securelink.client.Client \
+  java com.google.dataconnector.client.Client \
   -configFile ./rules.properties \
-  -secureLinkServerHost enterprise-apps-tls.sandbox.google.com \
-  -secureLinkServerPort 443 \
+  -secureLinkServerHost ianq18 \
+  -secureLinkServerPort 25922 \
   -logPropertiesFile ./logging.properties \
   -useSsl \
   -sslKeyStoreFile ./config/secureLinkClientTrustStore \

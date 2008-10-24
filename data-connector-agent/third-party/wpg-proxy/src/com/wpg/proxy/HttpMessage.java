@@ -197,7 +197,7 @@ public abstract class HttpMessage {
       List<String> roList = (List<String>) m.get(key);
       Vector<String> items = new Vector<String>(roList.size());
       items.addAll(roList);
-      logger.trace("Adding Header: " + key + "[" + items + "]");
+      logger.debug("Adding Header: " + key + "[" + items + "]");
       if (key != null) setHeader(key, items);
     }
   }
@@ -234,7 +234,7 @@ public abstract class HttpMessage {
       headerOrder.addElement(s);
     }
     ((Vector<String>) headers.get(s)).addElement(item);
-    logger.trace("Adding Header: " + s + "[" + item + "]");
+    logger.debug("Adding Header: " + s + "[" + item + "]");
     if ("host".equalsIgnoreCase(s)) {
       if (item.indexOf(':') == -1) {
         setToHost(item);
@@ -276,7 +276,7 @@ public abstract class HttpMessage {
       }
     }
     // sb.append("\r\n");
-    logger.trace("Header: \"" + sb.toString() + "\"");
+    logger.debug("Header: \"" + sb.toString() + "\"");
     return sb.toString();
   }
 

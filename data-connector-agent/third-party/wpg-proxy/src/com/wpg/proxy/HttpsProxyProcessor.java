@@ -129,7 +129,7 @@ public class HttpsProxyProcessor {
     }
     int count = 1;
     for (HttpMessageHandler hml : handlers) {
-      logger.trace("Processing Request Handler " + (count++) + " of "
+      logger.debug("Processing Request Handler " + (count++) + " of "
           + handlers.size());
       if (response != null && request != null && e != null) {
         hml.failedResponse(response, request, e);
@@ -184,7 +184,7 @@ public class HttpsProxyProcessor {
   private void stopTransaction(final long startTimeStamp, final int status) {
     long endTimeStamp = System.currentTimeMillis();
     long duration = endTimeStamp - startTimeStamp;
-    logger.trace("Duration: " + duration);
+    logger.debug("Duration: " + duration);
     ProxyStatistics.getSingleton().addDuration(duration / 1000);
     ProxyStatistics.getSingleton().incrementTransactionCount(status);
   }
@@ -219,7 +219,7 @@ public class HttpsProxyProcessor {
     }
     if (request.getMethod().equals("CONNECT")) {
       logger.info("Switching this connection to SSL");
-      logger.trace("CONNECT method found, sending reply");
+      logger.debug("CONNECT method found, sending reply");
       HttpMessageResponse response =
           runMessageExecutor(proxyRegistry.getMessageExecutor(), request);
       if (response != null) {
@@ -280,13 +280,13 @@ public class HttpsProxyProcessor {
     Vector<String> headers = new Vector<String>();
     while ((line = is.readLine()).length() > 0) {
       headers.addElement(line.replaceAll("[\r\n]+", ""));
-      logger.trace("request line: \"" + line + "\"");
+      logger.debug("request line: \"" + line + "\"");
       if (line.endsWith("\r\n\r\n")) {
         break;
       }
     }
     request.setHeaders(headers);
-    logger.trace("Finished Reading Header of Request");
+    logger.debug("Finished Reading Header of Request");
     char c;
     StringBuffer sb = new StringBuffer();
     while (is.ready()) {
@@ -297,7 +297,7 @@ public class HttpsProxyProcessor {
       request.addToBody(sb.toString().getBytes(),
           sb.toString().getBytes().length);
     }
-    logger.trace("Finished Reading Body of Request");
+    logger.debug("Finished Reading Body of Request");
     return request;
   }
 }

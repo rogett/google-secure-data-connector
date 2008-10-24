@@ -132,9 +132,9 @@ public class ClientRegistrationUtil {
       pw.flush();
     
       // Receive registration response packet
-      log.trace("Waiting for registration response");
+      log.debug("Waiting for registration response");
       String jsonResponseString = br.readLine();
-      log.trace("Read registration response: " + jsonResponseString);
+      log.debug("Read registration response: " + jsonResponseString);
 
       RegistrationResponse regResponse = new RegistrationResponse(
           new JSONObject(jsonResponseString));

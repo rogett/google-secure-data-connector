@@ -228,7 +228,7 @@ public class SSLServer extends Thread {
     try {
       LocalServer localServerThread = new LocalServer(serverSocket);
       localServerThread.start();
-      logger.trace("Started local server");
+      logger.debug("Started local server");
       SocketFactory clientSocketFactory = SocketFactory.getDefault();
       Socket localClientSocket =
           clientSocketFactory.createSocket("localhost", localPort);
