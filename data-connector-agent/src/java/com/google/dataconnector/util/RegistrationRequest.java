@@ -35,6 +35,13 @@ import org.apache.log4j.Logger;
 public class RegistrationRequest {
 
   private static final Logger log = Logger.getLogger(RegistrationRequest.class);
+
+  // Support old client names. for "securelink" branded code.
+  private static final String OLD_V1_SOCKET_ENTRY_NAME = 
+      "com.google.securelink.util.SocketResourceConfigEntry";
+  private static final String OLD_V1_URL_ENTRY_NAME = 
+      "com.google.securelink.util.UriResourceConfigEntry";
+
   static final String RESOURCES_KEY = "resources";
   static final String CLIENT_ID_KEY = "clientId";
   static final String SOCKS_PORT = "socksPort";
@@ -78,8 +85,10 @@ public class RegistrationRequest {
     for(int index=0; index < resourcesJsonArray.length(); index++) {
       JSONObject resourceInfoJson = resourcesJsonArray.getJSONObject(index);
       if (resourceInfoJson.has(SocketResourceConfigEntry.JSON_TYPE_KEY) && 
+              (resourceInfoJson.get(SocketResourceConfigEntry.JSON_TYPE_KEY).equals(
+                  SocketResourceConfigEntry.class.getName()) ||
               resourceInfoJson.get(SocketResourceConfigEntry.JSON_TYPE_KEY).equals(
-                  SocketResourceConfigEntry.class.getName())) {
+                  OLD_V1_SOCKET_ENTRY_NAME))) {
         socketResources.add(new SocketResourceConfigEntry(resourceInfoJson));
       }
     }
@@ -99,8 +108,10 @@ public class RegistrationRequest {
     for(int index=0; index < resourcesJsonArray.length(); index++) {
       JSONObject resourceInfoJson = resourcesJsonArray.getJSONObject(index);
       if (resourceInfoJson.has(UriResourceConfigEntry.JSON_TYPE_KEY) && 
-              resourceInfoJson.get(UriResourceConfigEntry.JSON_TYPE_KEY).equals(
-                  UriResourceConfigEntry.class.getName())) {
+              (resourceInfoJson.get(UriResourceConfigEntry.JSON_TYPE_KEY).equals(
+                  UriResourceConfigEntry.class.getName()) ||
+              resourceInfoJson.get(SocketResourceConfigEntry.JSON_TYPE_KEY).equals(
+                  OLD_V1_URL_ENTRY_NAME))) {
         uriResources.add(new UriResourceConfigEntry(resourceInfoJson));
       }
     }
