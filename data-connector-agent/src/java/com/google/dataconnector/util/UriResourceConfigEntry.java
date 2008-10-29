@@ -57,9 +57,9 @@ public class UriResourceConfigEntry extends ResourceConfigEntry {
    * @throws ResourceConfigException
    */
   public UriResourceConfigEntry(final Long key, final String pattern, 
-      String allowedEntities, final int proxyPort, final int seqNum) 
-      throws ResourceConfigException {
-    super(key, seqNum);
+      String allowedEntities, final int proxyPort, final int seqNum,
+      String appIds) throws ResourceConfigException {
+    super(key, seqNum, appIds);
     setPattern(pattern);
     setAllowedEntities(allowedEntities);
     this.proxyPort = proxyPort;
@@ -76,8 +76,8 @@ public class UriResourceConfigEntry extends ResourceConfigEntry {
    * @throws ResourceConfigException if pattern is invalid.
    */
   public UriResourceConfigEntry(final String pattern, String allowedEntities, final int proxyPort,
-      final int seqNum) throws ResourceConfigException {
-    super(new Random().nextLong(), seqNum);
+      final int seqNum, String appIds) throws ResourceConfigException {
+    super(new Random().nextLong(), seqNum, appIds);
     setPattern(pattern);
     setAllowedEntities(allowedEntities);
     this.proxyPort = proxyPort;
@@ -97,6 +97,9 @@ public class UriResourceConfigEntry extends ResourceConfigEntry {
     setPattern(uriEntryJson.getString(JSON_URI_PATTERN_KEY));
     setAllowedEntities(uriEntryJson.getString(JSON_ALLOWEDENTITIES_KEY));
     proxyPort = uriEntryJson.getInt(JSON_PROXY_PORT_KEY);
+    if (uriEntryJson.has(JSON_ALLOWED_APPIDS_KEY)) {
+     setAppIds(uriEntryJson.getString(JSON_ALLOWED_APPIDS_KEY));
+    }
   }
   
   @Override
@@ -155,25 +158,10 @@ public class UriResourceConfigEntry extends ResourceConfigEntry {
       jsonObject.put(JSON_URI_PATTERN_KEY, uriPattern.toString());
       jsonObject.put(JSON_PROXY_PORT_KEY, proxyPort);
       jsonObject.put(JSON_ALLOWEDENTITIES_KEY, getAllowedEntitiesAsString());
+      jsonObject.put(JSON_ALLOWED_APPIDS_KEY, getAppIdsAsString());
     } catch (JSONException e) {
       throw new RuntimeException(e);
     }
     return jsonObject;
-  }
-  
-  /**
-   * Creates a {@link UriResourceConfigEntry} from a colon separated string entry with the 
-   * format, "hostname:ip".  The key is randomly generated. 
-   * 
-   * @param propertyString String formatted "hostname:ip" representing the entry.
-   * @param allowedEntities comma separated list of the allowed entities (user1,group1)
-   * @param proxyPort The Secure Link http proxy port associated with this URI.
-   * @param seqNum the resource seq num
-   * @returns a created object.
-   * @throws ResourceConfigException if the format or contents of the string is invalid in anyway.
-   */
-  public static UriResourceConfigEntry createEntryFromString(final String propertyString, 
-      String allowedEntities, final int proxyPort, int seqNum) throws ResourceConfigException {
-    return new UriResourceConfigEntry(propertyString, allowedEntities, proxyPort, seqNum);
   }
 }

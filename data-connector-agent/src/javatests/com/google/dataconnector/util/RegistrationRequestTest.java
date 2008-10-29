@@ -62,7 +62,8 @@ public class RegistrationRequestTest extends TestCase {
   
   public void testToJson() throws JSONException, ResourceConfigException {
     RegistrationRequest requestJson = new RegistrationRequest(fakeClientConf);
-    RegistrationRequest requestJson1 = new RegistrationRequest(new JSONObject(requestJson.toJson().toString()));
+    RegistrationRequest requestJson1 = 
+        new RegistrationRequest(new JSONObject(requestJson.toJson().toString()));
     assertEquals(requestJson, requestJson1);
     JSONObject rawJson = requestJson.toJson();
     JSONArray array = rawJson.getJSONArray(RegistrationRequest.RESOURCES_KEY);

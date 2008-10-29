@@ -47,11 +47,12 @@ public class SocketResourceConfigEntry extends ResourceConfigEntry {
    * @param pattern The socket pattern in the form of "hostname:port"
    * @param allowedEntities comma separated list of the allowed entities (user1,group1)
    * @param seqNum the resource seq num
+   * @param appIds comma separated list of the allowed app ids
    * @throws ResourceConfigException
    */
   public SocketResourceConfigEntry(final Long key, final String pattern,
-      String allowedEntities, final int seqNum) throws ResourceConfigException {
-    super(key, seqNum);
+      String allowedEntities, final int seqNum, String appIds) throws ResourceConfigException {
+    super(key, seqNum, appIds);
     setPattern(pattern);
     setAllowedEntities(allowedEntities);
   }
@@ -62,11 +63,12 @@ public class SocketResourceConfigEntry extends ResourceConfigEntry {
    * @param pattern The socket pattern in the form of "hostname:port"
    * @param allowedEntities comma separated list of the allowed entities (user1,group1)
    * @param seqNum the resource seq num
+   * @param appIds comma separated list of the allowed app ids
    * @throws ResourceConfigException if pattern is invalid.
    */
-  public SocketResourceConfigEntry(final String pattern, String allowedEntities, final int seqNum) 
-      throws ResourceConfigException {
-    super(new Random().nextLong(), seqNum);
+  public SocketResourceConfigEntry(final String pattern, String allowedEntities, final int seqNum,
+      String appIds) throws ResourceConfigException {
+    super(new Random().nextLong(), seqNum, appIds);
     setPattern(pattern);
     setAllowedEntities(allowedEntities);
   }
@@ -83,6 +85,9 @@ public class SocketResourceConfigEntry extends ResourceConfigEntry {
     super(socketEntryJson.getLong(JSON_SECURITY_KEY), socketEntryJson);
     setPattern(socketEntryJson.getString(JSON_PATTERN_KEY));
     setAllowedEntities(socketEntryJson.getString(JSON_ALLOWEDENTITIES_KEY));
+    if (socketEntryJson.has(JSON_ALLOWED_APPIDS_KEY)) {
+      setAppIds(socketEntryJson.getString(JSON_ALLOWED_APPIDS_KEY));
+     }
   }
 
   /**
@@ -138,6 +143,7 @@ public class SocketResourceConfigEntry extends ResourceConfigEntry {
       jsonObject.put(JSON_SECURITY_KEY, securityKey);
       jsonObject.put(JSON_PATTERN_KEY, getPattern());
       jsonObject.put(JSON_ALLOWEDENTITIES_KEY, getAllowedEntitiesAsString());
+      jsonObject.put(JSON_ALLOWED_APPIDS_KEY, getAppIdsAsString());
     } catch (JSONException e) {
       throw new RuntimeException(e);
     }
@@ -224,21 +230,5 @@ public class SocketResourceConfigEntry extends ResourceConfigEntry {
     public String toString() {
       return URLID + hostAddress + ":" + port;
     }
-  }
-  
-  /**
-   * Creates a {@link SocketResourceConfigEntry} from a colon separated string entry with the 
-   * format, "hostname:ip".  The key is randomly generated. 
-   * 
-   * @param resourceString String formatted "hostname:ip" representing the entry.
-   * @param allowedEntities comma separated list of the allowed entities (user1,group1)
-   * @param seqNum the resource seq num
-   * @returns a created object.
-   * @throws ResourceConfigException if the format or contents of the string is invalid in anyway.
-   */
-  public static SocketResourceConfigEntry createEntryFromString(final String resourceString,
-      String allowedEntities, int seqNum) 
-      throws ResourceConfigException {
-    return new SocketResourceConfigEntry(resourceString, allowedEntities, seqNum);
   }
 }

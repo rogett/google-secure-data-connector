@@ -37,11 +37,12 @@ public class ResourceConfigEntryTest extends TestCase {
   
   private static final String TEST_SOCKET_PATTERN = "socket://foo.com:3999";
   private static final String TEST_ALLOWED_ENTITIES = "user1,group1";
+  public static final String TEST_APPIDS = "src1,src2";
   
   public void testGetSecurityKey() {
     
     // Because the class is abstract, stub out all abstract methods and test the implemented ones.
-    ResourceConfigEntry entry = new ResourceConfigEntry(VALID_KEY, VALID_SEQNUM) {
+    ResourceConfigEntry entry = new ResourceConfigEntry(VALID_KEY, VALID_SEQNUM, TEST_APPIDS) {
       @Override
       public String getPattern() { return "";}
       @Override
@@ -60,10 +61,10 @@ public class ResourceConfigEntryTest extends TestCase {
     // Valid case.  
     ResourceConfigEntry entry = 
         new SocketResourceConfigEntry(VALID_KEY, TEST_SOCKET_PATTERN, TEST_ALLOWED_ENTITIES, 
-            VALID_SEQNUM);
+            VALID_SEQNUM, TEST_APPIDS);
     ResourceConfigEntry entry2 = 
         new SocketResourceConfigEntry(VALID_KEY, TEST_SOCKET_PATTERN, TEST_ALLOWED_ENTITIES,
-            VALID_SEQNUM);
+            VALID_SEQNUM, TEST_APPIDS);
     assertTrue(entry.equals(entry2));
     
     // Invalid case
@@ -75,7 +76,7 @@ public class ResourceConfigEntryTest extends TestCase {
     // create en try to test with  
     ResourceConfigEntry entry = 
       new SocketResourceConfigEntry(VALID_KEY, TEST_SOCKET_PATTERN, TEST_ALLOWED_ENTITIES,
-          VALID_SEQNUM);
+          VALID_SEQNUM, null);
     
     // are the entities sorted
     assertEquals("group1,user1", entry.getAllowedEntitiesAsString());
@@ -89,6 +90,13 @@ public class ResourceConfigEntryTest extends TestCase {
   }
   
   public void testParseResourceRule() {
+    // valid case
+    try {
+      ClientConf.parseResourceRule("rule user1,group1 src1,src2");
+    } catch (ResourceConfigException e) {
+      fail("resource rule parsing failed when appids are included");
+    }
+    
     // valid case
     try {
       ClientConf.parseResourceRule("rule user1,group1");

@@ -48,15 +48,16 @@ public class SocketResourceConfigEntryTest extends TestCase {
   @Override
   protected void setUp() throws ResourceConfigException {
     entry = new SocketResourceConfigEntry(TEST_KEY, TEST_WORKING_PATTERN, TEST_ALLOWED_ENTRIES,
-        VALID_SEQNUM);
+        VALID_SEQNUM, ResourceConfigEntryTest.TEST_APPIDS);
   }
   
   public void testCreateFromPattern() throws ResourceConfigException {
     // Successful case.  Will throw a ResourceConfigException if invalid.
     assertEquals(entry.getPattern(), TEST_WORKING_PATTERN);
     assertEquals(entry.getSecurityKey(), TEST_KEY);
+    assertEquals(entry.getAppIdsAsString(), ResourceConfigEntryTest.TEST_APPIDS);
     entry = new SocketResourceConfigEntry(TEST_WORKING_PATTERN, TEST_ALLOWED_ENTRIES,
-        VALID_SEQNUM);
+        VALID_SEQNUM, null);
     assertNotNull(entry.securityKey);
   }
   
@@ -86,6 +87,32 @@ public class SocketResourceConfigEntryTest extends TestCase {
     assertEquals(entryJson.get(SocketResourceConfigEntry.JSON_PATTERN_KEY), TEST_WORKING_PATTERN);
     assertEquals(entryJson.get(ResourceConfigEntry.JSON_ALLOWEDENTITIES_KEY), 
         TEST_ALLOWED_ENTRIES_SORTED);
+  }
+  
+  public void testCreateFromJsonAndToJsonWithSrcids() throws JSONException, 
+      ResourceConfigException {
+
+    // Setup test JSON object
+    JSONObject testJson = entry.toJSON();
+    testJson.put(SocketResourceConfigEntry.JSON_TYPE_KEY, SocketResourceConfigEntry.class.getName());
+    testJson.put(SocketResourceConfigEntry.JSON_SECURITY_KEY, TEST_KEY);
+    testJson.put(SocketResourceConfigEntry.JSON_PATTERN_KEY, TEST_WORKING_PATTERN);
+    testJson.put(ResourceConfigEntry.JSON_ALLOWEDENTITIES_KEY, TEST_ALLOWED_ENTRIES);
+    testJson.put(ResourceConfigEntry.JSON_ALLOWED_APPIDS_KEY, ResourceConfigEntryTest.TEST_APPIDS);
+    
+    // Populate entry with test JSON.
+    entry = new SocketResourceConfigEntry(testJson);
+    
+    // Get JSON from object and verify.
+    JSONObject entryJson = entry.toJSON();
+    assertEquals(entryJson.get(SocketResourceConfigEntry.JSON_TYPE_KEY), 
+        SocketResourceConfigEntry.class.getName());
+    assertEquals(entryJson.get(SocketResourceConfigEntry.JSON_SECURITY_KEY), TEST_KEY);
+    assertEquals(entryJson.get(SocketResourceConfigEntry.JSON_PATTERN_KEY), TEST_WORKING_PATTERN);
+    assertEquals(entryJson.get(ResourceConfigEntry.JSON_ALLOWEDENTITIES_KEY), 
+        TEST_ALLOWED_ENTRIES_SORTED);
+    assertEquals(entryJson.get(ResourceConfigEntry.JSON_ALLOWED_APPIDS_KEY), 
+        ResourceConfigEntryTest.TEST_APPIDS);
   }
   
   /**

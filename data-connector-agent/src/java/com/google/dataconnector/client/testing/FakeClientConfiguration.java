@@ -98,10 +98,10 @@ public class FakeClientConfiguration {
           ClientConf.parseResourceRule(fakeClientProps.getProperty(keyName));
       if (keyName.startsWith("socketrule")) {
         entry = new SocketResourceConfigEntry(secretKey,
-            resourceStr[0], resourceStr[1], 1);
+            resourceStr[0], resourceStr[1], 1, resourceStr[2]);
       } else if (keyName.startsWith("httprule")) {
         entry = new UriResourceConfigEntry(secretKey,
-            resourceStr[0], resourceStr[1], 3128, 2);
+            resourceStr[0], resourceStr[1], 3128, 2, resourceStr[2]);
       } else {
         continue;
       }
@@ -128,6 +128,8 @@ public class FakeClientConfiguration {
     clientProps.setProperty("startingHttpProxyPort", "3128");
     clientProps.setProperty("resource1", "socket://128.195.131.4:143 user1,user2,group1");
     clientProps.setProperty("resource2", "http://.*.corp.example.com:.*/.* user1,user2,group1");
+    clientProps.setProperty("resource3", 
+        "http://.*.corp.example.com:.*/.* user3,user4 srcid1,srcid2");
     clientProps.setProperty("sshd", "third_party/foo/bar/sshd");
     clientProps.setProperty("logPropertiesFile", "logging.properties");
     clientProps.setProperty("sslKeyStorePassword", "sslKeyStorePassword");

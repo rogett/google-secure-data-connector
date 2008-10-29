@@ -110,7 +110,7 @@ public class RegistrationRequest {
       if (resourceInfoJson.has(UriResourceConfigEntry.JSON_TYPE_KEY) && 
               (resourceInfoJson.get(UriResourceConfigEntry.JSON_TYPE_KEY).equals(
                   UriResourceConfigEntry.class.getName()) ||
-              resourceInfoJson.get(SocketResourceConfigEntry.JSON_TYPE_KEY).equals(
+              resourceInfoJson.get(UriResourceConfigEntry.JSON_TYPE_KEY).equals(
                   OLD_V1_URL_ENTRY_NAME))) {
         uriResources.add(new UriResourceConfigEntry(resourceInfoJson));
       }

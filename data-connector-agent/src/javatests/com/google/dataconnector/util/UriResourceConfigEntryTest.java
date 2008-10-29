@@ -47,7 +47,8 @@ public class UriResourceConfigEntryTest extends TestCase {
   @Override
   protected void setUp() throws ResourceConfigException {
     entry = new UriResourceConfigEntry(VALID_KEY, VALID_PATTERN, 
-        TEST_ALLOWED_ENTRIES, TEST_PROXY_PORT, VALID_SEQNUM);
+        TEST_ALLOWED_ENTRIES, TEST_PROXY_PORT, VALID_SEQNUM, 
+        ResourceConfigEntryTest.TEST_APPIDS);
   }
   
   public void testConstructor() throws ResourceConfigException {
@@ -55,8 +56,9 @@ public class UriResourceConfigEntryTest extends TestCase {
     assertEquals(entry.getSecurityKey(), VALID_KEY);
     assertEquals(entry.getPattern(), VALID_PATTERN);
     assertEquals(entry.getPort(), TEST_PROXY_PORT);
+    assertEquals(entry.getAppIdsAsString(), ResourceConfigEntryTest.TEST_APPIDS);
     entry = new UriResourceConfigEntry(VALID_PATTERN, TEST_ALLOWED_ENTRIES, TEST_PROXY_PORT,
-        VALID_SEQNUM);
+        VALID_SEQNUM, null);
     assertNotNull(entry.securityKey);
   }
   
@@ -65,6 +67,33 @@ public class UriResourceConfigEntryTest extends TestCase {
     assertFalse(entry.isAuthorized(VALID_KEY, NOT_AUTHORIZED_URL));
     assertFalse(entry.isAuthorized(INVALID_KEY, AUTHORIZED_URL));
     assertFalse(entry.isAuthorized(VALID_KEY, INVALID_URL));
+  }
+  
+  public void testCreateFromJsonAndToJsonWithSrcids() throws JSONException, 
+      ResourceConfigException {
+    // Setup test JSON with fake values.
+    JSONObject testJson = entry.toJSON();
+    testJson.put(UriResourceConfigEntry.JSON_TYPE_KEY, UriResourceConfigEntry.class.getName());
+    testJson.put(UriResourceConfigEntry.JSON_SECURITY_KEY, VALID_KEY);
+    testJson.put(UriResourceConfigEntry.JSON_URI_PATTERN_KEY, VALID_PATTERN);
+    testJson.put(UriResourceConfigEntry.JSON_PROXY_PORT_KEY, TEST_PROXY_PORT);
+    testJson.put(ResourceConfigEntry.JSON_ALLOWEDENTITIES_KEY, TEST_ALLOWED_ENTRIES);
+    testJson.put(ResourceConfigEntry.JSON_ALLOWED_APPIDS_KEY, ResourceConfigEntryTest.TEST_APPIDS);
+    
+    // Create from test JSON.
+    entry = new UriResourceConfigEntry(testJson);
+    
+    // Call toJSON() and compare values with testJSON.
+    JSONObject entryJson = entry.toJSON();
+    assertEquals(entryJson.get(UriResourceConfigEntry.JSON_TYPE_KEY), 
+        UriResourceConfigEntry.class.getName());
+    assertEquals(entryJson.get(UriResourceConfigEntry.JSON_SECURITY_KEY), VALID_KEY);
+    assertEquals(entryJson.get(UriResourceConfigEntry.JSON_URI_PATTERN_KEY), VALID_PATTERN);
+    assertEquals(entryJson.get(UriResourceConfigEntry.JSON_PROXY_PORT_KEY), TEST_PROXY_PORT);
+    assertEquals(entryJson.get(ResourceConfigEntry.JSON_ALLOWEDENTITIES_KEY), 
+        TEST_ALLOWED_ENTRIES_SORTED);
+    assertEquals(entryJson.get(ResourceConfigEntry.JSON_ALLOWED_APPIDS_KEY), 
+        ResourceConfigEntryTest.TEST_APPIDS);
   }
   
   public void testCreateFromJsonAndToJson() throws JSONException, ResourceConfigException {

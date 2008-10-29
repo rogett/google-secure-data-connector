@@ -173,14 +173,17 @@ public class ClientConf {
         String value = clientProps.getProperty(keyName);
         try {
           String[] resourceStr = ClientConf.parseResourceRule(value);
+          String pattern = resourceStr[0];       
           String allowedEntities = resourceStr[1];
-          String pattern = resourceStr[0];          
+          String appIds = (resourceStr.length > 2) ? resourceStr[2] : null;
           ResourceConfigEntry entry = null;
           if (pattern.startsWith(SocketResourceConfigEntry.URLID)) {
-            entry = new SocketResourceConfigEntry(pattern, allowedEntities, resourceSeqNum);
+            entry = new SocketResourceConfigEntry(pattern, allowedEntities, resourceSeqNum, 
+                appIds);
           } else if (pattern.startsWith(UriResourceConfigEntry.HTTPURLID) || 
               pattern.startsWith(UriResourceConfigEntry.HTTPSURLID)) {
-            entry = new UriResourceConfigEntry(pattern, allowedEntities, proxyPort, resourceSeqNum);
+            entry = new UriResourceConfigEntry(pattern, allowedEntities, proxyPort, resourceSeqNum,
+                appIds);
             proxyPort++; // We create a proxy server per URL pattern.
           }
           if (null != entry) {
@@ -518,15 +521,17 @@ public class ClientConf {
    * parses the resourceRule (of pattern   <rule> <allowed entities>)
    * into a String[] with 1st string = <rule> 
    * and 2nd string = <allowed entities>
+   * 3rd string = operations
+   * 4th string = appids
    * 
-   * If either of the above 2 are not found in the resourceRule, ResourceConfigException is thrown
+   * If either of the above is not found in the resourceRule, ResourceConfigException is thrown
    * 
    * @param resourceRule
    * @return String[] with rule and allowed entities in 2 different strings
    * @throws ResourceConfigException if either of the above 2 are not found
    */
   public static String[] parseResourceRule(String resourceRule) throws ResourceConfigException {
-    String[] resourceStr = resourceRule.split("[\\s]+", 2);
+    String[] resourceStr = resourceRule.split("[\\s]+");
     if (resourceStr.length < 2) {
       throw new ResourceConfigException("Expected but not found both pattern & allowed entities " +
           " in this rule: " + resourceRule);

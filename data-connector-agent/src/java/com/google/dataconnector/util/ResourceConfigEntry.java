@@ -33,6 +33,8 @@ public abstract class ResourceConfigEntry {
 
   protected static final String JSON_ALLOWEDENTITIES_KEY = "allowedEntities";
   protected static final String JSON_SEQNUM = "seqNum";
+  protected static final String JSON_ALLOWED_APPIDS_KEY = "appIds";
+
 
   /** Security Key for this resource */
   Long securityKey;
@@ -42,6 +44,9 @@ public abstract class ResourceConfigEntry {
   
   /** entities allowed to access this resource - sorted list of strings */
   List<String> allowedEntities;
+  
+  /** Application Ids allowed to access this resource - list of strings */
+  List<String> appIds;
 
   /**
    * Sets the random security key & seqNum for this resource.
@@ -54,11 +59,14 @@ public abstract class ResourceConfigEntry {
   
   /**
    * Sets the random security key & seqNum for this resource.
-   * @param key
+   * @param key The unique key both securing and identifying this resource
+   * @param seqNum the resource seq num
+   * @param appIds comma separated list of the allowed app ids
    */
-  public ResourceConfigEntry(final Long key, final int seqNum) {
+  public ResourceConfigEntry(final Long key, final int seqNum, String appIds) {
     this.securityKey = key;
     this.seqNum = seqNum;
+    setAppIds(appIds);
   }
   
   /**
@@ -75,6 +83,10 @@ public abstract class ResourceConfigEntry {
           getAllowedEntities() != null &&
           entry.getAllowedEntities().containsAll(getAllowedEntities())) ||
          (entry.getAllowedEntities() == null && getAllowedEntities() == null)) &&
+        ((entry.getAppIds() != null && 
+            getAppIds() != null &&
+            entry.getAppIds().containsAll(getAppIds())) ||
+           (entry.getAppIds() == null && getAppIds() == null)) &&
         entry.getPattern().equals(getPattern()));
   }
   
@@ -133,6 +145,13 @@ public abstract class ResourceConfigEntry {
   }
   
   /**
+   * Retrieves the appIds
+   */
+  public List<String> getAppIds() {
+    return appIds;
+  }
+  
+  /**
    * Retrieves the allowedEntities
    */
   public List<String> getAllowedEntities() {
@@ -165,6 +184,34 @@ public abstract class ResourceConfigEntry {
   }
   
   /**
+   * Retrieves the appIds as as a comma separated string
+   */
+  public String getAppIdsAsString() {
+    if (this.appIds == null) {
+      return null;
+    }
+    StringBuilder sbuf = new StringBuilder();
+    boolean firstOne = true;
+    for (String s : this.appIds) {
+      sbuf.append((!firstOne) ? "," + s : s);
+      firstOne = false;
+    }
+    return sbuf.toString();
+  }
+  
+  /**
+   * Sets the appIds - input is a comma separated set of strings
+   */
+  public void setAppIds(String appIds) {
+    if (appIds == null || appIds.trim().length() == 0) {
+      this.appIds = null;
+    } else {
+      this.appIds = Arrays.asList(appIds.split("\\s*,\\s*"));
+      Collections.sort(this.appIds);
+    }
+  }
+
+  /**
    * Converts entry into a JSON Object.
    * 
    * @returns a JSON Object representing the resource entry.
@@ -172,7 +219,7 @@ public abstract class ResourceConfigEntry {
   public abstract JSONObject toJSON();
   
   /**
-   * returns the seqNum field value from the input Json String - sent by the client
+   * returns the seqNum field value from the input Json 
    * 
    * @param jsonString part of the registration request string sent by the client
    * @return the seqNum field value, if it exists. otherwise, 0
