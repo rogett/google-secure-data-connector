@@ -248,7 +248,7 @@ Build File for tunnel-server client and reference server.
     </tar>
   </target>
     
-  <target name="binary-distro" depends="jsocks,wpg-proxy,jar">
+  <target name="binary-distro" depends="jsocks,wpg-proxy,jar,openssh">
     <tar 
         destfile="${dist}/tunnel-server-${version}-${timestamp}-bin.tar.gz"
         longfile="gnu"
