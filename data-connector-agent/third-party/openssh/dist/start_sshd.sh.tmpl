@@ -16,6 +16,15 @@
 # * along with this program; if not, write to the Free Software
 # * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+
+# If running under Cygwin used sshd.exe
+uname -a |grep -i cygwin >/dev/null
+ if [ $? = 0 ]; then
+   SSHDBIN=sshd.exe
+  else
+   SSHDBIN=ssh
+ fi
+
 OPENSSH_HOME=_WSCLIENT_HOME_/third-party/openssh
 
-$OPENSSH_HOME/sbin/sshd -i -f $OPENSSH_HOME/etc/sshd_config
+$OPENSSH_HOME/sbin/$SSHDBIN -i -f $OPENSSH_HOME/etc/sshd_config

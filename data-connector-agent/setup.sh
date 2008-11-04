@@ -22,6 +22,14 @@
 # script sets proper permissions on openssh files and sets config file path
 # locations anchored to the cwd of this script.
 
+# If running under Cygwin used sshd.exe
+uname -a |grep -i cygwin >/dev/null
+ if [ $? = 0 ]; then
+   installmode=cygwin
+  else
+   installmode=linux
+ fi
+
 # Get next available UID after 1000.
 return_highest_id() {
   HIGHEST_ID=0
@@ -44,6 +52,11 @@ return_highest_id() {
 # See if we already have a woodstock user.
 check_for_user() {
   grep "woodstock" /etc/passwd
+  return $?
+}
+
+check_for_user_cygwin() {
+  grep "woodstock:unused_by_nt" /etc/passwd
   return $?
 }
 
@@ -76,26 +89,47 @@ if [ $? == 0 ]; then
   exit 1
 fi
 
-# GET LINUX PW LINE FOR WOODSTOCK USER
-return_highest_id "/etc/passwd"
-let HI_UID=$?+1
-return_highest_id "/etc/group"
-let HI_GID=$?+1
-echo $HI_GID
-LINUX_PWLINE="woodstock:$HI_UID:$HI_GID:100::$OPENSSH_HOME/home/woodstock:/bin/false"
+if [ $installmode = "linux" ] ; then
+  # GET LINUX PW LINE FOR WOODSTOCK USER
+  return_highest_id "/etc/passwd"
+  let HI_UID=$?+1
+  return_highest_id "/etc/group"
+  let HI_GID=$?+1
+  echo $HI_GID
+  LINUX_PWLINE="woodstock:$HI_UID:$HI_GID:100::$OPENSSH_HOME/home/woodstock:/bin/false"
+  
+  check_for_user
+	if [ $? != 0 ]; then
+	 if [ $UID != 0 ]; then
+	   echo not run as root, please add this line to /etc/passwd
+	   echo $LINUX_PWLINE
+	 else
+	   echo adding user woodstock to password file
+	   echo $LINUX_PWLINE >> /etc/passwd
+	 fi
+	else
+	 echo user woodstock already defined in /etc/passwd
+	fi
+	
+    sed -i rules.properties -e  's^sshd=.*$^sshd='$OPENSSH_HOME'/bin/start_sshd.sh'	
+	
+fi
 
+if [ $installmode = "cygwin" ] ; then
+  check_for_user_cygwin
+	if [ $? != 0 ]; then
+	   echo "local user not found in /etc/passwd."
+	   echo "please create the windows user account and run mkpasswd -l >/etc/passwd"
+	  
+	else
+	 echo "local user woodstock found in /etc/passwd"
 
-check_for_user
-if [ $? != 0 ]; then
- if [ $UID != 0 ]; then
-   echo not run as root, please add this line to /etc/passwd
-   echo $LINUX_PWLINE
- else
-   echo adding user woodstock to password file
-   echo $LINUX_PWLINE >> /etc/passwd
- fi
-else
- echo user woodstock already defined in /etc/passwd
+	sed -i /etc/passwd -e  's^:/home/woodstock:^:'$OPENSSH_HOME'/home/woodstock:^'
+
+	fi
+	
+	sed -i rules.properties -e  's^sshd=.*$^sshd=c:\\\\cygwin\\\\bin\\\\bash.exe --login -i -c  "'$OPENSSH_HOME'/bin/start_sshd.sh"^'
+	
 fi
 
 #SETUP SSHD RUNTIME

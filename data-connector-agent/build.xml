@@ -97,6 +97,14 @@ Build File for tunnel-server client and reference server.
         dir="third-party/openssh"/>
   </target>
 
+    <target name="opensshwin" depends="init">
+    <ant 
+        antfile="build.xml"
+        dir="third-party/openssh"
+		target="copysshdwin"/>
+  </target>
+  
+  
   <target name="setup" depends="jar">
     <exec executable="${basedir}/setup.sh"/>
   </target>
@@ -151,7 +159,7 @@ Build File for tunnel-server client and reference server.
         <include name="com/google/securelink/json/**" />
       </fileset>
       <manifest>
-        <attribute name="Implementation-Title" value="Secure Link Client Util"/>
+        <attribute name="Implementation-Title" value="Secure Data Connector"/>
         <attribute name="Implementation-Version" value="${version} ${TODAY}"/>
         <attribute name="Implementation-Vendor" value="Google"/>
       </manifest>
@@ -216,6 +224,12 @@ Build File for tunnel-server client and reference server.
         <include name="third-party/cglib/**"/>
         <include name="third-party/easymock/**"/>
         <include name="third-party/apache-log4j/**"/>
+	    <include name="third-party/java-service-wrapper/COPYING"/>
+	    <include name="third-party/java-service-wrapper/dist/**"/>
+	    <include name="third-party/java-service-wrapper/windows/**"/>
+	    <include name="third-party/java-service-wrapper/windows/lib/**"/>
+	    <include name="third-party/java-service-wrapper/windows/logs/**"/>
+	    <include name="third-party/java-service-wrapper/windows/conf/**"/>
      </tarfileset>
       <tarfileset dir="." mode="600">
         <include name="third-party/openssh/etc/*"/>
@@ -223,8 +237,10 @@ Build File for tunnel-server client and reference server.
       </tarfileset>
       <tarfileset dir="." mode="755">
         <include name="third-party/openssh/sbin/*"/>
+		<include name="third-party/openssh/sbin/*"/>
+		<include name="third-party/java-service-wrapper/windows/*"/>
         <include name="runclient.sh"/>
-        <include name="runserver.sh"/>
+	<include name="runclient.bat"/>
         <include name="setup.sh"/>
         <include name="start.sh"/>
         <include name="stop.sh"/>
@@ -232,7 +248,7 @@ Build File for tunnel-server client and reference server.
     </tar>
   </target>
     
-  <target name="binary-distro" depends="jsocks,wpg-proxy,jar,openssh">
+  <target name="binary-distro" depends="jsocks,wpg-proxy,jar">
     <tar 
         destfile="${dist}/tunnel-server-${version}-${timestamp}-bin.tar.gz"
         longfile="gnu"
@@ -269,7 +285,9 @@ Build File for tunnel-server client and reference server.
           third-party/junit/**,
           third-party/cglib/**,
           third-party/easymock/**,
-          third-party/apache-log4j/**"
+          third-party/apache-log4j/**
+	      third-party/java-service-wrapper/**
+	      third-party/java-service-wrapper/dist/**"
         compression="gzip">
       <tarfileset dir="." mode="600">
         <include name="third-party/openssh/etc/*"/>
@@ -278,7 +296,6 @@ Build File for tunnel-server client and reference server.
       <tarfileset dir="." mode="755">
         <include name="third-party/openssh/sbin/*"/>
         <include name="runclient.sh"/>
-        <include name="runserver.sh"/>
         <include name="setup.sh"/>
         <include name="start.sh"/>
         <include name="stop.sh"/>
@@ -286,6 +303,68 @@ Build File for tunnel-server client and reference server.
     </tar>
   </target>
 
+  
+  <target name="binary-distro-win" depends="jsocks,wpg-proxy,jar,opensshwin">
+    <tar 
+        destfile="${dist}/tunnel-server-${version}-${timestamp}-bin-win.tar.gz"
+        longfile="gnu"
+        basedir="."
+        includes="config/*,
+          COPYING,
+          CHANGE_LOG,
+          rules.properties,
+          logging.properties,
+          bin/**,
+          build/**,
+          third-party/wpg-proxy/bin/*.jar,
+          third-party/wpg-proxy/uml/**,
+          third-party/wpg-proxy/third-party/**,
+          third-party/wpg-proxy/resources/**,
+          third-party/wpg-proxy/lib/**,
+          third-party/wpg-proxy/*.html,
+          third-party/wpg-proxy/README,
+          third-party/wpg-proxy/license.txt,
+          third-party/jsocks/bin/*.jar,
+          third-party/jsocks/third-party/**,
+          third-party/jsocks/docs/*,
+          third-party/jsocks/COPYING,
+          third-party/openssh/CREDITS,
+          third-party/openssh/LICENCE,
+          third-party/openssh/dist/*.tmpl,
+          third-party/commons-*/*.txt,
+          third-party/commons-*/*.jar,
+          third-party/jsch/*.txt,
+          third-party/jsch/*.jar,
+          third-party/jline/*.txt,
+          third-party/jline/*.jar,
+          third-party/json/**,
+          third-party/junit/**,
+          third-party/cglib/**,
+          third-party/easymock/**,
+          third-party/apache-log4j/**
+	      third-party/java-service-wrapper/**
+	      third-party/java-service-wrapper/dist/**
+	      third-party/java-service-wrapper/windows/**
+	      third-party/java-service-wrapper/windows/lib/**
+	      third-party/java-service-wrapper/windows/logs/**
+	      third-party/java-service-wrapper/windows/conf/**"
+        compression="gzip">
+      <tarfileset dir="." mode="600">
+        <include name="third-party/openssh/etc/*"/>
+        <include name="third-party/openssh/home/woodstock/.ssh/*"/>
+      </tarfileset>
+      <tarfileset dir="." mode="755">
+        <include name="third-party/openssh/sbin/*"/>
+	    <include name="third-party/java-service-wrapper/windows/*"/>
+        <include name="runclient.sh"/>
+	    <include name="runclient.bat"/>
+        <include name="setup.sh"/>
+        <include name="start.sh"/>
+        <include name="stop.sh"/>
+      </tarfileset>
+    </tar>
+  </target>
+  
   <target name="install" depends="jar">
     <exec executable="sh">
       <arg value="setup.sh"/>
@@ -293,6 +372,7 @@ Build File for tunnel-server client and reference server.
   </target>
 
   <target name="all" depends="source-distro,binary-distro,test,install"/>
+  <target name="cygwin" depends="source-distro,binary-distro-win,test,install"/>
 
   <!-- Start of Testing-related stuff -->
   <property name="testSrc.home"       value="src/javatests"/>

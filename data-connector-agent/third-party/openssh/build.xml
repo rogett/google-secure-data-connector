@@ -11,6 +11,7 @@
 
   <property name="openssh_targz" value="dist/openssh-4.7p1.tar.gz" />
   <property name="sshd" value="src/openssh-4.7p1/sshd" />
+  <property name="sshdwin" value="src/openssh-4.7p1/sshd.exe" />
   <property name="osrc" value="src" />
   <property name="sbin" value="sbin" />
   <property name="sshbin" value="bin" />
@@ -56,11 +57,24 @@
     </exec>
   </target>
 
+  <target name="copysshdwin" depends="makesshwin">
+    <copy file="${sshdwin}" todir="${sbin}"/>
+    <chmod file="${sbin}/sshd.exe" perm="755"/>
+  </target>
+
+    <target name="makesshwin" depends="configure">
+    <exec
+        dir="${openssh_src}"
+        executable="make">
+      <arg value="sshd.exe"/>
+    </exec>
+  </target>
+
   <target name="copysshd" depends="makessh">
     <copy file="${sshd}" todir="${sbin}"/>
     <chmod file="${sbin}/sshd" perm="755"/>
   </target>
-
+  
   <target name="clean" description="Deletes all build files.">
     <delete dir="${sbin}" />
     <delete dir="${osrc}" />
