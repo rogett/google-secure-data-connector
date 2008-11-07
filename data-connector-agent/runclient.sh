@@ -41,8 +41,6 @@ while /bin/true; do
   -secureLinkServerPort 25922 \
   -logPropertiesFile ./logging.properties \
   -useSsl \
-  -sslKeyStoreFile ./config/secureLinkClientTrustStore \
-  -sslKeyStorePassword woodstock
   sleep 5
   echo "RECONNECTING..."
 done

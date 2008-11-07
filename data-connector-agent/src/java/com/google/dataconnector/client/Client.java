@@ -162,15 +162,23 @@ public class Client {
   public static SSLSocketFactory getSslSocketFactory(ClientConf clientConf) {
     char[] password = clientConf.getSslKeyStorePassword().toCharArray();
     try {
-      // Get a new "Java Key Store"
-      KeyStore keyStore = KeyStore.getInstance("JKS");
-      // Load with our trusted certs and setup the trust manager(the server).
-      keyStore.load(new FileInputStream(clientConf.getSslKeyStoreFile()), password);
-      TrustManagerFactory tmf = TrustManagerFactory.getInstance("PKIX");
-      tmf.init(keyStore);
-      // Create the SSL context with our private store.
+      String keystorePath = clientConf.getSslKeyStoreFile();
+      
       SSLContext context = SSLContext.getInstance("TLSv1");
-      context.init(null, tmf.getTrustManagers(), null); 
+      if (!"".equals(keystorePath)) {
+        // Get a new "Java Key Store"
+        KeyStore keyStore = KeyStore.getInstance("JKS");
+        // Load with our trusted certs and setup the trust manager.
+        keyStore.load(new FileInputStream(clientConf.getSslKeyStoreFile()), password);
+        TrustManagerFactory tmf = TrustManagerFactory.getInstance("PKIX");
+        tmf.init(keyStore);
+        // Create the SSL context with our private store.
+        context.init(null, tmf.getTrustManagers(), null);
+      } else {
+        // Use the JVM default as trusted store. This would be located somewhere around
+        // jdk.../jre/lib/security/cacerts, and will contain widely used CAs.
+        context.init(null, null, null);  // Use JVM default.
+      }
       return context.getSocketFactory();
     } catch (GeneralSecurityException e) {
       throw new RuntimeException("SSL setup error: " + e);

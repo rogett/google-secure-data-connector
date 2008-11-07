@@ -67,7 +67,7 @@ public class ClientConf {
   private String sslKeyStorePassword = "";
   
   private static final String SSL_KEY_STORE_FILE_KEY = "sslKeyStoreFile";
-  private String sslKeyStoreFile = "";
+  private String sslKeyStoreFile = "";  // Default value will use the JVM trusted CAs.
   
   // Google Apps Hosted Domain owner for this Secure Link connection.
   private static final String DOMAIN_KEY = "domain";
@@ -142,8 +142,7 @@ public class ClientConf {
     logPropertiesFile = getAndCheckProperty(clientProps, LOG_PROPERTIES_FILE_KEY, 
         "logging.properties");
     sslKeyStorePassword = getAndCheckProperty(clientProps, SSL_KEY_STORE_PASSWORD_KEY, "");
-    sslKeyStoreFile = getAndCheckProperty(clientProps, SSL_KEY_STORE_FILE_KEY, 
-        "config/secureLinkClientTrustStore"); 
+    sslKeyStoreFile = getAndCheckProperty(clientProps, SSL_KEY_STORE_FILE_KEY, ""); 
     rules = processResourceEntries(clientProps, startingHttpProxyPort);
   }
   
