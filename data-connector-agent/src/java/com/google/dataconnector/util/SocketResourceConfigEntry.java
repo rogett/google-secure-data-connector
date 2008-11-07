@@ -16,12 +16,9 @@
  */
 package com.google.dataconnector.util;
 
-import com.google.dataconnector.util.ResourceConfigEntry;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Random;
 
 /**
  * Represents a socket resource entry shared by the Secure Link client.
@@ -68,11 +65,11 @@ public class SocketResourceConfigEntry extends ResourceConfigEntry {
    */
   public SocketResourceConfigEntry(final String pattern, String allowedEntities, final int seqNum,
       String appIds) throws ResourceConfigException {
-    super(new Random().nextLong(), seqNum, appIds);
+    super(getNextRandomLong(), seqNum, appIds);
     setPattern(pattern);
     setAllowedEntities(allowedEntities);
   }
-  
+
   /**
    * Creates a socket resource from a JSONObject
    *  

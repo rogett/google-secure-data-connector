@@ -16,12 +16,8 @@
  */
 package com.google.dataconnector.util;
 
-import com.google.dataconnector.util.ResourceConfigEntry;
-
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.Random;
 
 /**
  * Represents a URI resource entry shared by the Secure Link client.
@@ -77,7 +73,7 @@ public class UriResourceConfigEntry extends ResourceConfigEntry {
    */
   public UriResourceConfigEntry(final String pattern, String allowedEntities, final int proxyPort,
       final int seqNum, String appIds) throws ResourceConfigException {
-    super(new Random().nextLong(), seqNum, appIds);
+    super(getNextRandomLong(), seqNum, appIds);
     setPattern(pattern);
     setAllowedEntities(allowedEntities);
     this.proxyPort = proxyPort;

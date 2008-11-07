@@ -19,6 +19,8 @@ package com.google.dataconnector.util;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.Collections;
 import java.util.List;
 import java.util.Arrays;
@@ -35,6 +37,14 @@ public abstract class ResourceConfigEntry {
   protected static final String JSON_SEQNUM = "seqNum";
   protected static final String JSON_ALLOWED_APPIDS_KEY = "appIds";
 
+  protected static long getNextRandomLong() throws ResourceConfigException {
+    try {
+      return SecureRandom.getInstance("SHA1PRNG").nextLong();
+    } catch (NoSuchAlgorithmException e) {
+      // We should never be here, since the algorithm should always be available.   
+      throw new ResourceConfigException(e.getMessage());
+    }
+  }
 
   /** Security Key for this resource */
   Long securityKey;
