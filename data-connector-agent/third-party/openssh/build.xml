@@ -49,7 +49,17 @@
     </exec>
   </target>
 
-  <target name="makessh" depends="configure">
+  <target name="clean" description="Deletes all build files.">
+    <delete dir="${sbin}" />
+    <delete dir="${osrc}" />
+    <delete dir="${sshbin}" />
+    <delete dir="bin" />
+    <delete file="etc/sshd_config"/>
+  </target>
+
+  <!-- Target for Linux. -->
+
+  <target name="makessh" depends="clean,configure">
     <exec
         dir="${openssh_src}"
         executable="make">
@@ -57,12 +67,26 @@
     </exec>
   </target>
 
-  <target name="copysshdwin" depends="makesshwin">
-    <copy file="${sshdwin}" todir="${sbin}"/>
-    <chmod file="${sbin}/sshd.exe" perm="755"/>
+  <target name="buildsshd" depends="check" unless="present">
+    <echo message="openssh/sshd file doesn'exist..building it" />
+    <ant dir="." target="makessh" />
+    <copy file="${sshd}" todir="${sbin}"/>
+    <chmod file="${sbin}/sshd" perm="755"/>
   </target>
 
-    <target name="makesshwin" depends="configure">
+  <target name="check">
+    <available property="present" file="bin/start_sshd.sh" />
+  </target>
+
+  <target name="FileExists" depends="check" if="present">
+    <echo message="openssh/bin/start_sshd.sh file exists. Not rebuilding it.." />
+  </target>
+
+  <target name="copysshd" depends="FileExists,buildsshd" />
+
+  <!-- Target for Windows. -->
+
+  <target name="makesshwin" depends="configure">
     <exec
         dir="${openssh_src}"
         executable="make">
@@ -70,15 +94,9 @@
     </exec>
   </target>
 
-  <target name="copysshd" depends="makessh">
-    <copy file="${sshd}" todir="${sbin}"/>
-    <chmod file="${sbin}/sshd" perm="755"/>
-  </target>
-  
-  <target name="clean" description="Deletes all build files.">
-    <delete dir="${sbin}" />
-    <delete dir="${osrc}" />
-    <delete dir="${sshbin}" />
+  <target name="copysshdwin" depends="makesshwin">
+    <copy file="${sshdwin}" todir="${sbin}"/>
+    <chmod file="${sbin}/sshd.exe" perm="755"/>
   </target>
 
 </project>

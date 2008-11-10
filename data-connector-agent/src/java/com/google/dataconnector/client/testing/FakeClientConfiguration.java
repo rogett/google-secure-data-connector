@@ -121,7 +121,7 @@ public class FakeClientConfiguration {
     clientProps.setProperty("clientId", "friendly");
     clientProps.setProperty("domain", "joonix.net");
     clientProps.setProperty("user", "rcolline");
-    clientProps.setProperty("password", "foobad");
+    clientProps.setProperty("oauthKey", "oauthKeySample");
     clientProps.setProperty("socksServerPort", "1080");
     clientProps.setProperty("secureLinkServerHost", "localhost");
     clientProps.setProperty("secureLinkServerPort", "4444");

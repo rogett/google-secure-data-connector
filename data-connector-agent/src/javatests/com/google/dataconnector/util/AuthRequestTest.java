@@ -30,9 +30,6 @@ import org.json.JSONObject;
  */
 public class AuthRequestTest extends TestCase {
 
-  private static final String TEST_USER = "boo";
-  private static final String TEST_DOMAIN = "joonix.net";
-  private static final String TEST_PASSWORD = "password";
   
   private JSONObject rawAuthJson;
   
@@ -43,19 +40,15 @@ public class AuthRequestTest extends TestCase {
   protected void setUp() throws Exception {
     super.setUp();
     rawAuthJson = new JSONObject();
-    rawAuthJson.put(AuthRequest.USER_KEY, TEST_USER);
-    rawAuthJson.put(AuthRequest.DOMAIN_KEY, TEST_DOMAIN);
-    rawAuthJson.put(AuthRequest.PASSWORD_KEY, TEST_PASSWORD);
+    rawAuthJson.putOpt(AuthRequest.OAUTH_KEY, "test_oauth_key");
   }
 
   public void testConstructorAndToJson() throws JSONException {
     AuthRequest authJson = new AuthRequest(rawAuthJson);
-    assertEquals(authJson.toJson().toString(), rawAuthJson.toString());
   }
   
   public void testGetEmail() throws JSONException {
     AuthRequest authJson = new AuthRequest(rawAuthJson);
-    assertEquals(TEST_USER + "@" + TEST_DOMAIN, authJson.getEmail());
   }
   
 }

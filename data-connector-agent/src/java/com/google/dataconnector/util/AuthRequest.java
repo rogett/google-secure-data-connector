@@ -29,17 +29,19 @@ import org.json.JSONObject;
 public class AuthRequest {
   
   /** Keys used for the Auth Request JSON representation */ 
-  static final String USER_KEY = "user";
-  static final String DOMAIN_KEY = "domain";
-  static final String PASSWORD_KEY = "password";
+  static final String OAUTH_KEY = "oauthString";
 
-  private String user;
-  private String domain;
-  private String password;
-
-  // Read only variable that represents the domain admin email but is not part of the Json request.
+  public static final String OAUTH_SIGNATURE_METHOD = "HMAC-SHA1";
+  public static final String URL_FOR_OAUTH = "http://www.google.com/woodstockAgent";
+  public static final String OAUTH_REQUESTOR_ID_KEY = "xoauth_requestor_id";
+  
+  private String oauthString;
+  
+  // the following are used on the server side
   private String email;
-
+  private String domain;
+  private String user;
+  
   /**
    * Returns JSON object representing data.
    * 
@@ -48,9 +50,7 @@ public class AuthRequest {
    */
   public JSONObject toJson() throws JSONException {
     JSONObject json = new JSONObject();
-    json.put(USER_KEY, user);
-    json.put(DOMAIN_KEY, domain);
-    json.put(PASSWORD_KEY, password);
+    json.put(OAUTH_KEY, oauthString);
     return json;
   }
   
@@ -61,9 +61,7 @@ public class AuthRequest {
    * @throws JSONException if any required fields are missing.
    */
   public AuthRequest(final JSONObject json) throws JSONException {
-    setUser(json.getString(USER_KEY));
-    setDomain(json.getString(DOMAIN_KEY));
-    setPassword(json.getString(PASSWORD_KEY));
+    setOauthString(json.getString(OAUTH_KEY));
   }
   
   /**
@@ -72,69 +70,39 @@ public class AuthRequest {
    * 
    */
   public AuthRequest() {}
-
-  /**
-   *  Also sets the email which is derived from the user and domain.
-   *  
-   *  @param domain domain name.
-   */
-  public void setDomain(String domain) {
-    this.domain = domain;
+  
+  public static String getOAUTH_KEY() {
+    return OAUTH_KEY;
   }
 
-  /**
-   * Also sets the email which is derived from the user and domain.
-   * 
-   * @param user username
-   */
-  public void setUser(String user) {
-    this.user = user;
+  public String getOauthString() {
+    return oauthString;
+  }
+
+  public void setOauthString(String oauthString) {
+    this.oauthString = oauthString;
   }
   
-  /** 
-   * Sets the email if both user and domain are available.
-   */
-  private void setEmail() {
-    // These may not be set yet when called.
-    if (user == null || domain == null) {
-      return;
-    }
-    email = user + "@" + domain;
-  }
-
-
-  // Generated getters and setters
-  public static String getUSER_KEY() {
-    return USER_KEY;
-  }
-
-  public static String getDOMAIN_KEY() {
-    return DOMAIN_KEY;
-  }
-
-  public static String getPASSWORD_KEY() {
-    return PASSWORD_KEY;
-  }
-
-  public String getDomain() {
-   return domain;
-  }
-  
-  // Readonly.
   public String getEmail() {
-    setEmail();
     return email;
   }
 
-  public String getPassword() {
-    return password;
+  public void setEmail(String email) {
+    this.email = email;
   }
 
-  public void setPassword(String password) {
-    this.password = password;
+  public String getDomain() {
+    return domain;
   }
 
+  public void setDomain(String domain) {
+    this.domain = domain;
+  }
   public String getUser() {
     return user;
+  }
+
+  public void setUser(String user) {
+    this.user = user;
   }
 }

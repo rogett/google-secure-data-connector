@@ -77,10 +77,6 @@ public class ClientConf {
   private static final String USER_KEY = "user";
   private String user;
 
-  // Password transmitted over SSL.
-  private static final String PASSWORD_KEY = "password";
-  private String password;
-
   // Unique ID identifying this client to the Secure Link Server.
   private static final String CLIENT_ID_KEY = "clientId";
   private String clientId;
@@ -109,6 +105,10 @@ public class ClientConf {
   private static final String LOG_PROPERTIES_FILE_KEY = "logPropertiesFile";
   private String logPropertiesFile;
   
+  // Oauth key
+  private static final String OAUTH_KEY = "oauthKey";
+  private String oauthKey;
+  
   // The list of resources this client is sharing.
   private List<ResourceConfigEntry> rules;
 
@@ -129,7 +129,6 @@ public class ClientConf {
     this.clientProps = clientProps;
     domain = getAndCheckProperty(clientProps, DOMAIN_KEY);
     user = getAndCheckProperty(clientProps, USER_KEY);
-    password = getAndCheckProperty(clientProps, PASSWORD_KEY);
     clientId = getAndCheckProperty(clientProps, CLIENT_ID_KEY);
     secureLinkServerHost = getAndCheckProperty(clientProps, SECURE_LINK_SERVER_HOST_KEY);
     secureLinkServerPort = getAndCheckIntegerProperty(clientProps, SECURE_LINK_SERVER_PORT_KEY);
@@ -144,6 +143,7 @@ public class ClientConf {
     sslKeyStorePassword = getAndCheckProperty(clientProps, SSL_KEY_STORE_PASSWORD_KEY, "");
     sslKeyStoreFile = getAndCheckProperty(clientProps, SSL_KEY_STORE_FILE_KEY, ""); 
     rules = processResourceEntries(clientProps, startingHttpProxyPort);
+    oauthKey = getAndCheckProperty(clientProps, OAUTH_KEY);
   }
   
   /**
@@ -424,14 +424,6 @@ public class ClientConf {
     this.user = user;
   }
 
-  public String getPassword() {
-    return password;
-  }
-
-  public void setPassword(String password) {
-    this.password = password;
-  }
-
   public String getClient_id() {
     return clientId;
   }
@@ -502,6 +494,14 @@ public class ClientConf {
 
   public void setUseSsl(Boolean useSsl) {
     this.useSsl = useSsl;
+  }
+  
+  public String getOauthKey() {
+    return oauthKey;
+  }
+
+  public void setOauthKey(String oauthKey) {
+    this.oauthKey = oauthKey;
   }
 
   public String getSslKeyStorePassword() {

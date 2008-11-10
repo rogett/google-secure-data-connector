@@ -373,7 +373,7 @@ public class ProxyProcessor {
         buffer = (ByteBuffer) object;
       }
       /*
-       * if( logger.isTraceEnabled() ) { byte[] buf = new byte[buffer.limit()];
+       * if( logger.isDebugEnabled() ) { byte[] buf = new byte[buffer.limit()];
        * buffer.get(buf); logger.debug("Ouput to Browser: \n"+ new
        * String(buf).replaceAll("[\r]?\n","\r\nWire==> ") ); buffer.flip(); }
        */
@@ -469,7 +469,7 @@ public class ProxyProcessor {
       try {
         logger.debug("processSecureConnection Event found, isWritable");
         ByteBuffer buffer = (ByteBuffer) key.attachment();
-        if (logger.isTraceEnabled()) {
+        if (logger.isDebugEnabled()) {
           byte[] buf = new byte[buffer.limit()];
           buffer.get(buf);
           // logger.debug("Ouput to Browser(SSL): \n"+
@@ -607,7 +607,7 @@ public class ProxyProcessor {
         if (reader != null) reader.close();
       }
     }
-    if (logger.isTraceEnabled() && response.getBodyContent() != null) {
+    if (logger.isDebugEnabled() && response.getBodyContent() != null) {
       BufferedReader br =
           new BufferedReader(new InputStreamReader(response
               .getBodyContentStream()));

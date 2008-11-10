@@ -26,7 +26,15 @@ import com.google.dataconnector.util.RegistrationException;
 import com.google.dataconnector.util.RegistrationRequest;
 import com.google.dataconnector.util.RegistrationResponse;
 
+import net.oauth.OAuth;
+import net.oauth.OAuthAccessor;
+import net.oauth.OAuthConsumer;
+import net.oauth.OAuthException;
+import net.oauth.OAuthMessage;
+
 import java.net.Socket;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
 import org.json.JSONException;
@@ -63,7 +71,8 @@ public class ClientRegistrationUtil {
   public static AuthRequest authorize(final Socket socket, final ClientConf clientConf) 
       throws AuthenticationException, MangledResponseException, IOException {
 
-    log.info("Attempting login for " + clientConf.getUser() + "@" + clientConf.getDomain());
+    String userEmail = clientConf.getUser() + "@" + clientConf.getDomain();
+    log.info("Attempting login for " + userEmail);
 
     PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
     BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -74,15 +83,29 @@ public class ClientRegistrationUtil {
       pw.println(INITIAL_HANDSHAKE_MSG);
       pw.flush();
       
+      // create oauth aignature + request string
+      long currentTime = System.currentTimeMillis() / 1000l;
+      OAuthConsumer consumer = new OAuthConsumer(null, clientConf.getDomain(), 
+          clientConf.getOauthKey(), null);
+      OAuthMessage message = new OAuthMessage("GET", AuthRequest.URL_FOR_OAUTH, 
+          new ArrayList<OAuth.Parameter>());
+      message.addParameter(OAuth.OAUTH_SIGNATURE_METHOD, AuthRequest.OAUTH_SIGNATURE_METHOD);
+      message.addParameter(OAuth.OAUTH_VERSION, OAuth.VERSION_1_0);
+      message.addParameter(OAuth.OAUTH_CONSUMER_KEY, consumer.consumerKey);
+      message.addParameter(OAuth.OAUTH_TIMESTAMP, Long.toString(
+          System.currentTimeMillis() / 1000l));
+      message.addParameter(OAuth.OAUTH_NONCE, "doesnotmatter");
+      message.addParameter(AuthRequest.OAUTH_REQUESTOR_ID_KEY, userEmail);
+      OAuthAccessor accessor = new OAuthAccessor(consumer);
+      message.sign(accessor);
+      
       // create auth request packet
       AuthRequest authRequest = new AuthRequest();
-      authRequest.setUser(clientConf.getUser());
-      authRequest.setDomain(clientConf.getDomain());
-
+      authRequest.setOauthString(AuthRequest.URL_FOR_OAUTH + "?" +
+          OAuth.formEncode(message.getParameters()));
+      
       // send auth request packet
       log.info("Sending login packet: " + authRequest.toJson().toString());
-      // set the password now - to avoid having it printed in the above step
-      authRequest.setPassword(clientConf.getPassword());
       pw.println(authRequest.toJson().toString());
       pw.flush();
       
@@ -100,6 +123,12 @@ public class ClientRegistrationUtil {
       return authRequest;
     } catch (JSONException e) {
       throw new MangledResponseException("Mangled JSON response during auth: " + e.getMessage());
+    } catch (URISyntaxException e) {
+      throw new AuthenticationException("Authentication Failed due to Oauth error: " + 
+          e.getMessage());
+    } catch (OAuthException e) {
+      throw new AuthenticationException("Authentication Failed due to Oauth error: " + 
+          e.getMessage());
     }
   }
   

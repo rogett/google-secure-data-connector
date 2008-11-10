@@ -63,8 +63,6 @@ Build File for tunnel-server client and reference server.
   <target name="clean" description="Deletes all build files.">
     <delete dir="${build}" />
     <delete dir="${bin}" />
-    <delete dir="third-party/openssh/${bin}" />
-    <delete file="third-party/openssh/etc/sshd_config"/>
     <ant
         antfile="build.xml"
         dir="third-party/openssh"
@@ -129,6 +127,8 @@ Build File for tunnel-server client and reference server.
         <pathelement path="third-party/jline/jline-0.9.91.jar"/>
         <pathelement path="third-party/json/json.jar"/>
         <pathelement path="third-party/junit/junit-4.4.jar"/>
+        <pathelement path="third-party/oauth/core.jar"/>
+        <pathelement path="third-party/oauth/commons-codec-1.3.jar"/>
       </classpath>
     </javac>
   </target>
@@ -180,7 +180,7 @@ Build File for tunnel-server client and reference server.
     </jar>
   </target>
 
-  <target name="source-distro" depends="clean,init">
+  <target name="source-distro" depends="init">
     <tar 
         destfile="${dist}/tunnel-server-${version}-${timestamp}-src.tar.gz"
         longfile="gnu"
@@ -371,7 +371,7 @@ Build File for tunnel-server client and reference server.
     </exec>
   </target>
 
-  <target name="all" depends="source-distro,binary-distro,test,install"/>
+  <target name="all" depends="source-distro,binary-distro,install,test"/>
   <target name="cygwin" depends="source-distro,binary-distro-win,test,install"/>
 
   <!-- Start of Testing-related stuff -->
