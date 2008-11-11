@@ -90,6 +90,9 @@ if [ $? == 0 ]; then
 fi
 
 if [ $installmode = "linux" ] ; then
+  # Create links for service daemon
+  ln -fs `pwd`/third-party/java-service-wrapper/linux/googlesdc.sh /etc/init.d/googlesdc
+
   # GET LINUX PW LINE FOR WOODSTOCK USER
   return_highest_id "/etc/passwd"
   let HI_UID=$?+1
@@ -99,6 +102,7 @@ if [ $installmode = "linux" ] ; then
   LINUX_PWLINE="woodstock:$HI_UID:$HI_GID:100::$OPENSSH_HOME/home/woodstock:/bin/false"
   
   check_for_user
+
 	if [ $? != 0 ]; then
 	 if [ $UID != 0 ]; then
 	   echo not run as root, please add this line to /etc/passwd
@@ -110,26 +114,26 @@ if [ $installmode = "linux" ] ; then
 	else
 	 echo user woodstock already defined in /etc/passwd
 	fi
-	
-    sed -i rules.properties -e  's^sshd=.*$^sshd='$OPENSSH_HOME'/bin/start_sshd.sh'	
+
+  # Update rules.properties sshd path  
+  sed -i rules.properties -e  's^sshd=.*$^sshd='$OPENSSH_HOME'/bin/start_sshd.sh^'	
 	
 fi
 
 if [ $installmode = "cygwin" ] ; then
   check_for_user_cygwin
+
 	if [ $? != 0 ]; then
 	   echo "local user not found in /etc/passwd."
 	   echo "please create the windows user account and run mkpasswd -l >/etc/passwd"
-	  
 	else
 	 echo "local user woodstock found in /etc/passwd"
-
-	sed -i /etc/passwd -e  's^:/home/woodstock:^:'$OPENSSH_HOME'/home/woodstock:^'
-
+	 # Fix user home directory path
+	 sed -i /etc/passwd -e  's^:/home/woodstock:^:'$OPENSSH_HOME'/home/woodstock:^'
 	fi
-	
-	sed -i rules.properties -e  's^sshd=.*$^sshd=c:\\\\cygwin\\\\bin\\\\bash.exe --login -i -c  "'$OPENSSH_HOME'/bin/start_sshd.sh"^'
-	
+
+  # Update rules.properties sshd path for cygwin execution	
+  sed -i rules.properties -e  's^sshd=.*$^sshd=c:\\\\cygwin\\\\bin\\\\bash.exe --login -i -c  "'$OPENSSH_HOME'/bin/start_sshd.sh"^'
 fi
 
 #SETUP SSHD RUNTIME
@@ -139,6 +143,7 @@ sed -e "s:_WSCLIENT_HOME_:$PWD:g" $OPENSSH_HOME/dist/start_sshd.sh.tmpl > $OPENS
 chmod 755 $OPENSSH_HOME/bin/start_sshd.sh
 chmod 600 $OPENSSH_HOME/etc/ssh_host_dsa_key
 chmod 600 $OPENSSH_HOME/etc/ssh_host_rsa_key
+chmod 755 `pwd`/third-party/java-service-wrapper/linux/googlesdc.sh
 chmod 755 start.sh
 chmod 755 stop.sh
 chmod 755 runclient.sh

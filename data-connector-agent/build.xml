@@ -28,6 +28,7 @@ Build File for tunnel-server client and reference server.
 
   <property name="build" value="build" />
   <property name="bin" value="bin" />
+  <property name="deb" value="deb" />
   <property name="prod" value="${build}/prod" />
   <property name="dist" value="dist" />
   <property name="src" value="src/java" />
@@ -63,6 +64,7 @@ Build File for tunnel-server client and reference server.
   <target name="clean" description="Deletes all build files.">
     <delete dir="${build}" />
     <delete dir="${bin}" />
+    <delete file="${deb}" />
     <ant
         antfile="build.xml"
         dir="third-party/openssh"
@@ -224,21 +226,18 @@ Build File for tunnel-server client and reference server.
         <include name="third-party/cglib/**"/>
         <include name="third-party/easymock/**"/>
         <include name="third-party/apache-log4j/**"/>
-	    <include name="third-party/java-service-wrapper/COPYING"/>
-	    <include name="third-party/java-service-wrapper/dist/**"/>
-	    <include name="third-party/java-service-wrapper/windows/**"/>
-	    <include name="third-party/java-service-wrapper/windows/lib/**"/>
-	    <include name="third-party/java-service-wrapper/windows/logs/**"/>
-	    <include name="third-party/java-service-wrapper/windows/conf/**"/>
+	<include name="third-party/java-service-wrapper/**"/>
      </tarfileset>
       <tarfileset dir="." mode="600">
         <include name="third-party/openssh/etc/*"/>
         <include name="third-party/openssh/home/woodstock/.ssh/*"/>
       </tarfileset>
       <tarfileset dir="." mode="755">
-        <include name="third-party/openssh/sbin/*"/>
-		<include name="third-party/openssh/sbin/*"/>
-		<include name="third-party/java-service-wrapper/windows/*"/>
+	<include name="third-party/openssh/sbin/*"/>
+	<include name="third-party/java-service-wrapper/windows/*.bat"/>
+	<include name="third-party/java-service-wrapper/windows/bin/*.exe"/>
+	<include name="third-party/java-service-wrapper/linux/googlesdc.sh"/>
+	<include name="third-party/java-service-wrapper/linux/bin/*"/>
         <include name="runclient.sh"/>
 	<include name="runclient.bat"/>
         <include name="setup.sh"/>
@@ -285,9 +284,9 @@ Build File for tunnel-server client and reference server.
           third-party/junit/**,
           third-party/cglib/**,
           third-party/easymock/**,
-          third-party/apache-log4j/**
-	      third-party/java-service-wrapper/**
-	      third-party/java-service-wrapper/dist/**"
+          third-party/apache-log4j/**,
+	  third-party/java-service-wrapper/*,
+	  third-party/java-service-wrapper/linux/**"
         compression="gzip">
       <tarfileset dir="." mode="600">
         <include name="third-party/openssh/etc/*"/>
@@ -295,6 +294,8 @@ Build File for tunnel-server client and reference server.
       </tarfileset>
       <tarfileset dir="." mode="755">
         <include name="third-party/openssh/sbin/*"/>
+        <include name="third-party/java-service-wrapper/linux/googlesdc.sh"/>
+        <include name="third-party/java-service-wrapper/linux/bin/*"/>
         <include name="runclient.sh"/>
         <include name="setup.sh"/>
         <include name="start.sh"/>
@@ -342,12 +343,8 @@ Build File for tunnel-server client and reference server.
           third-party/cglib/**,
           third-party/easymock/**,
           third-party/apache-log4j/**
-	      third-party/java-service-wrapper/**
-	      third-party/java-service-wrapper/dist/**
-	      third-party/java-service-wrapper/windows/**
-	      third-party/java-service-wrapper/windows/lib/**
-	      third-party/java-service-wrapper/windows/logs/**
-	      third-party/java-service-wrapper/windows/conf/**"
+	  third-party/java-service-wrapper/*
+	  third-party/java-service-wrapper/windows/**"
         compression="gzip">
       <tarfileset dir="." mode="600">
         <include name="third-party/openssh/etc/*"/>
@@ -355,12 +352,10 @@ Build File for tunnel-server client and reference server.
       </tarfileset>
       <tarfileset dir="." mode="755">
         <include name="third-party/openssh/sbin/*"/>
-	    <include name="third-party/java-service-wrapper/windows/*"/>
-        <include name="runclient.sh"/>
-	    <include name="runclient.bat"/>
+	<include name="third-party/java-service-wrapper/windows/*.bat"/>
+	<include name="third-party/java-service-wrapper/windows/bin/*.exe"/>
+	<include name="runclient.bat"/>
         <include name="setup.sh"/>
-        <include name="start.sh"/>
-        <include name="stop.sh"/>
       </tarfileset>
     </tar>
   </target>
@@ -379,6 +374,90 @@ Build File for tunnel-server client and reference server.
   <property name="testClasses.home"   value="${build}/testClasses/"/>
   <property name="testOutput.home"    value="${build}/testOutput"/>
   <property name="junit.jar"          location="third-party/junit/junit-4.4.jar"/>
+
+
+  <path id="deb-classpath">
+    <fileset dir="third-party/ant-deb-task" includes="ant-deb-0.0.1.jar"/>
+  </path>
+
+  <taskdef resource="ant_deb_task.properties" classpathref="deb-classpath"/>
+
+  <target name="deb" depends="jsocks,wpg-proxy,jar,openssh">
+    <mkdir dir="${deb}"/>
+    <deb todir="${deb}"
+         package="securedataconnector"
+         section="net"
+         depends="sun-java6-jre">
+      <version upstream="1.0" debian="1"/>
+      <maintainer name="Sebastian Welsh"
+       email="jedimindtrick@notthedroids.net"/>
+      <description synopsis="The Google securedataconnector client package.">
+Google securedataconnector is used to connect from Google Apps to internal network resources. The client is a java application that
+- connects to the Google Apps termination service
+- registers the resources published to Apps
+- registers the groups able to access the resources
+- provides a socks proxy to the internal resources for those groups.
+
+The current implementation permits access to http and socket services.
+
+http://code.google.com/
+      </description>
+      <tarfileset dir="." prefix="opt/securedataconnector" filemode="640">
+         <include name="third-party/openssh/CREDITS"/>
+         <include name="third-party/openssh/LICENCE"/>
+         <include name="third-party/commons-*/*.txt"/>
+         <include name="third-party/commons-*/*.jar"/>
+         <include name="third-party/jsch/*.txt"/>
+         <include name="third-party/jsch/*.jar"/>
+         <include name="third-party/jline/*.txt"/>
+         <include name="third-party/jline/*.jar"/>
+         <include name="third-party/json/**"/>
+         <include name="third-party/junit/**"/>
+         <include name="third-party/cglib/**"/>
+         <include name="third-party/wpg-proxy/README"/>
+         <include name="third-party/wpg-proxy/license.txt"/>
+         <include name="third-party/jsocks/docs/*"/>
+         <include name="third-party/jsocks/COPYING"/>
+         <include name="third-party/easymock/**"/>
+         <include name="third-party/apache-log4j/**"/>
+      </tarfileset>
+      <tarfileset dir="third-party/wpg-proxy/bin/" filemode="640"
+                  prefix="opt/securedataconnector/third-party/wpg-proxy">
+         <include name="*.jar"/>
+      </tarfileset>
+      <tarfileset dir="third-party/jsocks/bin/" filemode="640"
+                  prefix="opt/securedataconnector/third-party/jsocks">
+         <include name="*.jar"/>
+      </tarfileset>
+      <tarfileset dir="build/prod/" prefix="opt/securedataconnector" filemode="640">
+      </tarfileset>
+      <tarfileset dir="." prefix="opt/securedataconnector" filemode="640">
+        <include name="third-party/openssh/etc/*.pub"/>
+        <include name="third-party/openssh/etc/sshd_config.debian"/>
+        <include name="third-party/openssh/home/woodstock/.ssh/*"/>
+      </tarfileset>
+      <tarfileset dir="." prefix="opt/securedataconnector" filemode="600">
+        <include name="third-party/openssh/etc/*_key"/>
+        <include name="third-party/openssh/home/woodstock/.ssh/*"/>
+      </tarfileset>
+      <tarfileset dir="." prefix="opt/securedataconnector" filemode="750">
+        <include name="third-party/openssh/sbin/*"/>
+        <include name="third-party/openssh/bin/start_sshd.sh.debian"/>
+      </tarfileset>
+      <tarfileset dir="debian" prefix="etc/init.d" filemode="755">
+        <include name="securedataconnector"/>
+      </tarfileset>
+      <tarfileset dir="config" prefix="etc/opt/securedataconnector" filemode="640">
+        <include name="*"/>
+      </tarfileset>
+      <tarfileset dir="." prefix="etc/opt/securedataconnector" filemode="640">
+        <include name="*.properties"/>
+      </tarfileset>
+    </deb>
+  </target>
+
+
+
 
   <path id="classpath.test">
     <pathelement location="${testClasses.home}" />
