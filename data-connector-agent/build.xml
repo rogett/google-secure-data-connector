@@ -8,8 +8,10 @@ Build File for tunnel-server client and reference server.
    -all: builds distros
    -install: builds jars and runs setup.sh
    -clean: 
-   -jar: creates the jar file 
-   -util_jar: creates the utility jar - this should be deprecated.
+   -client_jar: creates the whole client jar file 
+   -client_src_jar: creates the whole client source jar
+   -protocol_jar: creates the protocol only jar.
+   -protocol_src_jar: creates the protocol only source jar.
    -source-distro: creates the source.tar.gz for the whole project
    -binary-distro: creates binary.tar.gz
 -->
@@ -41,12 +43,16 @@ Build File for tunnel-server client and reference server.
       value="${jar.dir}/client.jar" />
 
   <property 
-      name="util.jarfile" 
-      value="${jar.dir}/secure_link_util.jar" />
+      name="client-src.jarfile" 
+      value="${jar.dir}/client-src.jar" />
 
   <property 
-      name="util-src.jarfile" 
-      value="${jar.dir}/secure_link_util-src.jar" />
+      name="protocol.jarfile" 
+      value="${jar.dir}/protocol.jar" />
+
+  <property 
+      name="protocol-src.jarfile" 
+      value="${jar.dir}/protocol-src.jar" />
 
   <!-- TARGETS -->
 
@@ -125,6 +131,11 @@ Build File for tunnel-server client and reference server.
         <pathelement path="third-party/apache-log4j/log4j-1.2.15.jar"/>
         <pathelement path="third-party/easymock/easymock.jar"/>
         <pathelement path="third-party/easymock/easymockclassextension.jar"/>
+        <pathelement path="third-party/google-feedserver/commons-beanutils-1.8.0.jar"/>
+        <pathelement path="third-party/google-feedserver/commons-beanutils-core-1.8.0.jar"/>
+        <pathelement path="third-party/google-feedserver/gdata-client-1.0.jar"/>
+        <pathelement path="third-party/google-feedserver/gdata-core-1.0.jar"/>
+        <pathelement path="third-party/google-feedserver/google-feedserver-java-client-1.0.jar"/>
         <pathelement path="third-party/jsch/jsch-20071024.jar"/>
         <pathelement path="third-party/jline/jline-0.9.91.jar"/>
         <pathelement path="third-party/json/json.jar"/>
@@ -135,30 +146,13 @@ Build File for tunnel-server client and reference server.
     </javac>
   </target>
 
-  <target name="jar" depends="util_jar,util_src_jar,client_jar"/>
+  <target name="jar" depends="client_src_jar,client_jar,protocol_src_jar,protocol_jar"/>
 
-  <target name="util_jar" depends="compile">
+  <target name="client_src_jar" depends="init">
     <tstamp/>
-    <jar jarfile="${util.jarfile}">
-      <fileset dir="${classes}"> 
-        <include name="com/google/securelink/util/**" />
-        <include name="com/google/securelink/client/**" />
-        <include name="com/google/securelink/json/**" />
-      </fileset>
-      <manifest>
-        <attribute name="Implementation-Title" value="Secure Link Client Util"/>
-        <attribute name="Implementation-Version" value="${version} ${TODAY}"/>
-        <attribute name="Implementation-Vendor" value="Google"/>
-      </manifest>
-    </jar>
-  </target>
-
-  <target name="util_src_jar" depends="init">
-    <tstamp/>
-    <jar jarfile="${util-src.jarfile}">
+    <jar jarfile="${client-src.jarfile}">
       <fileset dir="${src}"> 
-        <include name="com/google/securelink/util/**" />
-        <include name="com/google/securelink/json/**" />
+        <include name="com/google/dataconnector/**" />
       </fileset>
       <manifest>
         <attribute name="Implementation-Title" value="Secure Data Connector"/>
@@ -173,11 +167,37 @@ Build File for tunnel-server client and reference server.
     <jar jarfile="${client.jarfile}">
       <fileset dir="${classes}" includes="**"/>
       <manifest>
-        <attribute name="Implementation-Title" value="Secure Link Client"/>
+        <attribute name="Implementation-Title" value="Secure Data Connector"/>
         <attribute name="Implementation-Version" value="${version} ${TODAY}"/>
         <attribute name="Implementation-Vendor" value="Google"/>
         <attribute name="Main-Class"
-              value="com.google.securelink.test.TestClient"/>
+              value="com.google.dataconnector.client.Client"/>
+      </manifest>
+    </jar>
+  </target>
+
+  <target name="protocol_src_jar" depends="init">
+    <tstamp/>
+    <jar jarfile="${protocol-src.jarfile}">
+      <fileset dir="${src}"> 
+        <include name="com/google/dataconnector/registration/**" />
+      </fileset>
+      <manifest>
+        <attribute name="Implementation-Title" value="Secure Data Connector Protocol"/>
+        <attribute name="Implementation-Version" value="${version} ${TODAY}"/>
+        <attribute name="Implementation-Vendor" value="Google"/>
+      </manifest>
+    </jar>
+  </target>
+
+  <target name="protocol_jar" depends="compile">
+    <tstamp/>
+    <jar jarfile="${protocol.jarfile}">
+      <fileset dir="${classes}" includes="com/google/dataconnector/registration/**"/>
+      <manifest>
+        <attribute name="Implementation-Title" value="Secure Data Connector Protocol"/>
+        <attribute name="Implementation-Version" value="${version} ${TODAY}"/>
+        <attribute name="Implementation-Vendor" value="Google"/>
       </manifest>
     </jar>
   </target>
@@ -366,8 +386,8 @@ Build File for tunnel-server client and reference server.
     </exec>
   </target>
 
-  <target name="all" depends="source-distro,binary-distro,install,test"/>
-  <target name="cygwin" depends="source-distro,binary-distro-win,test,install"/>
+  <target name="all" depends="test,source-distro,binary-distro,install"/>
+  <target name="cygwin" depends="test,source-distro,binary-distro-win,install"/>
 
   <!-- Start of Testing-related stuff -->
   <property name="testSrc.home"       value="src/javatests"/>
@@ -376,11 +396,11 @@ Build File for tunnel-server client and reference server.
   <property name="junit.jar"          location="third-party/junit/junit-4.4.jar"/>
 
 
-  <path id="deb-classpath">
+<!--  <path id="deb-classpath">
     <fileset dir="third-party/ant-deb-task" includes="ant-deb-0.0.1.jar"/>
-  </path>
+  </path> 
 
-  <taskdef resource="ant_deb_task.properties" classpathref="deb-classpath"/>
+  <taskdef resource="ant_deb_task.properties" classpathref="deb-classpath"/> -->
 
   <target name="deb" depends="jsocks,wpg-proxy,jar,openssh">
     <mkdir dir="${deb}"/>
