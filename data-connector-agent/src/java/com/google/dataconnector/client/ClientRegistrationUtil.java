@@ -17,14 +17,15 @@
 
 package com.google.dataconnector.client;
 
-import com.google.dataconnector.util.AuthRequest;
-import com.google.dataconnector.util.AuthResponse;
+import com.google.dataconnector.registration.v2.ResourceException;
+import com.google.dataconnector.registration.v2.AuthRequest;
+import com.google.dataconnector.registration.v2.AuthResponse;
+import com.google.dataconnector.registration.v2.RegistrationResponse;
+import com.google.dataconnector.registration.v2.RegistrationRequest;
+import com.google.dataconnector.registration.v2.ResourceRule;
+import com.google.dataconnector.util.LocalConf;
 import com.google.dataconnector.util.AuthenticationException;
-import com.google.dataconnector.util.ClientConf;
-import com.google.dataconnector.util.MangledResponseException;
 import com.google.dataconnector.util.RegistrationException;
-import com.google.dataconnector.util.RegistrationRequest;
-import com.google.dataconnector.util.RegistrationResponse;
 
 import net.oauth.OAuth;
 import net.oauth.OAuthAccessor;
@@ -34,6 +35,7 @@ import net.oauth.OAuthMessage;
 
 import java.net.Socket;
 import java.net.URISyntaxException;
+import java.util.List;
 import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
@@ -56,22 +58,23 @@ public class ClientRegistrationUtil {
   private static final Logger log = Logger.getLogger(ClientRegistrationUtil.class);
   
   private ClientRegistrationUtil() {} //Hide constructor for utility classes
-  public static final String INITIAL_HANDSHAKE_MSG = "connect v1.0";
+  public static final String INITIAL_HANDSHAKE_MSG = "connect v2.0";
  
   /**
    * Authorizes this Secure Link connection from the info specified in the Client Configuration
    * object. 
    *  
    * @param socket The connected socket.
+   * @param localConfiguration the local configuration object.
    * @returns the AuthRequest packet associated with this connection.
    * @throws AuthenticationException if authorization fails 
-   * @throws MangledResponseException if an unexpected JSON encoding error occurs.
    * @throws IOException if socket communication errors occur.
    */
-  public static AuthRequest authorize(final Socket socket, final ClientConf clientConf) 
-      throws AuthenticationException, MangledResponseException, IOException {
+  public static AuthRequest authorize(final Socket socket, 
+      LocalConf localConfiguration) throws AuthenticationException, IOException {
 
-    String userEmail = clientConf.getUser() + "@" + clientConf.getDomain();
+    String userEmail = localConfiguration.getUser() + "@" + 
+    localConfiguration.getDomain();
     log.info("Attempting login for " + userEmail);
 
     PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
@@ -85,8 +88,8 @@ public class ClientRegistrationUtil {
       
       // create oauth aignature + request string
       long currentTime = System.currentTimeMillis() / 1000l;
-      OAuthConsumer consumer = new OAuthConsumer(null, clientConf.getDomain(), 
-          clientConf.getOauthKey(), null);
+      OAuthConsumer consumer = new OAuthConsumer(null, localConfiguration.getDomain(), 
+          localConfiguration.getOauthKey(), null);
       OAuthMessage message = new OAuthMessage("GET", AuthRequest.URL_FOR_OAUTH, 
           new ArrayList<OAuth.Parameter>());
       message.addParameter(OAuth.OAUTH_SIGNATURE_METHOD, AuthRequest.OAUTH_SIGNATURE_METHOD);
@@ -114,15 +117,16 @@ public class ClientRegistrationUtil {
       String jsonResponseString = br.readLine();
       log.debug("Got an auth response");
       
+      String email = localConfiguration.getUser() + "@" + localConfiguration.getDomain();
       AuthResponse authResponse = new AuthResponse(new JSONObject(jsonResponseString));
       if(authResponse.getStatus() != AuthResponse.Status.OK) {
-        throw new AuthenticationException("Authentication Failed for " + clientConf.getEmail() + 
-            ": " + authResponse.getStatus());
+        throw new AuthenticationException("Authentication Failed for " + email + ": " + 
+            authResponse.getStatus());
       }
-      log.info("Login for " + clientConf.getEmail() + " successful");
+      log.info("Login for " + email + " successful");
       return authRequest;
     } catch (JSONException e) {
-      throw new MangledResponseException("Mangled JSON response during auth: " + e.getMessage());
+      throw new AuthenticationException("Mangled JSON response during auth", e);
     } catch (URISyntaxException e) {
       throw new AuthenticationException("Authentication Failed due to Oauth error: " + 
           e.getMessage());
@@ -139,15 +143,13 @@ public class ClientRegistrationUtil {
    * 
    * @param socket the connected socket.
    * @param authRequest the auth request for this connection.
-   * @param clientConf the secure link global configuration object 
+   * @param resourceRules the rule set.
    * @throws RegistrationException if the registration fails.  This can happen if the server has 
    *             backend issues.
-   * @throws MangledResponseException if an unexpected JSON encoding error occurs.
    * @throws IOException if any socket communication issues occur.
    */
   public static void register(final Socket socket, final AuthRequest authRequest, 
-      final ClientConf clientConf) throws RegistrationException, MangledResponseException, 
-      IOException {
+      List<ResourceRule> resourceRules) throws RegistrationException, IOException {
 
     PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
     BufferedReader br = new BufferedReader(
@@ -155,7 +157,8 @@ public class ClientRegistrationUtil {
 
     try {
       // send registration request packet
-      RegistrationRequest regRequest = new RegistrationRequest(clientConf);
+      RegistrationRequest regRequest = new RegistrationRequest();
+      regRequest.populateFromResources(resourceRules);
       log.info("Registering rules: " + regRequest.toJson().toString());
       pw.println(regRequest.toJson().toString());
       pw.flush();
@@ -171,10 +174,10 @@ public class ClientRegistrationUtil {
       if (regResponse.getStatus() != RegistrationResponse.Status.OK) {
         throw new RegistrationException("Registration Failed: " + regResponse.getStatus());
       }
-      log.info("Registration for " + clientConf.getEmail() + " successful");
     } catch (JSONException e) {
-      throw new MangledResponseException("Mangled JSON response during registration: " + 
-          e.getMessage());
+      throw new RegistrationException("Mangled JSON response during registration", e);
+    } catch (ResourceException e) {
+      throw new RegistrationException("Invalid Resources ", e);
     }
   }
 }

@@ -82,6 +82,7 @@ check_invocation_location() {
 # main
 
 OPENSSH_HOME=`pwd`/third-party/openssh
+LOCAL_CONF_FILE=config/localConfig.xml
 
 check_invocation_location
 if [ $? == 0 ]; then
@@ -115,8 +116,13 @@ if [ $installmode = "linux" ] ; then
 	 echo user woodstock already defined in /etc/passwd
 	fi
 
-  # Update rules.properties sshd path  
-  sed -i rules.properties -e  's^sshd=.*$^sshd='$OPENSSH_HOME'/bin/start_sshd.sh^'	
+  # Update config/localConfig.xml sshd path  
+  if [ -e $LOCAL_CONF_FILE ]; then
+    echo $LOCAL_CONF_FILE file already in place, skipping.
+  else 
+    /bin/cp $LOCAL_CONF_FILE-dist $LOCAL_CONF_FILE
+    sed -i $LOCAL_CONF_FILE -e  's^_SSHD_^'$OPENSSH_HOME'/bin/start_sshd.sh^'	
+  fi
 	
 fi
 
@@ -132,8 +138,13 @@ if [ $installmode = "cygwin" ] ; then
 	 sed -i /etc/passwd -e  's^:/home/woodstock:^:'$OPENSSH_HOME'/home/woodstock:^'
 	fi
 
-  # Update rules.properties sshd path for cygwin execution	
-  sed -i rules.properties -e  's^sshd=.*$^sshd=c:\\\\cygwin\\\\bin\\\\bash.exe --login -i -c  "'$OPENSSH_HOME'/bin/start_sshd.sh"^'
+  # Update config/localConfig.xml sshd path for cygwin execution	
+  if [ -e $LOCAL_CONF_FILE ]; then
+    echo $LOCAL_CONF_FILE file already in place, skipping.
+  else 
+    /bin/cp config/localConfig.xml-dist config/localConfig.xml
+    sed -i config/localConfig.xml -e  's^_SSHD_.*$^_SSHD_c:\\\\cygwin\\\\bin\\\\bash.exe --login -i -c  "'$OPENSSH_HOME'/bin/start_sshd.sh"^'
+  fi
 fi
 
 #SETUP SSHD RUNTIME

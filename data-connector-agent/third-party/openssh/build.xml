@@ -75,11 +75,11 @@
   </target>
 
   <target name="check">
-    <available property="present" file="bin/start_sshd.sh" />
+    <available property="present" file="sbin/sshd" />
   </target>
 
   <target name="FileExists" depends="check" if="present">
-    <echo message="openssh/bin/start_sshd.sh file exists. Not rebuilding it.." />
+    <echo message="openssh/sbin/sshd file exists. Not rebuilding it.." />
   </target>
 
   <target name="copysshd" depends="FileExists,buildsshd" />

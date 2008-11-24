@@ -32,4 +32,25 @@ public class RegistrationException extends ConnectionException {
   public RegistrationException(String message) {
     super(message);
   }
+  
+  /**
+   * Creates the exception with the specified underlying cause.
+   * 
+   * @param cause the underlying cause.
+   */
+  public RegistrationException(Throwable cause) {
+    super(cause);
+  }
+  
+  /**
+   * Creates the exception with the specified error message and cause.
+   * 
+   * @param msg the error message.
+   * @param cause the underlying cause.
+   */
+  public RegistrationException(String msg, Throwable cause) {
+    super(msg, cause);
+  }
+  
 }
+

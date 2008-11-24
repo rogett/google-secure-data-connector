@@ -115,7 +115,7 @@ Build File for tunnel-server client and reference server.
     <exec executable="${basedir}/setup.sh"/>
   </target>
 
-  <target name="compile" depends="init">
+  <target name="compile" depends="init,jsocks,wpg-proxy">
     <javac 
         srcdir="${src}" 
         destdir="${classes}"
@@ -146,7 +146,9 @@ Build File for tunnel-server client and reference server.
     </javac>
   </target>
 
-  <target name="jar" depends="client_src_jar,client_jar,protocol_src_jar,protocol_jar"/>
+  <target 
+      name="jar" 
+      depends="client_src_jar,client_jar,protocol_src_jar,protocol_jar,openssh"/>
 
   <target name="client_src_jar" depends="init">
     <tstamp/>
@@ -171,7 +173,7 @@ Build File for tunnel-server client and reference server.
         <attribute name="Implementation-Version" value="${version} ${TODAY}"/>
         <attribute name="Implementation-Vendor" value="Google"/>
         <attribute name="Main-Class"
-              value="com.google.dataconnector.client.Client"/>
+              value="com.google.dataconnector.client.ClientMain"/>
       </manifest>
     </jar>
   </target>
@@ -214,8 +216,6 @@ Build File for tunnel-server client and reference server.
         <include name="CHANGE_LOG"/>
         <include name="COPYING"/>
         <include name="config/*"/>
-        <include name="logging.properties"/>
-        <include name="rules.properties"/>
         <include name="third-party/commons-*/**"/>
         <include name="third-party/jline/**"/>
         <include name="third-party/jsch/**"/>
@@ -275,8 +275,6 @@ Build File for tunnel-server client and reference server.
         includes="config/*,
           COPYING,
           CHANGE_LOG,
-          rules.properties,
-          logging.properties,
           bin/**,
           build/**,
           third-party/wpg-proxy/bin/*.jar,
@@ -333,8 +331,6 @@ Build File for tunnel-server client and reference server.
         includes="config/*,
           COPYING,
           CHANGE_LOG,
-          rules.properties,
-          logging.properties,
           bin/**,
           build/**,
           third-party/wpg-proxy/bin/*.jar,

@@ -17,18 +17,37 @@
 package com.google.dataconnector.util;
 
 /**
- * Represents an error in configuration of the Secure Link Client.
+ * Local configuration exceptions.
  * 
  * @author rayc@google.com (Ray Colline)
  */
-public class ConfigurationException extends Exception {
+public class LocalConfException extends Exception {
 
   /**
    * Creates the exception with the specified error message.
    * 
    * @param msg the error message.
    */
-  public ConfigurationException(String msg) {
+  public LocalConfException(String msg) {
     super(msg);
+  }
+  
+  /**
+   * Creates the exception with the specified underlying cause.
+   * 
+   * @param cause the underlying cause.
+   */
+  public LocalConfException(Throwable cause) {
+    super(cause);
+  }
+  
+  /**
+   * Creates the exception with the specified error message and cause.
+   * 
+   * @param msg the error message.
+   * @param cause the underlying cause.
+   */
+  public LocalConfException(String msg, Throwable cause) {
+    super(msg, cause);
   }
 }

@@ -16,18 +16,17 @@
  */
 package com.google.dataconnector.client;
 
-import com.google.dataconnector.util.ClientConf;
-import com.google.dataconnector.util.ConfigurationException;
+import com.google.dataconnector.registration.v2.ResourceRule;
 import com.google.dataconnector.util.ConnectionException;
+import com.google.dataconnector.util.LocalConf;
 
 import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
-import java.util.Properties;
+import java.util.List;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
@@ -52,7 +51,8 @@ public class Client {
   private static final Logger log = Logger.getLogger(Client.class);
 
   /** Secure Data Connector Configuration */
-  private ClientConf clientConf;
+  private LocalConf localConfiguration;
+  private List<ResourceRule> resourceRules;
 
   /** Jsocks Starter Object */
   private JsocksStarter jsocksStarter;
@@ -63,10 +63,12 @@ public class Client {
   /**
    * Creates a new client from the populated client configuration object.
    * 
-   * @param clientConf the client configuration object.
+   * @param localConfiguration the local configuration object.
+   * @param resourceRules runtime configured resource rules.
    */
-  public Client(final ClientConf clientConf) {
-    this.clientConf = clientConf;
+  public Client(LocalConf localConfiguration, List<ResourceRule> resourceRules) {
+    this.localConfiguration = localConfiguration;
+    this.resourceRules = resourceRules;
   }
   
   /**
@@ -79,97 +81,38 @@ public class Client {
     
     // Check SSL flag and leave sslSocketFactory set to null if SSL is disabled.
     SSLSocketFactory sslSocketFactory = null;
-    if (clientConf.getUseSsl()) {
-      sslSocketFactory = getSslSocketFactory(clientConf);
+    if (localConfiguration.getUseSsl()) {
+      log.info("Using SSL for client connections.");
+      sslSocketFactory = getSslSocketFactory(localConfiguration);
     }
       
-    wpgProxyStarter = new WpgProxyStarter(clientConf);
+    wpgProxyStarter = new WpgProxyStarter(localConfiguration, resourceRules);
     wpgProxyStarter.startHttpProxy();
-    jsocksStarter = new JsocksStarter(clientConf);
-    jsocksStarter.start(); 
-    SecureDataConnection secureDataConnection = new SecureDataConnection(clientConf, 
-        sslSocketFactory);
+    jsocksStarter = new JsocksStarter(localConfiguration, resourceRules);
+    jsocksStarter.startJsocksProxy();
+    SecureDataConnection secureDataConnection = new SecureDataConnection(localConfiguration, 
+        resourceRules, sslSocketFactory);
     secureDataConnection.connect();
   }
-  
-  /**
-   * Entry point for the Secure Data Connector binary.  Sets up logging, parses flags and
-   * creates ClientConf.
-   * 
-   * @param args
-   */
-  public static void main(String[] args) {
-    // Bootstrap logging system
-    PropertyConfigurator.configure(getBootstrapLoggingProperties());
-    
-    // Parse Flags
-    ClientConf.parseFlags(args);
 
-    // Read in client properties file
-    Properties clientProps = new Properties();
-    String clientPropsFileName = ClientConf.getConfigFileFlagValue();
-    try {
-      clientProps = ClientConf.loadPropertiesFile(clientPropsFileName);
-    } catch (IOException e) {
-      log.fatal("Could not load properties file " + clientPropsFileName + " exception: " + e);
-      System.exit(1);
-    } 
-
-    try {
-      // Populate client configuration object
-      ClientConf clientConf = new ClientConf(clientProps);
-
-      // Load logging properties file.
-      PropertyConfigurator.configure(clientConf.getLoggingProperties());
-
-      // Create the client instance and start services
-      Client client = new Client(clientConf);
-      client.startUp();
-    } catch (ConnectionException e) {
-      log.fatal("Connection error: " + e.getMessage());
-      System.exit(1);
-    } catch (ConfigurationException e) {
-      log.fatal(e.getMessage());
-      System.exit(1);
-    } catch (IOException e) {
-      e.printStackTrace();
-      log.fatal("Client connection failure: ", e);
-    }
-  }
-  
-  /**
-   * Returns a base set of logging properties so we can log fatal errors before config parsing is 
-   * done.
-   * 
-   * @return Properties a basic console logging setup.
-   */
-  public static Properties getBootstrapLoggingProperties() {
-    Properties props = new Properties();
-    props.setProperty("log4j.rootLogger","debug, A");
-    props.setProperty("log4j.appender.A", "org.apache.log4j.ConsoleAppender");
-    props.setProperty("log4j.appender.A.layout", "org.apache.log4j.PatternLayout");
-    props.setProperty("log4j.appender.A.layout.ConversionPattern", "%-4r [%t] %-5p %c %x - %m%n");
-    return props;
-  }
-  
   /**
    * Sets up our own local SSL context and returns a SSLSocketFactory with keystore and password
    * set by our flags.
    * 
-   * @param clientConf the configuration object for the client.
+   * @param localConfiguration the configuration object for the client.
    * @return SSLSocketFactory configured for use.
    */
-  public static SSLSocketFactory getSslSocketFactory(ClientConf clientConf) {
-    char[] password = clientConf.getSslKeyStorePassword().toCharArray();
+  public static SSLSocketFactory getSslSocketFactory(LocalConf localConfiguration) {
+    char[] password = localConfiguration.getSslKeyStorePassword().toCharArray();
     try {
-      String keystorePath = clientConf.getSslKeyStoreFile();
+      String keystorePath = localConfiguration.getSslKeyStoreFile();
       
       SSLContext context = SSLContext.getInstance("TLSv1");
-      if (!"".equals(keystorePath)) {
+      if (keystorePath != null) { // The customer specified their own keystore.
         // Get a new "Java Key Store"
         KeyStore keyStore = KeyStore.getInstance("JKS");
         // Load with our trusted certs and setup the trust manager.
-        keyStore.load(new FileInputStream(clientConf.getSslKeyStoreFile()), password);
+        keyStore.load(new FileInputStream(keystorePath), password);
         TrustManagerFactory tmf = TrustManagerFactory.getInstance("PKIX");
         tmf.init(keyStore);
         // Create the SSL context with our private store.
@@ -186,5 +129,4 @@ public class Client {
       throw new RuntimeException("Could read Keystore file: " + e);
     }
   }
-  
 }

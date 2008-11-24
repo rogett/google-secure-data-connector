@@ -16,9 +16,10 @@
  */
 package com.google.dataconnector.client;
 
-import com.google.dataconnector.util.AuthRequest;
-import com.google.dataconnector.util.ClientConf;
+import com.google.dataconnector.registration.v2.AuthRequest;
+import com.google.dataconnector.registration.v2.ResourceRule;
 import com.google.dataconnector.util.ConnectionException;
+import com.google.dataconnector.util.LocalConf;
 
 import org.apache.log4j.Logger;
 
@@ -30,13 +31,14 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.List;
 
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
 /**
- * Implements a Secure Link client.  Connects to Secure Link Server and spawns opensshd on the
- * established socket.
+ * Implements a Secure Data Connector client.  Connects to Secure Data Connector Server and spawns 
+ * opensshd on the established socket.
  *
  * @author rayc@google.com (Ray Colline)
  */
@@ -46,20 +48,25 @@ public class SecureDataConnection {
   private static final Logger log = Logger.getLogger(SecureDataConnection.class);
 
   public static final Integer DEFAULT_SOCKS_PORT = 1080;
+  private static final String PERMIT_OPEN_OPT = "-o PermitOpen=";
 
   // Injected dependencies. TODO(rayc) fully DI this code.
-  private ClientConf clientConf;
+  /** Secure Data Connector Configuration */
+  private LocalConf localConf;
+  private List<ResourceRule> resourceRules;
   private SSLSocketFactory sslSocketFactory;
 
   /**
-   * Sets up a Secure Link connection to a Secure Link server with the supplied configuration.
+   * Sets up a Secure Data connection to a Secure Link server with the supplied configuration.
    *
-   * @param clientConf A Secure Link Client configuration object.
+   * @param localConf the local configuration object.
+   * @param resourceRules the resource rule set.
    * @param sslSocketFactory A configured SSLSocketFactory.
    */
-  public SecureDataConnection(final ClientConf clientConf,
-      final SSLSocketFactory sslSocketFactory) {
-    this.clientConf = clientConf;
+  public SecureDataConnection(LocalConf localConf, List<ResourceRule> resourceRules,
+      SSLSocketFactory sslSocketFactory) {
+    this.localConf = localConf;
+    this.resourceRules = resourceRules;
     this.sslSocketFactory = sslSocketFactory;
   }
 
@@ -80,17 +87,18 @@ public class SecureDataConnection {
       // Enable all support cipher suites.
       SSLSocket sslClientSocketRef = (SSLSocket) clientSocket;
       sslClientSocketRef.setEnabledCipherSuites(sslClientSocketRef.getSupportedCipherSuites());
-      clientSocket.connect(new InetSocketAddress(clientConf.getSecureLinkServerHost(),
-          clientConf.getSecureLinkServerPort()));
+      clientSocket.connect(new InetSocketAddress(localConf.getSdcServerHost(),
+          localConf.getSdcServerPort()));
     } else { // Fall back to straight TCP (testing only!)
-      clientSocket = new Socket(clientConf.getSecureLinkServerHost(),
-          clientConf.getSecureLinkServerPort());
+      clientSocket = new Socket(localConf.getSdcServerHost(),
+          localConf.getSdcServerPort());
     }
 
     // Attempt to login
-    AuthRequest authRequest = ClientRegistrationUtil.authorize(clientSocket, clientConf);
-    ClientRegistrationUtil.register(clientSocket, authRequest,  clientConf);
-    log.info("Login successful as " + clientConf.getEmail());
+    AuthRequest authRequest = ClientRegistrationUtil.authorize(clientSocket, localConf);
+    ClientRegistrationUtil.register(clientSocket, authRequest,  resourceRules);
+    log.info("Login successful as " + localConf.getUser() + "@" + 
+        localConf.getDomain());
 
     /*
      * Auth was successful lets start the port forwarding using SSH.
@@ -99,7 +107,9 @@ public class SecureDataConnection {
      * transmitted on its stdin and stdout.
      */
     log.info("Starting SSHD");
-    Process p = Runtime.getRuntime().exec(clientConf.getSshd());
+    // Add PermitOpen to SSHD exectuable to restrict portforwards based on configuration.
+    Process p = Runtime.getRuntime().exec(localConf.getSshd() + " " + PERMIT_OPEN_OPT +
+        localConf.getSocksdBindHost() + ":" + localConf.getSocksdBindHost());
 
     log.info("Connecting SSHD to existing stream");
     ConnectStreams connectSshdOutput = new ConnectStreams(

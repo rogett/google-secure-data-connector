@@ -17,7 +17,7 @@
 package com.google.dataconnector.util;
 
 /**
- * Parent class to all connection related exceptions.
+ * Exception for all connection related errors.
  * 
  * @author rayc@google.com (Ray Colline)
  */
@@ -32,4 +32,22 @@ public class ConnectionException extends Exception {
     super(msg);
   }
   
+  /**
+   * Creates the exception with the specified underlying cause.
+   * 
+   * @param cause the underlying cause.
+   */
+  public ConnectionException(Throwable cause) {
+    super(cause);
+  }
+  
+  /**
+   * Creates the exception with the specified error message and cause.
+   * 
+   * @param msg the error message.
+   * @param cause the underlying cause.
+   */
+  public ConnectionException(String msg, Throwable cause) {
+    super(msg, cause);
+  }
 }

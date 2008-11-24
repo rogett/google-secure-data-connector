@@ -16,24 +16,26 @@
  */
 package com.google.dataconnector.client;
 
-import com.google.dataconnector.util.ClientConf;
-import com.google.dataconnector.util.ResourceConfigEntry;
-import com.google.dataconnector.util.ResourceConfigException;
-import com.google.dataconnector.util.SocketResourceConfigEntry;
-import com.google.dataconnector.util.UriResourceConfigEntry;
-import com.google.dataconnector.util.SocketResourceConfigEntry.SocketInfo;
+import com.google.dataconnector.registration.v2.ResourceException;
+import com.google.dataconnector.registration.v2.ResourceRule;
+import com.google.dataconnector.registration.v2.SocketInfo;
+import com.google.dataconnector.util.LocalConf;
 
 import net.sourceforge.jsocks.SOCKS;
 import net.sourceforge.jsocks.socks.ProxyServer;
 import net.sourceforge.jsocks.socks.server.UserPasswordAuthenticator;
 import org.apache.log4j.Logger;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.List;
+import java.util.Properties;
 
 /**
- * Configures and starts the Jsocks Socks proxy.  Configuration is obtained from the
- * {@link ClientConf} object.
+ * Configures and starts the Jsocks Socks proxy.  Configuration is obtained from the {@LocalConf}
+ * object.
  *
  * @author rayc@google.com (Ray Colline)
  */
@@ -44,8 +46,9 @@ public final class JsocksStarter extends Thread {
 
   private static final String LOCALHOST = "127.0.0.1";
 
-  // Global Secure link client configuration.
-  private ClientConf clientConf;
+  /** Secure Data Connector Configuration */
+  private LocalConf localConfiguration;
+  private List<ResourceRule> resourceRules;
 
   // Socks V5 User/Password authenticator object.
   private UserPasswordAuthenticator authenticator;
@@ -53,44 +56,69 @@ public final class JsocksStarter extends Thread {
   // Bind address
   private InetAddress bindAddress;
 
+  // Socks Server Properties
+  private Properties socksProperties;
+
   /**
-   * Configures the SOCKS User/Password authenticator based on the rules in {@link ClientConf}
+   * Configures the SOCKS User/Password authenticator based on the rules provided
    *
-   * @param clientConf a populated client configuration object.
+   * @param localConfiguration the local configuration object.   
+   * @param resourceRules the rule sets.
    */
-  public JsocksStarter(final ClientConf clientConf) {
-    this.clientConf = clientConf;
+  public JsocksStarter(LocalConf localConfiguration, List<ResourceRule> resourceRules) {
+    this.localConfiguration = localConfiguration;
+    this.resourceRules = resourceRules;
+  }
+  
+  /**
+   * Do runtime configuration and start jsocks proxy thread.
+   */
+  public void startJsocksProxy() {
+    // Create firewall rules in jsocks proxy.
     authenticator = new UserPasswordAuthenticator();
-    for (ResourceConfigEntry entry : clientConf.getRules()) {
-      if (entry instanceof SocketResourceConfigEntry) {
+    for (ResourceRule resourceRule : resourceRules) {
+      if (resourceRule.getPattern().startsWith(ResourceRule.SOCKETID)) {
         SocketInfo socketInfo;
         try {
-          socketInfo = new SocketInfo(entry.getPattern());
-        } catch (ResourceConfigException e) {
+          socketInfo = new SocketInfo(resourceRule.getPattern());
+        } catch (ResourceException e) {
           throw new RuntimeException("Invalid Socket Pattern : entry.getPattern()");
         }
-        authenticator.add(entry.getSecurityKey().toString(), socketInfo.getHostAddress(),
+        authenticator.add(resourceRule.getSecretKey().toString(), socketInfo.getHostAddress(),
             socketInfo.getPort());
-      } else if (entry instanceof UriResourceConfigEntry) {
+      } else if (resourceRule.getPattern().startsWith(ResourceRule.HTTPID)) {
         /* We setup a proxy rule for every URI resource as we use SOCKS authentication to
          * password protect each of the URL patterns.
          */
-        authenticator.add(entry.getSecurityKey().toString(), LOCALHOST, entry.getPort());
+        authenticator.add(resourceRule.getSecretKey().toString(), LOCALHOST, 
+            resourceRule.getHttpProxyPort());
       }
     }
+    
+    // Resolve our bind host which should normally be localhost.
     try {
-      bindAddress = InetAddress.getByName(clientConf.getSocksdBindHost());
+      bindAddress = InetAddress.getByName(localConfiguration.getSocksdBindHost());
     } catch (UnknownHostException e) {
       throw new RuntimeException("Couldnt lookup bind host", e);
     }
+    
+    // Load properties from LocalConf.
+    socksProperties = new Properties();
+    try {
+    socksProperties.load(
+        new ByteArrayInputStream(localConfiguration.getSocksProperties().trim().getBytes()));
+    } catch (IOException e) {
+      throw new RuntimeException("Invalid socks properties", e);
+    }
+    start();
   }
-
+  
   @Override
   public void run() {
     // JSOCKS is configured in a static context
-    SOCKS.serverInit(clientConf.getClientProps());
+    SOCKS.serverInit(socksProperties);
     ProxyServer server = new ProxyServer(authenticator);
-    log.info("Starting JSOCKS listener thread on port " + clientConf.getSocksServerPort());
-    server.start(clientConf.getSocksServerPort(), 5, bindAddress);
+    log.info("Starting JSOCKS listener thread on port " + localConfiguration.getSocksServerPort());
+    server.start(localConfiguration.getSocksServerPort(), 5, bindAddress);
   }
 }

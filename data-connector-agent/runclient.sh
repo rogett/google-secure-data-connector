@@ -33,16 +33,19 @@ $WOODSTOCK_HOME/third-party/commons-cli/commons-cli-1.1.jar:\
 $WOODSTOCK_HOME/third-party/json/json.jar:\
 $WOODSTOCK_HOME/third-party/oauth/core.jar:\
 $WOODSTOCK_HOME/third-party/oauth/commons-codec-1.3.jar:\
+$WOODSTOCK_HOME/third-party/google-feedserver/commons-beanutils-1.8.0.jar:\
+$WOODSTOCK_HOME/third-party/google-feedserver/commons-beanutils-core-1.8.0.jar:\
+$WOODSTOCK_HOME/third-party/google-feedserver/gdata-client-1.0.jar:\
+$WOODSTOCK_HOME/third-party/google-feedserver/gdata-core-1.0.jar:\
+$WOODSTOCK_HOME/third-party/google-feedserver/google-feedserver-java-client-1.0.jar:\
+$WOODSTOCK_HOME/third-party/google-feedserver/commons-lang-2.4.jar:\
 $WOODSTOCK_HOME/build/prod/classes/
 JVM_ARGS="-Djava.net.preferIPv4Stack=true"   
 
 while /bin/true; do
-  java com.google.dataconnector.client.Client \
-  -configFile ./rules.properties \
-  -secureLinkServerHost ianq18 \
-  -secureLinkServerPort 25922 \
-  -logPropertiesFile ./logging.properties \
-  -useSsl \
+  java com.google.dataconnector.client.ClientMain \
+  -localConfigFile ./config/localConfig.xml \
+  -rulesFile ./config/resourceRules.xml
   sleep 5
   echo "RECONNECTING..."
 done

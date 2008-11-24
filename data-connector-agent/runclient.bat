@@ -27,6 +27,12 @@ set CLASSPATH=%CLASSPATH%;%WOODSTOCK_HOME%\third-party\apache-log4j\log4j-1.2.15
 set CLASSPATH=%CLASSPATH%;%WOODSTOCK_HOME%\third-party\commons-logging\commons-logging-1.1.jar
 set CLASSPATH=%CLASSPATH%;%WOODSTOCK_HOME%\third-party\commons-cli\commons-cli-1.1.jar
 set CLASSPATH=%CLASSPATH%;%WOODSTOCK_HOME%\third-party\json\json.jar
+set CLASSPATH=%CLASSPATH%;%WOODSTOCK_HOME%\third-party\google-feedserver\commons-beanutils-1.8.0.jar
+set CLASSPATH=%CLASSPATH%;%WOODSTOCK_HOME%\third-party\google-feedserver\commons-beanutils-core-1.8.0.jar
+set CLASSPATH=%CLASSPATH%;%WOODSTOCK_HOME%\third-party\google-feedserver\gdata-client-1.0.jar
+set CLASSPATH=%CLASSPATH%;%WOODSTOCK_HOME%\third-party\google-feedserver\gdata-core-1.0.jar
+set CLASSPATH=%CLASSPATH%;%WOODSTOCK_HOME%\third-party\google-feedserver\google-feedserver-java-client-1.0.jar
+set CLASSPATH=%CLASSPATH%;%WOODSTOCK_HOME%\third-party\google-feedserver\commons-lang-2.4.jar
 set CLASSPATH=%CLASSPATH%;%WOODSTOCK_HOME%\build\prod\classes\
 
 set JVM_ARGS=-Djava.net.preferIPv4Stack=true
@@ -39,4 +45,4 @@ set SDC_OPTION=%SDC_OPTION% -useSsl
 set SDC_OPTION=%SDC_OPTION% -sslKeyStoreFile %WOODSTOCK_HOME%\config\secureLinkClientTrustStore
 set SDC_OPTION=%SDC_OPTION% -sslKeyStorePassword woodstock
 
-java %JVM_ARGS% com.google.dataconnector.client.Client %SDC_OPTION%
+java %JVM_ARGS% com.google.dataconnector.client.ClientMain %SDC_OPTION%

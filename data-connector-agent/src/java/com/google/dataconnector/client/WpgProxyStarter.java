@@ -16,9 +16,8 @@
  */
 package com.google.dataconnector.client;
 
-import com.google.dataconnector.util.ClientConf;
-import com.google.dataconnector.util.ResourceConfigEntry;
-import com.google.dataconnector.util.UriResourceConfigEntry;
+import com.google.dataconnector.registration.v2.ResourceRule;
+import com.google.dataconnector.util.LocalConf;
 import com.google.dataconnector.wpgprocessors.SecureLinkHttpFilter;
 
 import com.wpg.proxy.Proxy;
@@ -36,25 +35,29 @@ public final class WpgProxyStarter {
   // Logging instance
   private static final Logger log = Logger.getLogger(WpgProxyStarter.class);
   
-  // Secure Link client configuration
-  private ClientConf clientConf;
+  /** Secure Data Connector Configuration */
+  private LocalConf localConfiguration;
+  private List<ResourceRule> resourceRules;
   
   /**
    * Creates the wpg proxy starter class with the supplied configuration.
    * 
-   * @param clientConf Secure Link configuration object.
+   * @param localConfiguration the local configuration object.
+   * @param resourceRules the rule sets.
    */
-  public WpgProxyStarter(final ClientConf clientConf) {
-    this.clientConf = clientConf;
+  public WpgProxyStarter(LocalConf localConfiguration, List<ResourceRule> resourceRules) {
+    this.localConfiguration = localConfiguration;
+    this.resourceRules = resourceRules;
   }
 
   /**
    * Creates a proxy thread per HTTP rule listed in the client configuration object.
    */
   public void startHttpProxy() {
-    for (ResourceConfigEntry entry : clientConf.getRules()) {
+    for (ResourceRule resourceRule : resourceRules) {
+      
       // Skip all non http rule entries these will be handled elsewhere.
-      if (!(entry instanceof UriResourceConfigEntry)) {
+      if (!resourceRule.getPattern().startsWith(ResourceRule.HTTPID)) {
         continue;
       }
       /* Each proxy instance can filter multiple URL patterns, but in our current setup we
@@ -65,22 +68,23 @@ public final class WpgProxyStarter {
        * proxy auth.
        */
       List<String> proxyFilterRules = new ArrayList<String>();
-      proxyFilterRules.add(entry.getPattern());
+      proxyFilterRules.add(resourceRule.getPattern());
       ProxyRegistry proxyRegistry = new ProxyRegistry();
       proxyRegistry.addRequestProcessor(new SecureLinkHttpFilter(proxyFilterRules));
       Proxy httpProxyService;
       try {
-        httpProxyService = new Proxy(InetAddress.getByName(clientConf.getHttpProxyBindHost()), 
-            entry.getPort(), 0,  proxyRegistry);
+        httpProxyService = new Proxy(InetAddress.getByName(
+            localConfiguration.getHttpProxyBindHost()), resourceRule.getHttpProxyPort(), 0,  
+            proxyRegistry);
       } catch (UnknownHostException e) {
-        String msg = "Unknown host exception for " + clientConf.getHttpProxyBindHost() + 
+        String msg = "Unknown host exception for " + localConfiguration.getHttpProxyBindHost() + 
             "  Serious configuration problem!";
         log.fatal(msg);
         throw new RuntimeException(msg, e);
       }
-      log.info("Starting http proxy server on port " + entry.getPort());
-      httpProxyService.setName("Proxy Thread Port " + entry.getPort() + "(" + 
-          entry.getPattern() + ")");
+      log.info("Starting http proxy server on port " + resourceRule.getHttpProxyPort());
+      httpProxyService.setName("Proxy Thread Port " + resourceRule.getHttpProxyPort() + "(" + 
+          resourceRule.getPattern() + ")");
       httpProxyService.start();  // TODO(rayc) maintain list of threads in a global object.
     }
   }

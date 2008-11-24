@@ -1,0 +1,22 @@
+<entity>
+  <sdcServerHost>apps-secure-data-connector.google.com</sdcServerHost>
+  <sdcServerPort>443</sdcServerPort>
+  <domain>example.com</domain>
+  <user>AnyValidDomainUsername</user>
+  <oauthKey>fillMeInFromAdminPanelManageOauth</oauthKey>
+  <useSsl>true</useSsl>
+  <clientId>test_example.com</clientId>
+  <sshd>_SSHD_</sshd>
+  <startingHttpProxyPort>18000</startingHttpProxyPort>
+  <socksServerPort>1080</socksServerPort>
+  <logProperties>
+    # ***** Set root logger level to DEBUG and its only appender to A.
+    log4j.rootLogger=debug, A
+
+    # ***** A is set to be a ConsoleAppender.
+    log4j.appender.A=org.apache.log4j.ConsoleAppender
+    # ***** A uses PatternLayout.
+    log4j.appender.A.layout=org.apache.log4j.PatternLayout
+    log4j.appender.A.layout.ConversionPattern=%-4r [%t] %-5p %c %x - %m%n
+  </logProperties>
+</entity>

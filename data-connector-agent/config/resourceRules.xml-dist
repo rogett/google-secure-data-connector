@@ -1,0 +1,23 @@
+<feed>
+  <entity repeatable="true">
+    <name>1</name>
+    <clientId>all</clientId>
+    <allowedEntities repeatable="true">testuser@example.com</allowedEntities>
+    <allowedEntities>admin@example.com</allowedEntities>
+    <pattern>http://internal.corp.example.com/.*</pattern>
+  </entity>
+  <entity>
+    <name>2</name>
+    <clientId>all</clientId>
+    <allowedEntities repeatable="true">testuser@example.com</allowedEntities>
+    <allowedEntities>admin@example.com</allowedEntities>
+    <pattern>http://feed.example.com/userlookup?user=.*/$</pattern>
+  </entity>
+  <entity>
+    <name>3</name>
+    <clientId>all</clientId>
+    <allowedEntities repeatable="true">testuser@example.com</allowedEntities>
+    <allowedEntities>admin@example.com</allowedEntities>
+    <pattern>socket://128.195.131.4:22</pattern>
+  </entity>
+</feed>

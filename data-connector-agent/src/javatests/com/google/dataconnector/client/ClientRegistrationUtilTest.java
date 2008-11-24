@@ -17,14 +17,14 @@
 package com.google.dataconnector.client;
 
 import com.google.dataconnector.client.ClientRegistrationUtil;
-import com.google.dataconnector.client.testing.FakeClientConfiguration;
-import com.google.dataconnector.util.AuthRequest;
-import com.google.dataconnector.util.AuthResponse;
+import com.google.dataconnector.client.testing.FakeLocalConfGenerator;
+import com.google.dataconnector.registration.v2.AuthRequest;
+import com.google.dataconnector.registration.v2.AuthResponse;
+import com.google.dataconnector.registration.v2.RegistrationResponse;
+import com.google.dataconnector.registration.v2.testing.FakeResourceRuleConfig;
 import com.google.dataconnector.util.AuthenticationException;
 import com.google.dataconnector.util.ConnectionException;
-import com.google.dataconnector.util.MangledResponseException;
 import com.google.dataconnector.util.RegistrationException;
-import com.google.dataconnector.util.RegistrationResponse;
 
 import junit.framework.TestCase;
 
@@ -47,13 +47,15 @@ import java.net.Socket;
 public class ClientRegistrationUtilTest extends TestCase {
 
   private AuthRequest authRequest;
-  private FakeClientConfiguration fakeClientConfig;
+  private FakeLocalConfGenerator fakeLocalConfGenerator;
+  private FakeResourceRuleConfig fakeResourceRuleConfig;
   
   @Override
   protected void setUp() throws Exception {
     super.setUp();
 
-    fakeClientConfig = new FakeClientConfiguration();
+    fakeLocalConfGenerator = new FakeLocalConfGenerator();
+    fakeResourceRuleConfig = new FakeResourceRuleConfig();
     authRequest = new AuthRequest();
   }
 
@@ -73,7 +75,7 @@ public class ClientRegistrationUtilTest extends TestCase {
     return fakeSocket;
   }
   
-  public void testAuthorize() throws IOException, ConnectionException, JSONException {
+  public void testAuthorize() throws IOException, JSONException {
     
     // Successful case.
     AuthResponse authResponse = new AuthResponse();
@@ -82,7 +84,8 @@ public class ClientRegistrationUtilTest extends TestCase {
         (authResponse.toJson().toString() + "\n").getBytes());
     OutputStream os = new ByteArrayOutputStream();
     try {
-      ClientRegistrationUtil.authorize(getFakeSocket(is, os), fakeClientConfig.getFakeClientConf());
+      ClientRegistrationUtil.authorize(getFakeSocket(is, os),
+          fakeLocalConfGenerator.getFakeLocalConf());
     } catch (AuthenticationException e) {
       fail("not supposed to receive exception");
     }
@@ -94,11 +97,10 @@ public class ClientRegistrationUtilTest extends TestCase {
     os = new ByteArrayOutputStream();
     boolean threwException = false;
     try {
-      ClientRegistrationUtil.authorize(getFakeSocket(is, os), fakeClientConfig.getFakeClientConf());
+      ClientRegistrationUtil.authorize(getFakeSocket(is, os),
+          fakeLocalConfGenerator.getFakeLocalConf());
     } catch (AuthenticationException e) {
       threwException = true;
-    } catch (MangledResponseException e) {
-      fail("Recieved mangled response exception when expecting authentication exception");
     } 
     assertTrue(threwException);
     
@@ -107,11 +109,11 @@ public class ClientRegistrationUtilTest extends TestCase {
     os = new ByteArrayOutputStream();
     threwException = false;
     try {
-      ClientRegistrationUtil.authorize(getFakeSocket(is, os), fakeClientConfig.getFakeClientConf());
-    } catch (MangledResponseException e) {
-      threwException = true;
+      ClientRegistrationUtil.authorize(getFakeSocket(is, os),
+          fakeLocalConfGenerator.getFakeLocalConf());
     } catch (AuthenticationException e) {
-      fail("Recieved authentication exception when expecting mangled response exception");
+      threwException = true;
+      assertTrue(e.getMessage().startsWith("Mangled"));
     } 
     assertTrue(threwException);
   }
@@ -124,7 +126,7 @@ public class ClientRegistrationUtilTest extends TestCase {
     InputStream is = new ByteArrayInputStream((responseJson.toJson().toString() + "\n").getBytes());
     OutputStream os = new ByteArrayOutputStream();
     ClientRegistrationUtil.register(getFakeSocket(is, os), authRequest, 
-        fakeClientConfig.getFakeClientConf());
+        fakeResourceRuleConfig.getFakeRuntimeResourceRules());
 
     // Negative Server Response case:
     responseJson = new RegistrationResponse();
@@ -135,11 +137,9 @@ public class ClientRegistrationUtilTest extends TestCase {
     boolean threwException = false;
     try {
       ClientRegistrationUtil.register(getFakeSocket(is, os), authRequest,
-          fakeClientConfig.getFakeClientConf());
+          fakeResourceRuleConfig.getFakeRuntimeResourceRules());
     } catch (RegistrationException e) {
       threwException = true;
-    } catch (MangledResponseException e) {
-      fail("Recieved mangled response exception when expecting registration exception");
     } 
     assertTrue(threwException);
 
@@ -149,13 +149,11 @@ public class ClientRegistrationUtilTest extends TestCase {
     threwException = false;
     try {
       ClientRegistrationUtil.register(getFakeSocket(is, os), authRequest, 
-          fakeClientConfig.getFakeClientConf());
-    } catch (MangledResponseException e) {
-      threwException = true;
+          fakeResourceRuleConfig.getFakeRuntimeResourceRules());
     } catch (RegistrationException e) {
-      fail("Recieved registration exception when expecting mangled response exception");
+      threwException = true;
+      assertTrue(e.getMessage().startsWith("Mangled"));
     } 
     assertTrue(threwException);
-
   }
 }
