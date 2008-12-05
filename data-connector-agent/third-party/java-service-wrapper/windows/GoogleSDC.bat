@@ -1,17 +1,9 @@
 @echo off
 setlocal
 
-rem Copyright (c) 1999, 2008 Tanuki Software, Inc.
-rem http://www.tanukisoftware.com
-rem All rights reserved.
+rem Copyright (c) 1999, 2006 Tanuki Software Inc.
 rem
-rem This software is the proprietary information of Tanuki Software.
-rem You shall use it only in accordance with the terms of the
-rem license agreement you entered into with Tanuki Software.
-rem http://wrapper.tanukisoftware.org/doc/english/licenseOverview.html
-rem
-rem Java Service Wrapper general startup script.
-rem Optimized for use with version 3.3.1 of the Wrapper.
+rem Java Service Wrapper general startup script
 rem
 
 rem

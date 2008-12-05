@@ -9,13 +9,13 @@
 
   <!-- Define Directories. -->
 
-  <property name="openssh_targz" value="dist/openssh-4.7p1.tar.gz" />
-  <property name="sshd" value="src/openssh-4.7p1/sshd" />
-  <property name="sshdwin" value="src/openssh-4.7p1/sshd.exe" />
+  <property name="openssh_targz" value="dist/openssh-4.9p1.tar.gz" />
+  <property name="sshd" value="src/openssh-4.9p1/sshd" />
+  <property name="sshdwin" value="src/openssh-4.9p1/sshd.exe" />
   <property name="osrc" value="src" />
   <property name="sbin" value="sbin" />
   <property name="sshbin" value="bin" />
-  <property name="openssh_src" value="src/openssh-4.7p1"/>
+  <property name="openssh_src" value="src/openssh-4.9p1"/>
 
   <!-- common targets -->
   <target name="init">    
