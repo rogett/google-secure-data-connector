@@ -158,11 +158,6 @@ public class ClientGuiceModule extends AbstractModule {
    */
   @Provides @Singleton
   public SSLSocketFactory getSslSocketFactory(LocalConf localConfiguration) {
-    // Only if we have useSsl set.
-    if (!localConfiguration.getUseSsl()) {
-      return null;
-    }
-    
     LOG.info("Using SSL for client connections.");
     
     char[] password = localConfiguration.getSslKeyStorePassword().toCharArray();
@@ -183,6 +178,9 @@ public class ClientGuiceModule extends AbstractModule {
         // Use the JVM default as trusted store. This would be located somewhere around
         // jdk.../jre/lib/security/cacerts, and will contain widely used CAs.
         context.init(null, null, null);  // Use JVM default.
+      }
+      if (context.getSocketFactory() == null) {
+        throw new GeneralSecurityException("socketFactory not created. ");
       }
       return context.getSocketFactory();
     } catch (GeneralSecurityException e) {

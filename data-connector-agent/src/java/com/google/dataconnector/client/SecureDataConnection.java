@@ -32,6 +32,7 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.util.List;
 
 import javax.net.ssl.SSLSocket;
@@ -84,13 +85,18 @@ public class SecureDataConnection {
     log.info("Connecting to server");
 
     Socket clientSocket;
-    if (sslSocketFactory != null) { // We have an SSL socket factory, use it.
+    if (localConf.getUseSsl()) { // if useSsl flag is set, use SSLSocketFactory.
       clientSocket = sslSocketFactory.createSocket();
       // Enable all support cipher suites.
       SSLSocket sslClientSocketRef = (SSLSocket) clientSocket;
       sslClientSocketRef.setEnabledCipherSuites(sslClientSocketRef.getSupportedCipherSuites());
-      clientSocket.connect(new InetSocketAddress(localConf.getSdcServerHost(),
-          localConf.getSdcServerPort()));
+      // wait for 30 sec to connect. is that too long?
+      try {
+        clientSocket.connect(new InetSocketAddress(localConf.getSdcServerHost(),
+            localConf.getSdcServerPort()), 30 *1000);
+      } catch (SocketTimeoutException e) {
+        throw new ConnectionException(e);
+      }
     } else { // Fall back to straight TCP (testing only!)
       clientSocket = new Socket(localConf.getSdcServerHost(),
           localConf.getSdcServerPort());
@@ -110,26 +116,76 @@ public class SecureDataConnection {
      */
     log.info("Starting SSHD");
     // Add PermitOpen to SSHD exectuable to restrict portforwards based on configuration.
-    Process p = Runtime.getRuntime().exec(localConf.getSshd() + " " + PERMIT_OPEN_OPT +
+    Process sshdProcess = Runtime.getRuntime().exec(localConf.getSshd() + " " + PERMIT_OPEN_OPT +
         localConf.getSocksdBindHost() + ":" + localConf.getSocksdBindHost());
+    if (sshdProcess == null) {
+      // couldn't start openssh? not good
+      throw new ConnectionException("couldn't start SSH @ " + localConf.getSshd() + ". exiting");
+    }
 
+    // SSH started ok. make sure it is killed when this VM exits
+    Runtime.getRuntime().addShutdownHook(new KillProcessShutdownHook(sshdProcess));
+    
     log.info("Connecting SSHD to existing stream");
     ConnectStreams connectSshdOutput = new ConnectStreams(
-        p.getInputStream(), clientSocket.getOutputStream(), "sshdOut");
+        sshdProcess.getInputStream(), clientSocket.getOutputStream(), "sshdOut");
     ConnectStreams connectSshdInput = new ConnectStreams(
-        clientSocket.getInputStream(), p.getOutputStream(), "sshdIn");
+        clientSocket.getInputStream(), sshdProcess.getOutputStream(), "sshdIn");
     connectSshdInput.start();
     connectSshdOutput.start();
 
     /*
      * OpenSSHD logs to stderr, so we pick up its log messages and log them
      * as our own.  This will stay active the entire length of the Secure Link Connection
-     * as our transport is openssh.  When openssh goes down, this thread will exit.
+     * as our transport is openssh.  NOTE that this thread will run forever.
      */
-    BufferedReader br = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-    String errorLine;
-    while ((errorLine = br.readLine()) != null) {
-      log.info("OpenSSH Logline: " + errorLine);
+    new RedirectStreamToLog(sshdProcess.getErrorStream(), log, "OpenSSH Logline").start();
+  }
+
+  /**
+   * A thread to take data from the given stream and write it to the logger instance provided.
+   */
+  public static class RedirectStreamToLog extends Thread {
+    private InputStream stream;
+    private Logger logger;
+    private String id;
+    
+    public RedirectStreamToLog(InputStream stream, Logger logger, String id) {
+      this.stream = stream;
+      this.logger = logger;
+      this.id = id;
+    }
+    
+    @Override
+    public void run() {
+      Thread.currentThread().setName(id);
+      try {
+        BufferedReader br = new BufferedReader(new InputStreamReader(stream));
+        String lineFromStream;
+        while ((lineFromStream = br.readLine()) != null) {
+          logger.info(lineFromStream);
+        }
+      } catch (IOException e) {
+        // stream may have been closed. exit this thread
+        return;
+      }
+    }
+  }
+
+  /**
+   * A shutdownhook to kill the given process when the VM exists
+   *
+   */
+  public static class KillProcessShutdownHook extends Thread {
+    private Process proc;
+    
+    public KillProcessShutdownHook(Process proc) {
+      this.proc = proc;
+    }
+    
+    @Override
+    public void run() {
+        proc.destroy();
     }
   }
 
@@ -187,11 +243,17 @@ public class SecureDataConnection {
         }
       } catch (SocketException e) {
         log.error("Socket Error", e);
-        System.exit(1);
       } catch (IOException e) {
         log.error("Client Error", e);
-        System.exit(1);
       }
+      
+      /* 
+       * about to disconnect connection between client-TS socket AND the SSH. 
+       * doesn't matter why we reached here - 
+       * but this means client can no longer process requests from the TS. 
+       */
+      log.info("Communication interrupted between server and client, exiting.");
+      System.exit(1);
     }
   }
 }

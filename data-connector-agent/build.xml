@@ -369,7 +369,7 @@ Build File for tunnel-server client and reference server.
     </exec>
   </target>
 
-  <target name="all" depends="test,source-distro,binary-distro,install"/>
+  <target name="all" depends="install,test"/>
   <target name="cygwin" depends="test,source-distro,binary-distro-win,install"/>
 
   <!-- Start of Testing-related stuff -->

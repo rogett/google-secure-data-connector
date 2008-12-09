@@ -115,6 +115,10 @@ public class ClientRegistrationUtil {
       // wait for response and check.
       log.debug("Reading auth response");
       String jsonResponseString = br.readLine();
+      if (jsonResponseString == null ||
+          jsonResponseString.trim().length() == 0) {
+        throw new AuthenticationException("No Authorization response recvd. exiting.");
+      }
       log.debug("Got an auth response");
       
       String email = localConfiguration.getUser() + "@" + localConfiguration.getDomain();
@@ -166,6 +170,10 @@ public class ClientRegistrationUtil {
       // Receive registration response packet
       log.debug("Waiting for registration response");
       String jsonResponseString = br.readLine();
+      if (jsonResponseString == null ||
+          jsonResponseString.trim().length() == 0) {
+        throw new RegistrationException("No Registration response recvd. exiting.");
+      }
       log.debug("Read registration response: " + jsonResponseString);
 
       RegistrationResponse regResponse = new RegistrationResponse(
