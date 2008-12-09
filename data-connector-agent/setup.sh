@@ -22,6 +22,17 @@
 # script sets proper permissions on openssh files and sets config file path
 # locations anchored to the cwd of this script.
 
+# Setup Configuration 
+OPENSSH_HOME=`pwd`/third-party/openssh
+CONF_DIR=`pwd`/config  # Absolute path required
+LOG_DIR=`pwd`/logs  # Absolute path required
+
+LOCAL_CONF_FILE=$CONF_DIR/localConfig.xml
+APACHE_ROOT=`pwd`/third-party/apache-httpd/root #  Absolute path required
+APACHE_CONF_DIST_FILE=$CONF_DIR/httpd.conf-dist
+APACHE_CONF_DIR=$CONF_DIR/apache # Absolute path required
+APACHE_CONF_GEN_FILENAME=$APACHE_CONF_DIR/httpd.conf-template
+
 # If running under Cygwin used sshd.exe
 uname -a |grep -i cygwin >/dev/null
  if [ $? = 0 ]; then
@@ -81,9 +92,6 @@ check_invocation_location() {
 }
 # main
 
-OPENSSH_HOME=`pwd`/third-party/openssh
-LOCAL_CONF_FILE=config/localConfig.xml
-
 check_invocation_location
 if [ $? == 0 ]; then
   echo please run from directory where setup.sh is located
@@ -122,8 +130,42 @@ if [ $installmode = "linux" ] ; then
   else 
     /bin/cp $LOCAL_CONF_FILE-dist $LOCAL_CONF_FILE
     sed -i $LOCAL_CONF_FILE -e  's^_SSHD_^'$OPENSSH_HOME'/bin/start_sshd.sh^'	
+    sed -i $LOCAL_CONF_FILE -e  's^_APACHE_ROOT_^'$APACHE_ROOT'^'	
+    sed -i $LOCAL_CONF_FILE -e  's^_APACHE_CONF_DIR^'$APACHE_CONF_DIR'^'	
   fi
-	
+
+  # Update http conf template
+  /bin/cp $APACHE_CONF_DIST_FILE $APACHE_CONF_GEN_FILENAME
+  sed -i $APACHE_CONF_GEN_FILENAME -e 's^_APACHE_ROOT_^'$APACHE_ROOT'^'
+  sed -i $APACHE_CONF_GEN_FILENAME -e 's^_APACHE_CONF_^'$APACHE_CONF_DIR'^'
+  sed -i $APACHE_CONF_GEN_FILENAME -e 's^_APACHE_LOG_DIR_^'$LOG_DIR'^'
+
+  # Check Apache HTTP suitability
+  if [ -e $APACHE_ROOT/bin/httpd ]; then
+    echo -n "Checking apache version: "
+    $APACHE_ROOT/bin/httpd -v |grep version |grep 2.2
+    if [ $? != 0 ]; then
+      echo not found
+      echo "Secure Data Connector requires apache 2.2"
+      exit 1
+    fi
+    echo success.
+    echo -n "Checking for mod_proxy: "
+    $APACHE_ROOT/bin/httpd -l |grep proxy
+    static_link_result=$?
+    ls $APACHE_ROOT/modules |grep proxy
+    dynamic_link_result=$?
+    if [ $static_link_result != 0 -a $dynamic_link_result != 0 ]; then
+      echo not found
+      echo "Secure Data Connector requires mod_proxy."
+      exit 1
+    fi
+    echo success.
+  else 
+    echo Did not find httpd at $APACHE_ROOT/bin/httpd
+    exit 1
+  fi
+
 fi
 
 if [ $installmode = "cygwin" ] ; then

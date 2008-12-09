@@ -31,6 +31,7 @@ public class LocalConf {
   private static final String DEFAULT_GOOGLE_SDC_HOST = "apps-secure-data-connector.google.com";
   private static final int DEFAULT_GOOGLE_SDC_PORT = 443;
   private static final String DEFAULT_SSL_KEYSTORE_PASSWORD = "woodstock";
+  public static final String HTTPD_CONF_TEMPLATE_FILE = "httpd.conf-template";
   
   private String name;
 
@@ -63,13 +64,17 @@ public class LocalConf {
   @Flag(help = "Location of sshd binary to use for SDC protocol multiplexor")
   private String sshd;
   @Flag(help = "Starting http proxy port to assign for each HTTP Resource Rule")
-  private Integer startingHttpProxyPort;
+  private Integer httpProxyPort;
   @Flag(help = "Default bind host is localhost, One should not have to change this.")
   private String httpProxyBindHost = DEFAULT_BIND_HOST;
   @Flag(help = "Port to bind socks firewall port to.")
   private Integer socksServerPort;
   @Flag(help = "Default bind host is localhost, One should not have to change this.")
   private String socksdBindHost = DEFAULT_BIND_HOST;
+  @Flag(help = "System apache2 location")
+  private String apacheRoot = "third-party/apache-httpd/root";
+  @Flag(help = "Apache configuratin files.  Must be writable by user agent runs as.")
+  private String apacheConfDir;
   
   // Config File Only
   private String logProperties;
@@ -184,12 +189,12 @@ public class LocalConf {
     this.sshd = sshd;
   }
 
-  public Integer getStartingHttpProxyPort() {
-    return startingHttpProxyPort;
+  public Integer getHttpProxyPort() {
+    return httpProxyPort;
   }
 
-  public void setStartingHttpProxyPort(Integer startingHttpProxyPort) {
-    this.startingHttpProxyPort = startingHttpProxyPort;
+  public void setHttpProxyPort(Integer httpProxyPort) {
+    this.httpProxyPort = httpProxyPort;
   }
 
   public String getHttpProxyBindHost() {
@@ -230,5 +235,21 @@ public class LocalConf {
 
   public void setSocksProperties(String socksProperties) {
     this.socksProperties = socksProperties;
+  }
+
+  public String getApacheRoot() {
+    return apacheRoot;
+  }
+
+  public void setApacheRoot(String apacheRoot) {
+    this.apacheRoot = apacheRoot;
+  }
+
+  public String getApacheConfDir() {
+    return apacheConfDir;
+  }
+
+  public void setApacheConfDir(String apacheConfDir) {
+    this.apacheConfDir = apacheConfDir;
   }
 }

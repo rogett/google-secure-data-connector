@@ -20,6 +20,7 @@ import com.google.dataconnector.registration.v2.AuthRequest;
 import com.google.dataconnector.registration.v2.ResourceRule;
 import com.google.dataconnector.util.ConnectionException;
 import com.google.dataconnector.util.LocalConf;
+import com.google.inject.Inject;
 
 import org.apache.log4j.Logger;
 
@@ -63,6 +64,7 @@ public class SecureDataConnection {
    * @param resourceRules the resource rule set.
    * @param sslSocketFactory A configured SSLSocketFactory.
    */
+  @Inject
   public SecureDataConnection(LocalConf localConf, List<ResourceRule> resourceRules,
       SSLSocketFactory sslSocketFactory) {
     this.localConf = localConf;
@@ -125,9 +127,9 @@ public class SecureDataConnection {
      * as our transport is openssh.  When openssh goes down, this thread will exit.
      */
     BufferedReader br = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-    String foo;
-    while ((foo = br.readLine()) != null) {
-      log.info("OpenSSH Logline: " + foo);
+    String errorLine;
+    while ((errorLine = br.readLine()) != null) {
+      log.info("OpenSSH Logline: " + errorLine);
     }
   }
 

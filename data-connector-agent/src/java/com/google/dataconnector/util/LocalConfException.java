@@ -21,7 +21,7 @@ package com.google.dataconnector.util;
  * 
  * @author rayc@google.com (Ray Colline)
  */
-public class LocalConfException extends Exception {
+public class LocalConfException extends AgentConfigurationException {
 
   /**
    * Creates the exception with the specified error message.

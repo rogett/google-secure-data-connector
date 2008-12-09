@@ -190,7 +190,7 @@ public class LocalConfValidatorTest extends TestCase {
   // Socks Server Port
   public void testBadStartingHttpProxyPort() {
     // Setup bad data
-    localConf.setStartingHttpProxyPort(3242343);
+    localConf.setHttpProxyPort(3242343);
     
     // Test and verify
     try {

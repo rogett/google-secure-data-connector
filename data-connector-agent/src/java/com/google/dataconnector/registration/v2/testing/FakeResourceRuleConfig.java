@@ -37,7 +37,7 @@ public class FakeResourceRuleConfig {
   public static final String HTTP_PATTERN = "http://www.example.com";
   public static final String SOCKET_NAME = "2";;
   public static final String SOCKET_PATTERN = "socket://128.195.131";
-  public static final String HTTP_PROXY_PORT = "19233";
+  public static final String HTTP_PROXY_PORT = "10000";
   public static final String SOCKS_SERVER_PORT = "1080";
   public static final String SECRET_KEY = "23423432432";
 

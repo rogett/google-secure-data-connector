@@ -45,4 +45,4 @@ set SDC_OPTION=%SDC_OPTION% -useSsl
 set SDC_OPTION=%SDC_OPTION% -sslKeyStoreFile %WOODSTOCK_HOME%\config\secureLinkClientTrustStore
 set SDC_OPTION=%SDC_OPTION% -sslKeyStorePassword woodstock
 
-java %JVM_ARGS% com.google.dataconnector.client.ClientMain %SDC_OPTION%
+java %JVM_ARGS% com.google.dataconnector.client.Client %SDC_OPTION%

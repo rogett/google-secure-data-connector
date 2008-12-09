@@ -17,16 +17,25 @@
 package com.google.dataconnector.client;
 
 import com.google.dataconnector.registration.v2.ResourceRule;
+import com.google.dataconnector.util.ApacheSetupException;
+import com.google.dataconnector.util.ClientGuiceModule;
+import com.google.dataconnector.util.AgentConfigurationException;
 import com.google.dataconnector.util.ConnectionException;
 import com.google.dataconnector.util.LocalConf;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.util.List;
+import java.util.Properties;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
@@ -50,25 +59,30 @@ public class Client {
   // Logging instance
   private static final Logger log = Logger.getLogger(Client.class);
 
-  /** Secure Data Connector Configuration */
+  /* Dependencies */
   private LocalConf localConfiguration;
-  private List<ResourceRule> resourceRules;
-
-  /** Jsocks Starter Object */
   private JsocksStarter jsocksStarter;
-  
-  /** WPG Proxy Starter Object */
-  private WpgProxyStarter wpgProxyStarter;
+  private ApacheStarter apacheStarter;
+  private SecureDataConnection secureDataConnection;
   
   /**
    * Creates a new client from the populated client configuration object.
    * 
    * @param localConfiguration the local configuration object.
    * @param resourceRules runtime configured resource rules.
+   * @param sslSocketFactory 
+   * @param apacheStarter 
+   * @param jsocksStarter 
+   * @param secureDataConnection 
    */
-  public Client(LocalConf localConfiguration, List<ResourceRule> resourceRules) {
+  @Inject
+  public Client(LocalConf localConfiguration, List<ResourceRule> resourceRules, 
+      SSLSocketFactory sslSocketFactory, ApacheStarter apacheStarter, 
+      JsocksStarter jsocksStarter, SecureDataConnection secureDataConnection) {
     this.localConfiguration = localConfiguration;
-    this.resourceRules = resourceRules;
+    this.apacheStarter = apacheStarter;
+    this.jsocksStarter = jsocksStarter;
+    this.secureDataConnection = secureDataConnection;
   }
   
   /**
@@ -76,57 +90,59 @@ public class Client {
    * 
    * @throws IOException if any socket communication issues occur.
    * @throws ConnectionException if login is incorrect or other Woodstock connection errors.
+   * @throws ApacheSetupException if apache has any errors.
    */
-  public void startUp() throws IOException, ConnectionException {
+  public void startUp() throws IOException, ConnectionException, ApacheSetupException {
     
-    // Check SSL flag and leave sslSocketFactory set to null if SSL is disabled.
-    SSLSocketFactory sslSocketFactory = null;
-    if (localConfiguration.getUseSsl()) {
-      log.info("Using SSL for client connections.");
-      sslSocketFactory = getSslSocketFactory(localConfiguration);
-    }
-      
-    wpgProxyStarter = new WpgProxyStarter(localConfiguration, resourceRules);
-    wpgProxyStarter.startHttpProxy();
-    jsocksStarter = new JsocksStarter(localConfiguration, resourceRules);
+    // Set client logging properties.
+    Properties properties = new Properties();
+    properties.load(new ByteArrayInputStream(
+        localConfiguration.getLogProperties().trim().getBytes()));
+    PropertyConfigurator.configure(properties);
+    
+    apacheStarter.startApacheHttpd();
     jsocksStarter.startJsocksProxy();
-    SecureDataConnection secureDataConnection = new SecureDataConnection(localConfiguration, 
-        resourceRules, sslSocketFactory);
     secureDataConnection.connect();
   }
-
+  
   /**
-   * Sets up our own local SSL context and returns a SSLSocketFactory with keystore and password
-   * set by our flags.
+   * Entry point for the Secure Data Connector binary.  Sets up logging, parses flags and
+   * creates ClientConf.
    * 
-   * @param localConfiguration the configuration object for the client.
-   * @return SSLSocketFactory configured for use.
+   * @param args
    */
-  public static SSLSocketFactory getSslSocketFactory(LocalConf localConfiguration) {
-    char[] password = localConfiguration.getSslKeyStorePassword().toCharArray();
+  public static void main(String[] args) {
+    // Bootstrap logging system
+    PropertyConfigurator.configure(getBootstrapLoggingProperties());
+    final Injector injector = Guice.createInjector(new ClientGuiceModule(args));
+    // Create the client instance and start services
+    Client client = injector.getInstance(Client.class);
     try {
-      String keystorePath = localConfiguration.getSslKeyStoreFile();
-      
-      SSLContext context = SSLContext.getInstance("TLSv1");
-      if (keystorePath != null) { // The customer specified their own keystore.
-        // Get a new "Java Key Store"
-        KeyStore keyStore = KeyStore.getInstance("JKS");
-        // Load with our trusted certs and setup the trust manager.
-        keyStore.load(new FileInputStream(keystorePath), password);
-        TrustManagerFactory tmf = TrustManagerFactory.getInstance("PKIX");
-        tmf.init(keyStore);
-        // Create the SSL context with our private store.
-        context.init(null, tmf.getTrustManagers(), null);
-      } else {
-        // Use the JVM default as trusted store. This would be located somewhere around
-        // jdk.../jre/lib/security/cacerts, and will contain widely used CAs.
-        context.init(null, null, null);  // Use JVM default.
-      }
-      return context.getSocketFactory();
-    } catch (GeneralSecurityException e) {
-      throw new RuntimeException("SSL setup error: " + e);
+      client.startUp();
     } catch (IOException e) {
-      throw new RuntimeException("Could read Keystore file: " + e);
+      log.fatal("Connection error.", e);
+      System.exit(-1);
+    } catch (ConnectionException e) {
+      log.fatal("Client connection failure.", e);
+      System.exit(-1);
+    } catch (AgentConfigurationException e) {
+      log.fatal("Client configuration error.", e);
+      System.exit(-1);
     }
+  }
+  
+  /**
+   * Returns a base set of logging properties so we can log fatal errors before config parsing is 
+   * done.
+   * 
+   * @return Properties a basic console logging setup.
+   */
+  public static Properties getBootstrapLoggingProperties() {
+    Properties props = new Properties();
+    props.setProperty("log4j.rootLogger","info, A");
+    props.setProperty("log4j.appender.A", "org.apache.log4j.ConsoleAppender");
+    props.setProperty("log4j.appender.A.layout", "org.apache.log4j.PatternLayout");
+    props.setProperty("log4j.appender.A.layout.ConversionPattern", "%-4r [%t] %-5p %c %x - %m%n");
+    return props;
   }
 }

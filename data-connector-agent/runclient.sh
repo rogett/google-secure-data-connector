@@ -30,6 +30,9 @@ $WOODSTOCK_HOME/third-party/jsch/jsch-20071024.jar:\
 $WOODSTOCK_HOME/third-party/apache-log4j/log4j-1.2.15.jar:\
 $WOODSTOCK_HOME/third-party/commons-logging/commons-logging-1.1.jar:\
 $WOODSTOCK_HOME/third-party/commons-cli/commons-cli-1.1.jar:\
+$WOODSTOCK_HOME/third-party/aopalliance/aopalliance.jar:\
+$WOODSTOCK_HOME/third-party/guice-snapshot20081016/guice-assistedinject-snapshot20081016.jar:\
+$WOODSTOCK_HOME/third-party/guice-snapshot20081016/guice-snapshot20081016.jar:\
 $WOODSTOCK_HOME/third-party/json/json.jar:\
 $WOODSTOCK_HOME/third-party/oauth/core.jar:\
 $WOODSTOCK_HOME/third-party/oauth/commons-codec-1.3.jar:\
@@ -43,7 +46,7 @@ $WOODSTOCK_HOME/build/prod/classes/
 JVM_ARGS="-Djava.net.preferIPv4Stack=true"   
 
 while /bin/true; do
-  java com.google.dataconnector.client.ClientMain \
+  java com.google.dataconnector.client.Client \
   -localConfigFile ./config/localConfig.xml \
   -rulesFile ./config/resourceRules.xml
   sleep 5

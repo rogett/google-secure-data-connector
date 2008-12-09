@@ -18,8 +18,10 @@ package com.google.dataconnector.client;
 
 import com.google.dataconnector.registration.v2.ResourceException;
 import com.google.dataconnector.registration.v2.ResourceRule;
+import com.google.dataconnector.registration.v2.ResourceRuleUtil;
 import com.google.dataconnector.registration.v2.SocketInfo;
 import com.google.dataconnector.util.LocalConf;
+import com.google.inject.Inject;
 
 import net.sourceforge.jsocks.SOCKS;
 import net.sourceforge.jsocks.socks.ProxyServer;
@@ -42,13 +44,14 @@ import java.util.Properties;
 public final class JsocksStarter extends Thread {
 
   // Logging instance
-  private static final Logger log = Logger.getLogger(JsocksStarter.class);
+  private static final Logger LOG = Logger.getLogger(JsocksStarter.class);
 
   private static final String LOCALHOST = "127.0.0.1";
 
-  /** Secure Data Connector Configuration */
+  /* Dependencies */
   private LocalConf localConfiguration;
   private List<ResourceRule> resourceRules;
+  private ResourceRuleUtil resourceRuleUtil;
 
   // Socks V5 User/Password authenticator object.
   private UserPasswordAuthenticator authenticator;
@@ -59,15 +62,19 @@ public final class JsocksStarter extends Thread {
   // Socks Server Properties
   private Properties socksProperties;
 
+
   /**
    * Configures the SOCKS User/Password authenticator based on the rules provided
    *
    * @param localConfiguration the local configuration object.   
    * @param resourceRules the rule sets.
    */
-  public JsocksStarter(LocalConf localConfiguration, List<ResourceRule> resourceRules) {
+  @Inject
+  public JsocksStarter(LocalConf localConfiguration, List<ResourceRule> resourceRules,
+      ResourceRuleUtil resourceRuleUtil) {
     this.localConfiguration = localConfiguration;
     this.resourceRules = resourceRules;
+    this.resourceRuleUtil = resourceRuleUtil;
   }
   
   /**
@@ -92,7 +99,15 @@ public final class JsocksStarter extends Thread {
          */
         authenticator.add(resourceRule.getSecretKey().toString(), LOCALHOST, 
             resourceRule.getHttpProxyPort());
+      } else if (resourceRule.getPattern().startsWith(ResourceRule.HTTPSID)) {
+        authenticator.add(resourceRule.getSecretKey().toString(), 
+            resourceRuleUtil.getHostnameFromRule(resourceRule), 
+            resourceRuleUtil.getPortFromRule(resourceRule));
+        LOG.info("Added https rule " + resourceRule.getPattern() + " host: " + 
+            resourceRuleUtil.getHostnameFromRule(resourceRule) + " port: " + 
+            resourceRuleUtil.getPortFromRule(resourceRule));
       }
+      LOG.info("Adding rule: " + resourceRule.getPattern());
     }
     
     // Resolve our bind host which should normally be localhost.
@@ -118,7 +133,7 @@ public final class JsocksStarter extends Thread {
     // JSOCKS is configured in a static context
     SOCKS.serverInit(socksProperties);
     ProxyServer server = new ProxyServer(authenticator);
-    log.info("Starting JSOCKS listener thread on port " + localConfiguration.getSocksServerPort());
+    LOG.info("Starting JSOCKS listener thread on port " + localConfiguration.getSocksServerPort());
     server.start(localConfiguration.getSocksServerPort(), 5, bindAddress);
   }
 }

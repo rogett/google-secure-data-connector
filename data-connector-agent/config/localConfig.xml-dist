@@ -9,6 +9,8 @@
   <sshd>_SSHD_</sshd>
   <startingHttpProxyPort>18000</startingHttpProxyPort>
   <socksServerPort>1080</socksServerPort>
+  <apacheRoot>_APACHE_ROOT_</apacheRoot>
+  <apacheConfDir>_APACHE_CONF_DIR</apacheConfDir>
   <logProperties>
     # ***** Set root logger level to DEBUG and its only appender to A.
     log4j.rootLogger=debug, A

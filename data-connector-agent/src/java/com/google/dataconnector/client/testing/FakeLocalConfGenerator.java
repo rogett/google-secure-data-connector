@@ -51,11 +51,13 @@ public class FakeLocalConfGenerator {
   public static final String SSL_KEY_STORE_FILE = "./testSecureLinkClientTrustStore";
   public static final String CLIENT_ID = "testClientId1";
   public static final String SSHD = "./sshd";
-  public static final Integer STARTING_HTTP_PROXY_PORT = 10000;
+  public static final Integer HTTP_PROXY_PORT = 31823;
   public static final String HTTP_PROXY_BIND_HOST = "127.0.0.1";
   public static final Integer SOCKS_SERVER_PORT = 1080;
   public static final String SOCKSD_BIND_HOST = "127.0.0.1";
   public static final String RULES_FILE = "/tmp/rulesConf.xml";
+  public static final String APACHE_CONF_DIR = "/tmp/apache";
+  public static final String APACHE_ROOT = "/tmp/apacheroot";
   
   /**
    * Creates a configuration beans from the fake hardcoded XML files.  
@@ -104,10 +106,12 @@ public class FakeLocalConfGenerator {
     "<sslKeyStoreFile>" + SSL_KEY_STORE_FILE +"</sslKeyStoreFile>\n" +
     "<clientId>" + CLIENT_ID + "</clientId>\n" +
     "<sshd>\n" + SSHD + "</sshd>\n" +
-    "<startingHttpProxyPort>" + STARTING_HTTP_PROXY_PORT + "</startingHttpProxyPort>\n" +
+    "<httpProxyPort>" + HTTP_PROXY_PORT + "</httpProxyPort>\n" +
     "<httpProxyBindHost>" + HTTP_PROXY_BIND_HOST + "</httpProxyBindHost>\n" +
     "<socksServerPort>" + SOCKS_SERVER_PORT + "</socksServerPort>\n" +
     "<socksdBindHost>" + SOCKSD_BIND_HOST + "</socksdBindHost>\n" +
+    "<apacheConfDir>" + APACHE_CONF_DIR + "</apacheConfDir>\n" +
+    "<apacheRoot>" + APACHE_ROOT + "</apacheRoot>" +
     // We hard code socks properties and log properties because they are not used in our tests.
     "<socksProperties>\n" +
     "iddleTimeout    = 600000   # 10 minutes\n" +

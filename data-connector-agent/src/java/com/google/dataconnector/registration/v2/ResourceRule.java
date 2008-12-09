@@ -22,7 +22,7 @@ package com.google.dataconnector.registration.v2;
  * 
  * @author rayc@google.com (Ray Colline)
  */
-public class ResourceRule {
+public class ResourceRule implements Comparable<ResourceRule> {
   
   // URL resource type identifiers
   public static final String HTTPID = "http://";
@@ -110,4 +110,22 @@ public class ResourceRule {
     this.secretKey = secretKey;
   }
 
+  /**
+   * Compares two rules by sequence number.
+   */
+  public int compareTo(ResourceRule o) {
+    try {
+      int mySeqNumber = Integer.valueOf(name);
+      int theirSeqNumber = Integer.valueOf(name);
+      if (mySeqNumber < theirSeqNumber) {
+        return -1;
+      } else if (mySeqNumber > theirSeqNumber) {
+        return 1;
+      } else {
+        return 0;
+      }
+    } catch (NumberFormatException e) {
+      throw new RuntimeException(e);  
+    }
+  }
 }
