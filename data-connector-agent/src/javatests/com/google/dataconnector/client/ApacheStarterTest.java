@@ -50,16 +50,17 @@ public class ApacheStarterTest extends TestCase {
     localConf = fakeLocalConfGenerator.getFakeLocalConf();
   }
   
-  public void testRun() throws InterruptedException, IOException {
+  public void testRun() throws IOException {
     // setup
     Process mockProcess = EasyMock.createMock(Process.class);
-    EasyMock.expect(mockProcess.waitFor()).andReturn(0).anyTimes();
     ByteArrayInputStream bis = new ByteArrayInputStream("".getBytes());
     EasyMock.expect(mockProcess.getErrorStream()).andReturn(bis).anyTimes();
     EasyMock.replay(mockProcess);
     
     Runtime mockRuntime = EasyMock.createMock(Runtime.class);
     EasyMock.expect(mockRuntime.exec(checkRuntimeArgs())).andReturn(mockProcess);
+    mockRuntime.addShutdownHook(EasyMock.isA(Thread.class));
+    EasyMock.expectLastCall();
     EasyMock.replay(mockRuntime);
     
     // test

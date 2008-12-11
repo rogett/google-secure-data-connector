@@ -9,6 +9,7 @@
   <sshd>_SSHD_</sshd>
   <startingHttpProxyPort>18000</startingHttpProxyPort>
   <socksServerPort>1080</socksServerPort>
+  <httpProxyPort>8765</httpProxyPort>
   <apacheRoot>_APACHE_ROOT_</apacheRoot>
   <apacheConfDir>_APACHE_CONF_DIR</apacheConfDir>
   <logProperties>

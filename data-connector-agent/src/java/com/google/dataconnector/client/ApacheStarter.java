@@ -16,6 +16,7 @@
  */
 package com.google.dataconnector.client;
 
+import com.google.dataconnector.client.SecureDataConnection.KillProcessShutdownHook;
 import com.google.dataconnector.util.ApacheHelper;
 import com.google.dataconnector.util.ApacheSetupException;
 import com.google.dataconnector.util.LocalConf;
@@ -82,6 +83,8 @@ public class ApacheStarter extends Thread {
           "-f", ApacheHelper.getHttpdConfFileName(localConf)
       };
       Process p = runtime.exec(commandLine);
+      runtime.addShutdownHook(new KillProcessShutdownHook(p));
+      
       BufferedReader br = new BufferedReader(new InputStreamReader(p.getErrorStream()));
       String errorLine;
       
@@ -89,13 +92,10 @@ public class ApacheStarter extends Thread {
       while ((errorLine = br.readLine()) != null) {
         LOG.info("httpd output: " + errorLine);
       }
-      p.waitFor();
-      LOG.info("Httpd shutting down.");
+
     } catch (IOException e) {
       LOG.log(Level.ERROR, "Apache did not start correctly.", e);
       throw new RuntimeException(e);
-    } catch (InterruptedException e) {
-      LOG.log(Level.ERROR, "Apache interrupted.", e);
     }
   }
 }
