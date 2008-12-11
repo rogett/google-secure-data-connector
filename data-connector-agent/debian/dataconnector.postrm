@@ -1,0 +1,20 @@
+#!/bin/sh
+
+set -e
+
+installinit_error() {
+  exit $?
+}
+
+if [ "$1" = "purge" ] ; then
+  update-rc.d dataconnector remove >/dev/null || installinit_error
+fi
+
+if [ "$1" = "purge" ]; then
+  deluser --system --quiet woodstock-client || true
+  deluser --system --quiet dataconnector || true
+  [ -d /opt/dataconnector ] && rm -rf /opt/dataconnector
+  [ -d /etc/opt/dataconnector ] && rm -rf /etc/opt/dataconnector
+  [ -d /var/log/dataconnector ] && rm -rf /var/log/dataconnector
+  [ -d /var/opt/dataconnector ] && rm -rf /var/opt/dataconnector
+fi

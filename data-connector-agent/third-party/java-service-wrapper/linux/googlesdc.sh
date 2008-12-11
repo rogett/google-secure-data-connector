@@ -39,6 +39,9 @@ PIDDIR="."
 #  the JVM and is not useful in situations where a privileged resource or
 #  port needs to be allocated prior to the user being changed.
 #RUN_AS_USER=
+# Some configurations may not work with su. Uncomment the following line to use
+# sudo to switch user instead.
+# USE_SUDO_INSTEAD=1
 
 # The following two lines are used by the chkconfig command. Change as is
 #  appropriate for your application.  They should remain commented.
@@ -326,7 +329,12 @@ checkUser() {
 
         # Still want to change users, recurse.  This means that the user will only be
         #  prompted for a password once. Variables shifted by 1
-        su -m $RUN_AS_USER -c "\"$REALPATH\" $2"
+        if [ -z "$USE_SUDO_INSTEAD" ]
+        then
+          su -m $RUN_AS_USER -c "\"$REALPATH\" $2"
+        else
+          sudo -u $RUN_AS_USER /bin/bash -c "\"$REALPATH\" $2"
+        fi
 
         # Now that we are the original user again, we may need to clean up the lock file.
         if [ "X$LOCKPROP" != "X" ]
