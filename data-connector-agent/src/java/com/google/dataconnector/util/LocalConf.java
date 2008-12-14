@@ -17,6 +17,7 @@
 
 package com.google.dataconnector.util;
 
+import com.google.dataconnector.registration.v2.AuthRequest;
 import com.google.feedserver.util.ConfigFile;
 import com.google.feedserver.util.Flag;
 
@@ -46,10 +47,16 @@ public class LocalConf {
   private Integer sdcServerPort = DEFAULT_GOOGLE_SDC_PORT;
   @Flag(help = "Google Apps domain to associate agent with.")
   private String domain;
-  @Flag(help = "Any valid user on the domain. This is only used for authentication.")
+  
+  @Flag(help = "Any valid admin user on the domain. This is only used for authentication.")
   private String user;
+  
+  // for authn, either oauthkey or password should be present.
   @Flag(help = "Two-legged oauth consumer key.")
-  private String oauthKey;  
+  private String oauthKey;
+  @Flag(help = "Password.")
+  private String password;
+  
   @Flag(help = "Use SSL for client connections.  Only use false for testing. " + 
       "Google does not support clear text connection")
   private boolean useSsl = true;
@@ -83,6 +90,8 @@ public class LocalConf {
       "acceptTimeout = 60000\n" + // 1 minutes
       "udpTimeout = 600000\n" + // 10 minutes
       "log = -\n"; // stdout.
+  
+  private AuthRequest.AuthType authType = AuthRequest.AuthType.NONE;
   
   // getters and setters
   public String getName() {
@@ -149,6 +158,14 @@ public class LocalConf {
     this.oauthKey = oauthKey;
   }
 
+  public String getPassword() {
+    return password;
+  }
+
+  public void setPassword(String password) {
+    this.password = password;
+  }
+  
   public String getSslKeyStorePassword() {
     return sslKeyStorePassword;
   }
@@ -251,5 +268,13 @@ public class LocalConf {
 
   public void setApacheConfDir(String apacheConfDir) {
     this.apacheConfDir = apacheConfDir;
+  }
+  
+  public AuthRequest.AuthType getAuthType() {
+    return authType;
+  }
+
+  public void setAuthType(AuthRequest.AuthType authType) {
+    this.authType = authType;
   }
 }

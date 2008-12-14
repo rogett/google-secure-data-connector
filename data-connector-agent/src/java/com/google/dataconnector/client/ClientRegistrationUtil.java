@@ -65,16 +65,16 @@ public class ClientRegistrationUtil {
    * object. 
    *  
    * @param socket The connected socket.
-   * @param localConfiguration the local configuration object.
+   * @param localConf the local configuration object.
    * @returns the AuthRequest packet associated with this connection.
    * @throws AuthenticationException if authorization fails 
    * @throws IOException if socket communication errors occur.
    */
   public static AuthRequest authorize(final Socket socket, 
-      LocalConf localConfiguration) throws AuthenticationException, IOException {
+      LocalConf localConf) throws AuthenticationException, IOException {
 
-    String userEmail = localConfiguration.getUser() + "@" + 
-    localConfiguration.getDomain();
+    String userEmail = localConf.getUser() + "@" + 
+    localConf.getDomain();
     log.info("Attempting login for " + userEmail);
 
     PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
@@ -86,29 +86,46 @@ public class ClientRegistrationUtil {
       pw.println(INITIAL_HANDSHAKE_MSG);
       pw.flush();
       
-      // create oauth aignature + request string
-      long currentTime = System.currentTimeMillis() / 1000l;
-      OAuthConsumer consumer = new OAuthConsumer(null, localConfiguration.getDomain(), 
-          localConfiguration.getOauthKey(), null);
-      OAuthMessage message = new OAuthMessage("GET", AuthRequest.URL_FOR_OAUTH, 
-          new ArrayList<OAuth.Parameter>());
-      message.addParameter(OAuth.OAUTH_SIGNATURE_METHOD, AuthRequest.OAUTH_SIGNATURE_METHOD);
-      message.addParameter(OAuth.OAUTH_VERSION, OAuth.VERSION_1_0);
-      message.addParameter(OAuth.OAUTH_CONSUMER_KEY, consumer.consumerKey);
-      message.addParameter(OAuth.OAUTH_TIMESTAMP, Long.toString(
-          System.currentTimeMillis() / 1000l));
-      message.addParameter(OAuth.OAUTH_NONCE, "doesnotmatter");
-      message.addParameter(AuthRequest.OAUTH_REQUESTOR_ID_KEY, userEmail);
-      OAuthAccessor accessor = new OAuthAccessor(consumer);
-      message.sign(accessor);
-      
-      // create auth request packet
+      /**
+       * 2 authn mechanism are available:
+       *   2-legged-oauth if localConfig has oauth key defined
+       *   otherwise, username/password mechanism
+      */
       AuthRequest authRequest = new AuthRequest();
-      authRequest.setOauthString(AuthRequest.URL_FOR_OAUTH + "?" +
-          OAuth.formEncode(message.getParameters()));
+      if (localConf.getAuthType() == AuthRequest.AuthType.OAUTH) {
+        // create oauth aignature + request string
+        long currentTime = System.currentTimeMillis() / 1000l;
+        OAuthConsumer consumer = new OAuthConsumer(null, localConf.getDomain(), 
+            localConf.getOauthKey(), null);
+        OAuthMessage message = new OAuthMessage("GET", AuthRequest.URL_FOR_OAUTH, 
+            new ArrayList<OAuth.Parameter>());
+        message.addParameter(OAuth.OAUTH_SIGNATURE_METHOD, AuthRequest.OAUTH_SIGNATURE_METHOD);
+        message.addParameter(OAuth.OAUTH_VERSION, OAuth.VERSION_1_0);
+        message.addParameter(OAuth.OAUTH_CONSUMER_KEY, consumer.consumerKey);
+        message.addParameter(OAuth.OAUTH_TIMESTAMP, Long.toString(
+            System.currentTimeMillis() / 1000l));
+        message.addParameter(OAuth.OAUTH_NONCE, "doesnotmatter");
+        message.addParameter(AuthRequest.OAUTH_REQUESTOR_ID_KEY, userEmail);
+        OAuthAccessor accessor = new OAuthAccessor(consumer);
+        message.sign(accessor);
+      
+        // create auth request packet
+        authRequest.setOauthString(AuthRequest.URL_FOR_OAUTH + "?" +
+            OAuth.formEncode(message.getParameters()));
+        log.info("Sending login packet: " + authRequest.toJson().toString());
+      } else if (localConf.getAuthType() == AuthRequest.AuthType.PASSWORD) {
+        authRequest.setUser(localConf.getUser());
+        authRequest.setDomain(localConf.getDomain());
+        log.info("Sending login packet: " + authRequest.toJson().toString());
+       // set the password now - to avoid having it printed in the above step
+        authRequest.setPassword(localConf.getPassword());
+      } else {
+        // shouldn't haave come here because LocalConfValidator should have thrown error
+        throw new AuthenticationException("could find neither oauthkey nor password. " +
+            "can't authenticate. exiting");
+      }
       
       // send auth request packet
-      log.info("Sending login packet: " + authRequest.toJson().toString());
       pw.println(authRequest.toJson().toString());
       pw.flush();
       
@@ -121,7 +138,7 @@ public class ClientRegistrationUtil {
       }
       log.debug("Got an auth response");
       
-      String email = localConfiguration.getUser() + "@" + localConfiguration.getDomain();
+      String email = localConf.getUser() + "@" + localConf.getDomain();
       AuthResponse authResponse = new AuthResponse(new JSONObject(jsonResponseString));
       if(authResponse.getStatus() != AuthResponse.Status.OK) {
         throw new AuthenticationException("Authentication Failed for " + email + ": " + 

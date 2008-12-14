@@ -16,6 +16,8 @@
  */
 package com.google.dataconnector.util;
 
+import com.google.dataconnector.registration.v2.AuthRequest;
+
 import java.io.File;
 
 /**
@@ -127,9 +129,13 @@ public class LocalConfValidator {
       errors.append("'user' required\n");
     }
     
-    // oauthKey
-    if (localConf.getOauthKey() == null) {
-      errors.append("'oauthKey' required\n");
+    // oauthKey or password required
+    if (localConf.getOauthKey() != null) {
+      localConf.setAuthType(AuthRequest.AuthType.OAUTH);
+    } else if (localConf.getPassword() != null) {
+      localConf.setAuthType(AuthRequest.AuthType.PASSWORD);
+    } else {
+      errors.append("'oauthKey' or 'password' required\n");
     }
     
     // useSsl

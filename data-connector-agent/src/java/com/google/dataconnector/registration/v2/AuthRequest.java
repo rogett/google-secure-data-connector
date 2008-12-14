@@ -30,18 +30,29 @@ public class AuthRequest {
   
   /** Keys used for the Auth Request JSON representation */ 
   static final String OAUTH_KEY = "oauthString";
+  static final String USER_KEY = "user";
+  static final String DOMAIN_KEY = "domain";
+  static final String PASSWORD_KEY = "password";
 
   public static final String OAUTH_SIGNATURE_METHOD = "HMAC-SHA1";
   public static final String URL_FOR_OAUTH = "http://www.google.com/woodstockAgent";
   public static final String OAUTH_REQUESTOR_ID_KEY = "xoauth_requestor_id";
   
   private String oauthString;
-  
-  // the following are used on the server side
   private String email;
   private String domain;
   private String user;
+  private String password;
   
+  // what type of authn mechanism can be used - enumerate
+  public static enum AuthType {
+    OAUTH,
+    PASSWORD,
+    NONE
+  }
+  
+  private AuthType authType; // filled in when JsonString is parsed.
+
   /**
    * Returns JSON object representing data.
    * 
@@ -50,7 +61,13 @@ public class AuthRequest {
    */
   public JSONObject toJson() throws JSONException {
     JSONObject json = new JSONObject();
-    json.put(OAUTH_KEY, oauthString);
+    if (oauthString != null) {
+      json.put(OAUTH_KEY, oauthString);
+    } else {
+      json.put(USER_KEY, user);
+      json.put(PASSWORD_KEY, password);
+      json.put(DOMAIN_KEY, domain);
+    }
     return json;
   }
   
@@ -61,7 +78,17 @@ public class AuthRequest {
    * @throws JSONException if any required fields are missing.
    */
   public AuthRequest(final JSONObject json) throws JSONException {
-    setOauthString(json.getString(OAUTH_KEY));
+    // look for oauth keys
+    if (json.has(OAUTH_KEY)) {
+      setOauthString(json.getString(OAUTH_KEY));
+      setAuthType(AuthType.OAUTH);
+    } else {
+      // look for password key. if not found, then let the exception be thrown
+      setUser(json.getString(USER_KEY));
+      setDomain(json.getString(DOMAIN_KEY));
+      setPassword(json.getString(PASSWORD_KEY));
+      setAuthType(AuthType.PASSWORD);
+    }
   }
   
   /**
@@ -74,6 +101,10 @@ public class AuthRequest {
   public static String getOAUTH_KEY() {
     return OAUTH_KEY;
   }
+  
+  public static String getPASSWORD_KEY() {
+    return PASSWORD_KEY;
+  }
 
   public String getOauthString() {
     return oauthString;
@@ -83,12 +114,25 @@ public class AuthRequest {
     this.oauthString = oauthString;
   }
   
+  // Readonly.
   public String getEmail() {
+    setEmail();
     return email;
   }
 
   public void setEmail(String email) {
     this.email = email;
+  }
+  
+  /** 
+   * Sets the email if both user and domain are available.
+   */
+  private void setEmail() {
+    // These may not be set yet when called.
+    if (user == null || domain == null) {
+      return;
+    }
+    email = user + "@" + domain;
   }
 
   public String getDomain() {
@@ -104,5 +148,21 @@ public class AuthRequest {
 
   public void setUser(String user) {
     this.user = user;
+  }
+  
+  public String getPassword() {
+    return password;
+  }
+
+  public void setPassword(String password) {
+    this.password = password;
+  }
+  
+  public AuthType getAuthType() {
+    return authType;
+  }
+
+  public void setAuthType(AuthType authType) {
+    this.authType = authType;
   }
 }
