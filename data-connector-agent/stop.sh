@@ -21,8 +21,31 @@
 if [ $UID != 0 ] ; then
  echo You should run this script as root or via sudo
 else
- # Kill the wrapper runclient.sh before stopping java process so it is not restarted
- ps -ef |grep runclient.sh |grep -v grep | awk '{ print $2 }' | xargs kill 
- ps -ef |grep .*java.*rules.properties | awk '{ print $2 }' | xargs kill 
-fi
 
+ # Kill launcher before stopping java process so it is not restarted
+   ps -ef |grep -v grep | grep runclient.sh >/dev/null
+ 
+   if [ $? = 0 ] ; then
+    echo 'Stopping Secure Data Connector Launcher'
+    ps -ef |grep -v grep | grep runclient.sh \
+    | awk '{ print $2 }' | xargs kill
+   fi
+
+  # Check for running java process and if found kill it.
+   ps -ef |grep -v grep | grep .*java.*localConfig.xml >/dev/null
+ 
+   if [ $? = 0 ] ; then
+    echo 'Stopping Secure Data Connector'
+    ps -ef |grep -v grep | grep .*java.*localConfig.xml \
+    | awk '{ print $2 }' | xargs kill -s 9
+   fi
+
+  # Check for running apache httpd process and if found kill it.
+  ps -ef |grep -v grep | grep .*httpd.*dc.httpd.conf >/dev/null
+   if [ $? = 0 ] ; then
+    echo 'Stopping Secure Data Connector Apache'
+    ps -ef |grep -v grep | grep .*httpd.*dc.httpd.conf \
+    | awk '{ print $2 }' | xargs kill -s 9
+   fi
+
+fi 

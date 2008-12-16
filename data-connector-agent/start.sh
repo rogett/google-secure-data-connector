@@ -17,11 +17,12 @@
 # * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 # 
 # Starts runclient.sh in background and log stdout and stderr to file.
+logfile=/var/log/dataconnector
 
 if [ $UID != 0 ] ; then
  echo You should run this script as root or via sudo
 else
- nohup ./runclient.sh >>/var/log/securelink 2>&1 &
- echo Please review /var/log/securelink for details
+ nohup ./runclient.sh >>$logfile 2>&1 &
+ echo Please review $logfile for details
 fi
 
