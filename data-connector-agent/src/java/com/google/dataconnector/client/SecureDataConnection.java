@@ -214,6 +214,7 @@ public class SecureDataConnection {
       this.in = in;
       this.out = out;
       this.setName(id);
+      this.setDaemon(true);
     }
 
     /**
@@ -223,23 +224,19 @@ public class SecureDataConnection {
     @Override
     public void run() {
       try {
-        synchronized (in) {
-          synchronized (out) {
-            byte[] buffer = new byte[65536];
-            while (true) {
-              int bytesRead = in.read(buffer);
-              /*
-               * If -1 is returned, the peer has closed the connection and we should break out
-               * of the loop closing down this thread.
-               */
-              if (bytesRead == -1) {
-                break;
-              }
-              out.write(buffer, 0, bytesRead);
-              log.debug(getName() + ":Wrote " + bytesRead + " bytes");
-              out.flush();
-            }
+        byte[] buffer = new byte[65536];
+        while (true) {
+          int bytesRead = in.read(buffer);
+          /*
+           * If -1 is returned, the peer has closed the connection and we should break out
+           * of the loop closing down this thread.
+           */
+          if (bytesRead == -1) {
+            break;
           }
+          out.write(buffer, 0, bytesRead);
+          log.debug(getName() + ":Wrote " + bytesRead + " bytes");
+          out.flush();
         }
       } catch (SocketException e) {
         log.error("Socket Error", e);

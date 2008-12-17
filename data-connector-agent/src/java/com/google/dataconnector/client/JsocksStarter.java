@@ -125,6 +125,8 @@ public final class JsocksStarter extends Thread {
     } catch (IOException e) {
       throw new RuntimeException("Invalid socks properties", e);
     }
+    setName("jsocks-starter-thread");
+    setDaemon(true);
     start();
   }
   

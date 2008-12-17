@@ -16,11 +16,13 @@
  */
 package com.google.dataconnector.client;
 
+import com.google.dataconnector.client.ApacheStarter.ApacheCommand;
 import com.google.dataconnector.client.testing.FakeLocalConfGenerator;
 import com.google.dataconnector.client.testing.StringArrayMatcher;
 import com.google.dataconnector.registration.v2.ResourceRule;
 import com.google.dataconnector.registration.v2.testing.FakeResourceRuleConfig;
 import com.google.dataconnector.util.ApacheHelper;
+import com.google.dataconnector.util.ApacheSetupException;
 import com.google.dataconnector.util.LocalConf;
 
 import junit.framework.TestCase;
@@ -50,25 +52,36 @@ public class ApacheStarterTest extends TestCase {
     localConf = fakeLocalConfGenerator.getFakeLocalConf();
   }
   
-  public void testRun() throws IOException {
+  public void testStartApacheHttpd() throws IOException, ApacheSetupException {
     // setup
+    ApacheHelper mockApacheHelper = EasyMock.createMock(ApacheHelper.class);
+    mockApacheHelper.generateHtpasswdFiles();
+    EasyMock.expectLastCall();
+    mockApacheHelper.generateHttpdConf();
+    EasyMock.expectLastCall();
+    EasyMock.replay(mockApacheHelper);
+    
     Process mockProcess = EasyMock.createMock(Process.class);
     ByteArrayInputStream bis = new ByteArrayInputStream("".getBytes());
     EasyMock.expect(mockProcess.getErrorStream()).andReturn(bis).anyTimes();
     EasyMock.replay(mockProcess);
     
     Runtime mockRuntime = EasyMock.createMock(Runtime.class);
-    EasyMock.expect(mockRuntime.exec(checkRuntimeArgs())).andReturn(mockProcess);
+    EasyMock.expect(mockRuntime.exec(checkRuntimeArgs(ApacheCommand.STOP))).andReturn(mockProcess);
+    EasyMock.expectLastCall();
+    EasyMock.expect(mockRuntime.exec(checkRuntimeArgs(ApacheCommand.START))).andReturn(mockProcess);
+    EasyMock.expectLastCall();
     mockRuntime.addShutdownHook(EasyMock.isA(Thread.class));
     EasyMock.expectLastCall();
     EasyMock.replay(mockRuntime);
     
     // test
-    ApacheStarter apacheStart = new ApacheStarter(localConf, null, mockRuntime);
-    apacheStart.run();
+    ApacheStarter apacheStart = new ApacheStarter(localConf, mockApacheHelper, mockRuntime);
+    apacheStart.startApacheHttpd();
     
     // verify
     EasyMock.verify(mockProcess);
+    EasyMock.verify(mockApacheHelper);
     EasyMock.verify(mockRuntime);
   }
   
@@ -77,11 +90,11 @@ public class ApacheStarterTest extends TestCase {
    * 
    * @return null
    */
-  public String[] checkRuntimeArgs() {
+  public String[] checkRuntimeArgs(ApacheCommand command) {
     EasyMock.reportMatcher(new StringArrayMatcher(new String[] {
-        localConf.getApacheRoot() + File.separator + "bin" + File.separator + "httpd",
-        "-D", "FOREGROUND",
-        "-f", ApacheHelper.getHttpdConfFileName(localConf) }));
+        localConf.getApacheRoot() + File.separator + "bin" + File.separator + "apachectl",
+        "-f", ApacheHelper.getHttpdConfFileName(localConf),
+        "-k", command.toString() }));
     return null;
   }
 }
