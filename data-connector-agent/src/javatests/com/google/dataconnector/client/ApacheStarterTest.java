@@ -92,7 +92,7 @@ public class ApacheStarterTest extends TestCase {
    */
   public String[] checkRuntimeArgs(ApacheCommand command) {
     EasyMock.reportMatcher(new StringArrayMatcher(new String[] {
-        localConf.getApacheRoot() + File.separator + "bin" + File.separator + "apachectl",
+        localConf.getApacheCtl(),
         "-f", ApacheHelper.getHttpdConfFileName(localConf),
         "-k", command.toString() }));
     return null;

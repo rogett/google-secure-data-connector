@@ -217,11 +217,18 @@ public class LocalConfValidator {
       errors.append("'socksProperties' required\n");
     }
     
-    // apache root
-    if (localConf.getApacheRoot() != null) {
-      errors.append(canReadFile("apacheRoot", localConf.getApacheRoot()));
+    // apache htpasswd
+    if (localConf.getApacheHtpasswd() != null) {
+      errors.append(canReadFile("apacheHtpasswd", localConf.getApacheHtpasswd()));
     } else {
-      errors.append("'apacheRoot' required.");
+      errors.append("'apacheHtpasswd' required.");
+    }
+    
+    // apachectl
+    if (localConf.getApacheCtl() != null) {
+      errors.append(canReadFile("apacheCtl", localConf.getApacheCtl()));
+    } else {
+      errors.append("'apacheCtl' required.");
     }
     
     // apache conf dir

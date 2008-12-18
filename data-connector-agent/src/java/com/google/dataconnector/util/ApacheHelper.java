@@ -170,7 +170,7 @@ public class ApacheHelper {
         LOG.info("creating password " + resourceRule.getSecretKey() + " for rule " + 
             resourceRule.getPattern());
         Process p = runtime.exec(new String[] { 
-            localConf.getApacheRoot() + File.separator + HTPASSWD_BINARY,
+            localConf.getApacheHtpasswd(),
             "-b",
             "-c",
             htpasswdFile,

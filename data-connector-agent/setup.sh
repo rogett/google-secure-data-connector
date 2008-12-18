@@ -29,6 +29,8 @@ LOG_DIR=`pwd`/logs  # Absolute path required
 
 LOCAL_CONF_FILE=$CONF_DIR/localConfig.xml
 APACHE_ROOT=`pwd`/third-party/apache-httpd/root #  Absolute path required
+APACHE_HTPASSWD=`pwd`/third-party/apache-httpd/root/bin/htpasswd #  Absolute path required
+APACHE_CTL=`pwd`/third-party/apache-httpd/root/bin/apachectl #  Absolute path required
 APACHE_CONF_DIST_FILE=$CONF_DIR/httpd.conf-dist
 APACHE_CONF_DIR=$CONF_DIR/apache # Absolute path required
 APACHE_CONF_GEN_FILENAME=$APACHE_CONF_DIR/httpd.conf-template
@@ -130,7 +132,8 @@ if [ $installmode = "linux" ] ; then
   else 
     /bin/cp $LOCAL_CONF_FILE-dist $LOCAL_CONF_FILE
     sed -i $LOCAL_CONF_FILE -e  's^_SSHD_^'$OPENSSH_HOME'/bin/start_sshd.sh^'	
-    sed -i $LOCAL_CONF_FILE -e  's^_APACHE_ROOT_^'$APACHE_ROOT'^'	
+    sed -i $LOCAL_CONF_FILE -e  's^_APACHE_HTPASSWD_^'$APACHE_HTPASSWD'^'	
+    sed -i $LOCAL_CONF_FILE -e  's^_APACHE_CTL_^'$APACHE_CTL'^'	
     sed -i $LOCAL_CONF_FILE -e  's^_APACHE_CONF_DIR^'$APACHE_CONF_DIR'^'	
   fi
 

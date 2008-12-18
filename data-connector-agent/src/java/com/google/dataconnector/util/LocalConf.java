@@ -78,8 +78,10 @@ public class LocalConf {
   private Integer socksServerPort;
   @Flag(help = "Default bind host is localhost, One should not have to change this.")
   private String socksdBindHost = DEFAULT_BIND_HOST;
-  @Flag(help = "System apache2 location")
-  private String apacheRoot = "third-party/apache-httpd/root";
+  @Flag(help = "System apache2 htpassword location")
+  private String apacheHtpasswd = "third-party/apache-httpd/root/bin/htpassword";
+  @Flag(help = "System apache2 apachectl location")
+  private String apacheCtl = "third-party/apache-httpd/root/bin/apachectl";
   @Flag(help = "Apache configuratin files.  Must be writable by user agent runs as.")
   private String apacheConfDir;
   
@@ -253,13 +255,21 @@ public class LocalConf {
   public void setSocksProperties(String socksProperties) {
     this.socksProperties = socksProperties;
   }
-
-  public String getApacheRoot() {
-    return apacheRoot;
+  
+  public String getApacheHtpasswd() {
+    return apacheHtpasswd;
   }
 
-  public void setApacheRoot(String apacheRoot) {
-    this.apacheRoot = apacheRoot;
+  public void setApacheHtpasswd(String apacheHtpasswd) {
+    this.apacheHtpasswd = apacheHtpasswd;
+  }
+
+  public String getApacheCtl() {
+    return apacheCtl;
+  }
+
+  public void setApacheCtl(String apacheCtl) {
+    this.apacheCtl = apacheCtl;
   }
 
   public String getApacheConfDir() {

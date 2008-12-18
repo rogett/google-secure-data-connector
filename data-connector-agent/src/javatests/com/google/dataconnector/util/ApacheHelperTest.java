@@ -160,7 +160,7 @@ public class ApacheHelperTest extends TestCase {
    */
   public String[] checkRuntimeArgs(ResourceRule resourceRule, String expectedHtpasswdFile) {
     EasyMock.reportMatcher(new StringArrayMatcher(new String[] {
-          localConf.getApacheRoot() + File.separator + ApacheHelper.HTPASSWD_BINARY,
+          localConf.getApacheHtpasswd(),
           "-b",
           "-c", 
           expectedHtpasswdFile,

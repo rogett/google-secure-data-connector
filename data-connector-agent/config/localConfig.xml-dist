@@ -10,7 +10,8 @@
   <startingHttpProxyPort>18000</startingHttpProxyPort>
   <socksServerPort>1080</socksServerPort>
   <httpProxyPort>8765</httpProxyPort>
-  <apacheRoot>_APACHE_ROOT_</apacheRoot>
+  <apacheCtl>_APACHE_CTL_</apacheCtl>
+  <apacheHtpasswd>_APACHE_HTPASSWD_</apacheHtpasswd>
   <apacheConfDir>_APACHE_CONF_DIR</apacheConfDir>
   <logProperties>
     # ***** Set root logger level to DEBUG and its only appender to A.

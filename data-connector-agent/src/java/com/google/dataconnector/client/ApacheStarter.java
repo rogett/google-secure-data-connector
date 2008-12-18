@@ -88,7 +88,7 @@ public class ApacheStarter {
     LOG.info("apachectl " + command + " issued.");
     try {
       String[] commandLine = new String[] {
-          localConf.getApacheRoot() + File.separator + "bin" + File.separator + "apachectl",
+          localConf.getApacheCtl(),
           "-f", ApacheHelper.getHttpdConfFileName(localConf),
           "-k", command.toString()
       };
