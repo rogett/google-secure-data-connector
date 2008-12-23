@@ -101,8 +101,6 @@ if [ $? == 0 ]; then
 fi
 
 if [ $installmode = "linux" ] ; then
-  # Create links for service daemon
-  ln -fs `pwd`/third-party/java-service-wrapper/linux/googlesdc.sh /etc/init.d/googlesdc
 
   # GET LINUX PW LINE FOR WOODSTOCK USER
   return_highest_id "/etc/passwd"
@@ -192,6 +190,11 @@ if [ $installmode = "cygwin" ] ; then
   fi
 fi
 
+
+# Create folders for apache
+mkdir -p $CONF_DIR/apache/htdocs
+mkdir logs
+
 #SETUP SSHD RUNTIME
 mkdir $OPENSSH_HOME/bin
 sed -e "s:_WSCLIENT_HOME_:$PWD:g" $OPENSSH_HOME/dist/sshd_config.tmpl > $OPENSSH_HOME/etc/sshd_config
@@ -199,7 +202,7 @@ sed -e "s:_WSCLIENT_HOME_:$PWD:g" $OPENSSH_HOME/dist/start_sshd.sh.tmpl > $OPENS
 chmod 755 $OPENSSH_HOME/bin/start_sshd.sh
 chmod 600 $OPENSSH_HOME/etc/ssh_host_dsa_key
 chmod 600 $OPENSSH_HOME/etc/ssh_host_rsa_key
-chmod 755 `pwd`/third-party/java-service-wrapper/linux/googlesdc.sh
+chmod 644 $OPENSSH_HOME/home/woodstock/.ssh/authorized_keys
 chmod 755 start.sh
 chmod 755 stop.sh
 chmod 755 runclient.sh

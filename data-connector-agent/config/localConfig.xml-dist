@@ -3,7 +3,7 @@
   <sdcServerPort>443</sdcServerPort>
   <domain>example.com</domain>
   <user>AnyValidDomainUsername</user>
-  <oauthKey>fillMeInFromAdminPanelManageOauth</oauthKey>
+  <password>ValidDomainUserPassword</password>
   <useSsl>true</useSsl>
   <clientId>test_example.com</clientId>
   <sshd>_SSHD_</sshd>
