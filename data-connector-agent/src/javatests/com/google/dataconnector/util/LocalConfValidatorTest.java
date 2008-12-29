@@ -63,7 +63,9 @@ public class LocalConfValidatorTest extends TestCase {
     EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.SSL_KEY_STORE_FILE)).andReturn(
         mockGoodFile);
     EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.SSHD)).andReturn(mockGoodFile);
-    EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.APACHE_ROOT))
+    EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.APACHE_CTL))
+        .andReturn(mockGoodFile);
+    EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.APACHE_HTPASSWD))
         .andReturn(mockGoodFile);
     EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.APACHE_CONF_DIR + 
         File.separator + LocalConf.HTTPD_CONF_TEMPLATE_FILE)).andReturn(mockGoodFile);
@@ -99,7 +101,9 @@ public class LocalConfValidatorTest extends TestCase {
     EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.SSL_KEY_STORE_FILE)).andReturn(
         mockGoodFile);
     EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.SSHD)).andReturn(mockGoodFile);
-    EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.APACHE_ROOT))
+    EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.APACHE_CTL))
+        .andReturn(mockGoodFile);
+    EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.APACHE_HTPASSWD))
         .andReturn(mockGoodFile);
     EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.APACHE_CONF_DIR + 
         File.separator + LocalConf.HTTPD_CONF_TEMPLATE_FILE)).andReturn(mockGoodFile);
@@ -177,7 +181,9 @@ public class LocalConfValidatorTest extends TestCase {
         mockGoodFile);
     EasyMock.expect(mockFileFactory.getFile(badFile)).andReturn(mockBadFile);
     EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.SSHD)).andReturn(mockGoodFile);
-    EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.APACHE_ROOT))
+    EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.APACHE_CTL))
+        .andReturn(mockGoodFile);
+    EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.APACHE_HTPASSWD))
         .andReturn(mockGoodFile);
     EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.APACHE_CONF_DIR + 
         File.separator + LocalConf.HTTPD_CONF_TEMPLATE_FILE)).andReturn(mockGoodFile);    
@@ -242,7 +248,9 @@ public class LocalConfValidatorTest extends TestCase {
     EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.SSL_KEY_STORE_FILE)).andReturn(
         mockGoodFile);
     EasyMock.expect(mockFileFactory.getFile(badFile)).andReturn(mockBadFile);
-    EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.APACHE_ROOT))
+    EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.APACHE_CTL))
+        .andReturn(mockGoodFile);
+    EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.APACHE_HTPASSWD))
         .andReturn(mockGoodFile);
     EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.APACHE_CONF_DIR + 
         File.separator + LocalConf.HTTPD_CONF_TEMPLATE_FILE)).andReturn(mockGoodFile);

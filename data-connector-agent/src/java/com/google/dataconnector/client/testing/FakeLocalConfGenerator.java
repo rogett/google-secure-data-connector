@@ -58,7 +58,8 @@ public class FakeLocalConfGenerator {
   public static final String SOCKSD_BIND_HOST = "127.0.0.1";
   public static final String RULES_FILE = "/tmp/rulesConf.xml";
   public static final String APACHE_CONF_DIR = "/tmp/apache";
-  public static final String APACHE_ROOT = "/tmp/apacheroot";
+  public static final String APACHE_CTL = "/tmp/apacheroot/bin/apachectl";
+  public static final String APACHE_HTPASSWD = "/tmp/apacheroot/bin/htpassword";
   
   /**
    * Creates a configuration beans from the fake hardcoded XML files.  
@@ -114,7 +115,8 @@ public class FakeLocalConfGenerator {
     "<socksServerPort>" + SOCKS_SERVER_PORT + "</socksServerPort>\n" +
     "<socksdBindHost>" + SOCKSD_BIND_HOST + "</socksdBindHost>\n" +
     "<apacheConfDir>" + APACHE_CONF_DIR + "</apacheConfDir>\n" +
-    "<apacheRoot>" + APACHE_ROOT + "</apacheRoot>" +
+    "<apacheCtl>" + APACHE_CTL + "</apacheCtl>" +
+    "<apacheHtpasswd>" + APACHE_HTPASSWD + "</apacheHtpasswd>" +
     // We hard code socks properties and log properties because they are not used in our tests.
     "<socksProperties>\n" +
     "iddleTimeout    = 600000   # 10 minutes\n" +
