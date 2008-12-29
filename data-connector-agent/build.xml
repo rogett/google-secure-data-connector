@@ -2,7 +2,7 @@
 
 <!-- Copyright 2007 Google Inc. All rights reserved. 
   
-Build File for tunnel-server client and reference server.
+Build File for Secure Data Connector client and reference server.
 
   Interesting targets:
    -all: builds distros
@@ -18,7 +18,7 @@ Build File for tunnel-server client and reference server.
 -->
 
 <project 
-    name="tunnel-server" 
+    name="secure-data-connector" 
     default="all"
     basedir=".">
 
@@ -60,10 +60,13 @@ Build File for tunnel-server client and reference server.
 
   <!-- TARGETS -->
 
-  <target name="init">    
+  <target name="timestamp">
     <tstamp>
       <format property="timestamp" pattern="MMddyyyyhhmm"/>
     </tstamp>
+  </target>
+
+  <target name="init" depends="timestamp">    
     <mkdir dir="${build}" />
     <mkdir dir="${prod}" />
     <mkdir dir="${dist}" />
@@ -216,53 +219,32 @@ Build File for tunnel-server client and reference server.
     </jar>
   </target>
 
-  <target name="source-distro" depends="init">
+  <target name="source-distro" depends="clean,timestamp">
     <tar 
-        destfile="${dist}/tunnel-server-${version}-${timestamp}-src.tar.gz"
+        destfile="${dist}/secure-data-connector-${version}-${timestamp}-src.tar.gz"
         longfile="gnu"
         compression="gzip"
         excludes="third-party/jsch/com/**,tmp/**, third-party/*/docs/**">
-      <tarfileset dir=".">
+      <tarfileset dir="." prefix="data-connector-agent">
         <include name="build.xml"/>
         <include name="src/**"/>
         <include name="CHANGE_LOG"/>
         <include name="COPYING"/>
         <include name="config/*"/>
-        <include name="third-party/commons-*/**"/>
-        <include name="third-party/jline/**"/>
-        <include name="third-party/jsch/**"/>
-        <include name="third-party/jsocks/COPYING"/>
-        <include name="third-party/jsocks/build.xml"/>
-        <include name="third-party/jsocks/runsocks.sh"/>
-        <include name="third-party/jsocks/src/**"/>
-        <include name="third-party/jsocks/third-party/**"/>
-        <include name="third-party/openssh/CREDITS"/>
-        <include name="third-party/openssh/build.xml"/>
-        <include name="third-party/openssh/CREDITS"/>
-        <include name="third-party/openssh/LICENCE"/>
-        <include name="third-party/openssh/dist/**"/>
-        <include name="third-party/jsch/**"/>
-        <include name="third-party/jline/**"/>
-        <include name="third-party/json/**"/>
-        <include name="third-party/junit/**"/>
-        <include name="third-party/cglib/**"/>
-        <include name="third-party/easymock/**"/>
-        <include name="third-party/apache-log4j/**"/>
-        <include name="third-party/apache-httpd/**"/>
-	<include name="third-party/java-service-wrapper/**"/>
-     </tarfileset>
-      <tarfileset dir="." mode="600">
+        <include name="third-party/**"/>
+      </tarfileset>
+      <tarfileset dir="." mode="600" prefix="data-connector-agent">
         <include name="third-party/openssh/etc/*"/>
         <include name="third-party/openssh/home/woodstock/.ssh/*"/>
       </tarfileset>
-      <tarfileset dir="." mode="755">
-	<include name="third-party/openssh/sbin/*"/>
-	<include name="third-party/java-service-wrapper/windows/*.bat"/>
-	<include name="third-party/java-service-wrapper/windows/bin/*.exe"/>
-	<include name="third-party/java-service-wrapper/linux/googlesdc.sh"/>
-	<include name="third-party/java-service-wrapper/linux/bin/*"/>
+      <tarfileset dir="." mode="755" prefix="data-connector-agent">
+      	<include name="third-party/openssh/sbin/*"/>
+	      <include name="third-party/java-service-wrapper/windows/*.bat"/>
+      	<include name="third-party/java-service-wrapper/windows/bin/*.exe"/>
+      	<include name="third-party/java-service-wrapper/linux/googlesdc.sh"/>
+	      <include name="third-party/java-service-wrapper/linux/bin/*"/>
         <include name="runclient.sh"/>
-	<include name="runclient.bat"/>
+	      <include name="runclient.bat"/>
         <include name="setup.sh"/>
         <include name="start.sh"/>
         <include name="stop.sh"/>
@@ -272,7 +254,7 @@ Build File for tunnel-server client and reference server.
     
   <target name="binary-distro" depends="jsocks,jar,openssh">
     <tar 
-        destfile="${dist}/tunnel-server-${version}-${timestamp}-bin.tar.gz"
+        destfile="${dist}/secure-data-connector-${version}-${timestamp}-bin.tar.gz"
         longfile="gnu"
         basedir="."
         includes="config/*,
@@ -322,7 +304,7 @@ Build File for tunnel-server client and reference server.
   
   <target name="binary-distro-win" depends="jsocks,jar,opensshwin">
     <tar 
-        destfile="${dist}/tunnel-server-${version}-${timestamp}-bin-win.tar.gz"
+        destfile="${dist}/secure-data-connector-${version}-${timestamp}-bin-win.tar.gz"
         longfile="gnu"
         basedir="."
         includes="config/*,
@@ -375,7 +357,7 @@ Build File for tunnel-server client and reference server.
     <fileset dir="third-party/ant-deb" includes="ant-deb-0.0.1.jar"/>
   </path>
 
-  <taskdef resource="ant_deb_task.properties" classpathref="deb-classpath"/>
+<!--  <taskdef resource="ant_deb_task.properties" classpathref="deb-classpath"/> -->
 
   <target name="deb" depends="jsocks,jar">
     <mkdir dir="${deb}"/>
