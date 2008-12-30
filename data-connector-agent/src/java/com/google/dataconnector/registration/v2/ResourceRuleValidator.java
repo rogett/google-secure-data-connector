@@ -52,6 +52,18 @@ public class ResourceRuleValidator {
    */
   public void validate(List<ResourceRule> resourceRules) 
       throws ResourceException {
+    
+    // Bail if we have 0 rules.  The only known way to get here is if you leave off "repeatable"
+    // attribute from the <entity> element in the resourceRules.xml file.  Normally if you 
+    // specify no rules in that file, a different worse error happens.
+    // See bug: 1538670
+    if (resourceRules.size() == 0 ) {
+      throw new ResourceException("Must specify atleast one rule.  This may be caused by an XML" +
+          "parsing issue where you must specify '<entity repeatable=\"true\">' even if one" +
+          "rule is specified."); 
+    }
+    
+    // Go through each rule and validate.
     for (ResourceRule resourceRule : resourceRules) {
       validate(resourceRule);
     }
