@@ -167,7 +167,7 @@ public class ApacheHelper {
         fileUtil.deleteFile(htpasswdFile);
         
         // Run htpassword to create new file for this resource.
-        LOG.info("creating password " + resourceRule.getSecretKey() + " for rule " + 
+        LOG.debug("creating password " + resourceRule.getSecretKey() + " for rule " + 
             resourceRule.getPattern());
         Process p = runtime.exec(new String[] { 
             localConf.getApacheHtpasswd(),

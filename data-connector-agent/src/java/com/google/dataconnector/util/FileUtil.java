@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Random;
 
 /**
  * Contains mockable convenience methods used for file manipulation.
@@ -38,10 +39,20 @@ public class FileUtil {
    */
   public void writeFile(String filename, String contents) throws IOException {
     
+    // Delete any existing file.  Needed for win32 systems where renameTo breaks.
+    // See java bug 4017593. http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4017593
     deleteFile(filename);
-    FileWriter fileWriter = new FileWriter(new File(filename));
+    
+    // Write out tempfile.
+    String tempFilename = filename + "-" + System.currentTimeMillis() + "-" + 
+        new Random().nextInt();
+    FileWriter fileWriter = new FileWriter(new File(tempFilename));
     fileWriter.write(contents);
     fileWriter.close();
+    
+    // Rename temp file to real file.  Atomic on UNIX.
+    File tempfile = new File(tempFilename);
+    tempfile.renameTo(new File(filename));
   }
   
   /**
