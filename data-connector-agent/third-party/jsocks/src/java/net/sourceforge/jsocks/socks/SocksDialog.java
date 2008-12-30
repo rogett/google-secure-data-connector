@@ -30,8 +30,7 @@ public class SocksDialog extends Dialog
             socks5radio,
             none_check,
             up_check,
-            gssapi_check,
-            pwperip_check;
+            gssapi_check;
 
    Dialog warning_dialog;
    Label warning_label;
@@ -40,9 +39,8 @@ public class SocksDialog extends Dialog
    int port;
    Thread net_thread = null;
    
-   // CheckboxGroups
+   //CheckboxGroups
    CheckboxGroup socks_group = new CheckboxGroup();
-   CheckboxGroup authtype_group = new CheckboxGroup();
 
    Proxy proxy;
    InetRange ir;
@@ -186,15 +184,10 @@ public class SocksDialog extends Dialog
    public void itemStateChanged(ItemEvent ie){
       Object source = ie.getSource();
       //System.out.println("ItemEvent:"+source);
-      if (source == socks5radio || source == socks4radio) {
+      if(source == socks5radio || source == socks4radio)
          onSocksChange();
-      } else if(source == up_check) {
-        onUPChange();
-      } else if (source == none_check ||
-          source == up_check ||
-          source == pwperip_check) {
-        onAuthTypeChange();
-      }
+      else if(source == up_check)
+         onUPChange();
 
    }
 //Runnable interface
@@ -248,11 +241,6 @@ public class SocksDialog extends Dialog
             return;
           }
           if(password.length()==0){
-            warn("Password is not set.");
-            return;
-          }
-        } else if (pwperip_check.getState()) {
-          if (password.length() == 0) {
             warn("Password is not set.");
             return;
           }
@@ -318,7 +306,6 @@ public class SocksDialog extends Dialog
          password_text.setEnabled(false);
          none_check.setEnabled(false);
          up_check.setEnabled(false);
-         pwperip_check.setEnabled(false);
       }else{
          if(up_check.getState()){
            user_text.setEnabled(true);
@@ -329,29 +316,9 @@ public class SocksDialog extends Dialog
          }
          none_check.setEnabled(true);
          up_check.setEnabled(true);
-         pwperip_check.setEnabled(true);
       }
       //System.out.println("onSocksChange:"+selected);
    }
-   
-   /**
-    * Handler for when an auth type is selected in the
-    * dialog box
-    */
-   private void onAuthTypeChange() {
-     Object selected = authtype_group.getSelectedCheckbox();
-     if (selected == none_check) {
-       user_text.setEnabled(false);
-       password_text.setEnabled(false);
-     } else if (selected == up_check) {
-       user_text.setEnabled(true);
-       password_text.setEnabled(true);
-     } else if (selected == pwperip_check) {
-       user_text.setEnabled(false);
-       password_text.setEnabled(true);
-     }
-   }
-   
    private void onUPChange(){
       //System.out.println("onUPChange");
       if(up_check.getState()){
@@ -389,10 +356,6 @@ public class SocksDialog extends Dialog
        onSocksChange();
        user_text.setText(((Socks4Proxy)p).user);
      }
-     // setup authtype radio buttons
-     authtype_group.setSelectedCheckbox(pwperip_check);
-     onAuthTypeChange();
-
      ir = (InetRange)(p.directHosts.clone());
      String[] direct_hosts = ir.getAll();
      direct_list.removeAll();
@@ -413,11 +376,6 @@ public class SocksDialog extends Dialog
                            new UserPasswordAuthentication(user,password));
             if(!none_check.getState())
               ((Socks5Proxy)proxy).setAuthenticationMethod(0,null);
-            if(pwperip_check.getState()) {
-              ((Socks5Proxy)proxy).setAuthenticationMethod(
-                  PasswordPerIpAuthentication.METHOD_ID,
-                  new PasswordPerIpAuthentication(password));
-            }
          }
          else
             proxy = new Socks4Proxy(host,port,user);
@@ -493,7 +451,7 @@ public class SocksDialog extends Dialog
       c.gridx=1; c.gridy=0;
       c.gridwidth=2; c.gridheight=1;
       c.anchor=GridBagConstraints.NORTHWEST;
-      host_text = new TextField("localhost",15);
+      host_text = new TextField("socks-proxy",15);
       container.add(host_text,c);
       
       c.gridx=3; c.gridy=0;
@@ -566,7 +524,7 @@ public class SocksDialog extends Dialog
       c.gridx=3; c.gridy=3;
       c.gridwidth=2; c.gridheight=1;
       c.anchor=GridBagConstraints.NORTHWEST;
-      none_check = new Checkbox("None", authtype_group, true);
+      none_check = new Checkbox("None",true);
       container.add(none_check,c);
       
       c.gridx=0; c.gridy=4;
@@ -579,7 +537,7 @@ public class SocksDialog extends Dialog
       c.gridx=3; c.gridy=4;
       c.gridwidth=2; c.gridheight=1;
       c.anchor=GridBagConstraints.NORTHWEST;
-      up_check = new Checkbox("User/Password", authtype_group, false);
+      up_check = new Checkbox("User/Password",false);
       container.add(up_check,c);
       
       c.gridx=0; c.gridy=5;
@@ -592,17 +550,9 @@ public class SocksDialog extends Dialog
       c.gridx=3; c.gridy=5;
       c.gridwidth=2; c.gridheight=1;
       c.anchor=GridBagConstraints.NORTHWEST;
-      gssapi_check = new Checkbox("GSSAPI", authtype_group, false);
+      gssapi_check = new Checkbox("GSSAPI",false);
       gssapi_check.setEnabled(false);
       container.add(gssapi_check,c);
- 
-      c.gridx=3; c.gridy=6;
-      c.gridwidth=2; c.gridheight=1;
-      c.anchor=GridBagConstraints.NORTHWEST;
-      pwperip_check = new Checkbox(
-          "Password Per IP", authtype_group, false);
-      pwperip_check.setEnabled(true);
-      container.add(pwperip_check,c);
       
       c.gridx=0; c.gridy=7;
       c.gridwidth=3; c.gridheight=1;
@@ -610,13 +560,13 @@ public class SocksDialog extends Dialog
       direct_text = new TextField("",25);
       container.add(direct_text,c);
       
-      c.gridx=3; c.gridy=8;
+      c.gridx=3; c.gridy=7;
       c.gridwidth=1; c.gridheight=1;
       c.anchor=GridBagConstraints.NORTH;
       add_button = new Button("Add");
       container.add(add_button,c);
       
-      c.gridx=3; c.gridy=7;
+      c.gridx=3; c.gridy=6;
       c.gridwidth=1; c.gridheight=1;
       c.anchor=GridBagConstraints.NORTH;
       remove_button = new Button("Remove");

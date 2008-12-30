@@ -25,7 +25,8 @@ import com.google.inject.Inject;
 
 import net.sourceforge.jsocks.SOCKS;
 import net.sourceforge.jsocks.socks.ProxyServer;
-import net.sourceforge.jsocks.socks.server.UserPasswordAuthenticator;
+import net.sourceforge.jsocks.socks.server.Rfc1929SdcAuthenticator;
+
 import org.apache.log4j.Logger;
 
 import java.io.ByteArrayInputStream;
@@ -54,7 +55,7 @@ public final class JsocksStarter extends Thread {
   private ResourceRuleUtil resourceRuleUtil;
 
   // Socks V5 User/Password authenticator object.
-  private UserPasswordAuthenticator authenticator;
+  private Rfc1929SdcAuthenticator authenticator;
 
   // Bind address
   private InetAddress bindAddress;
@@ -82,7 +83,7 @@ public final class JsocksStarter extends Thread {
    */
   public void startJsocksProxy() {
     // Create firewall rules in jsocks proxy.
-    authenticator = new UserPasswordAuthenticator();
+    authenticator = new Rfc1929SdcAuthenticator();
     for (ResourceRule resourceRule : resourceRules) {
       if (resourceRule.getPattern().startsWith(ResourceRule.SOCKETID)) {
         SocketInfo socketInfo;

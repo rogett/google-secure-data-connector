@@ -38,7 +38,7 @@ public class SOCKS{
       String logFile = null;
       String host = null;
 
-      UserPasswordAuthenticator auth = new UserPasswordAuthenticator();
+      Rfc1929SdcAuthenticator auth = new Rfc1929SdcAuthenticator();
       OutputStream log = null;
       InetAddress localIP = null;
 

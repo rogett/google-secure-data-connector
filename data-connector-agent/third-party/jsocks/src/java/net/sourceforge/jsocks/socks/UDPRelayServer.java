@@ -2,8 +2,7 @@ package net.sourceforge.jsocks.socks;
 
 import net.sourceforge.jsocks.socks.server.*;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.impl.Jdk14Logger;
+import org.apache.log4j.Logger;
 
 import java.net.*;
 import java.io.*;
@@ -29,7 +28,7 @@ class UDPRelayServer implements Runnable{
 
     long lastReadTime;
 
-    static Log log = new Jdk14Logger(UDPRelayServer.class.getName());
+    private static final Logger LOG = Logger.getLogger(UDPRelayServer.class);
     
     static Proxy proxy = null;
     static int datagramSize = 0xFFFF;//64K, a bit more than max udp size
@@ -181,8 +180,8 @@ class UDPRelayServer implements Runnable{
 
 
     static private void log(String s){
-      if(log != null){
-        log.info(s);
+      if(LOG != null){
+        LOG.info(s);
       }
     }
 

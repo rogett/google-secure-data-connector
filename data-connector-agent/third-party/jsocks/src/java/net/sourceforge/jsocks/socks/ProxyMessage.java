@@ -23,6 +23,8 @@ public abstract class ProxyMessage{
    public String host=null;
    /** User field for SOCKS4 request messages*/
    public String user=null;
+   /** Connection ID */
+   private String connectionId = "N/A";
 
    ProxyMessage(int command,InetAddress ip,int port){
       this.command = command;
@@ -91,6 +93,14 @@ public abstract class ProxyMessage{
       "Port:   "+ port+"\n"+
       "User:   "+ user+"\n" ;
    }
+   
+   public String getConnectionId() {
+     return connectionId;
+   }
+
+   public void setConnectionId(String connectionId) {
+     this.connectionId = connectionId;
+   }
 
 //Package methods
 //////////////////
@@ -106,5 +116,4 @@ public abstract class ProxyMessage{
      //Have no idea how they look like!
      return null;
    }
-
 }
