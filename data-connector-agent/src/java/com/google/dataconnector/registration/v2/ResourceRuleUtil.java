@@ -256,4 +256,24 @@ public class ResourceRuleUtil {
       throw new RuntimeException(e);
     }
   }
+  
+  /**
+   * creates a healthz resource rule by for the given clientId with allowed entity being the given
+   * user + domain. 
+   * 
+   * @param user the userid who should be allowed to access this resource
+   * @param domain the domain the above user belongs to
+   * @param clientId the clientId this resource is attached to
+   * @param port the port HealthzRequestHandler is listening on
+   * @return the healthz ResourceRule created
+   */
+  public ResourceRule createHealthzRule(String user, String domain, String clientId, int port) {
+    ResourceRule healthzRule = new ResourceRule();
+    healthzRule.setAllowedEntities(new String[] {user + "@" + domain});
+    healthzRule.setClientId(clientId);
+    // assign name of ZERO. should really be name of the last resource in the sorted list + 1
+    healthzRule.setName("0");
+    healthzRule.setPattern(ResourceRule.HTTPID + "localhost:" + port + "/healthz");
+    return healthzRule;
+  }
 }

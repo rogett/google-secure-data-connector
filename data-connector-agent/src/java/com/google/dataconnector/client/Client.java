@@ -21,6 +21,7 @@ import com.google.dataconnector.util.ApacheSetupException;
 import com.google.dataconnector.util.ClientGuiceModule;
 import com.google.dataconnector.util.AgentConfigurationException;
 import com.google.dataconnector.util.ConnectionException;
+import com.google.dataconnector.util.HealthzRequestHandler;
 import com.google.dataconnector.util.LocalConf;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
@@ -67,7 +68,7 @@ public class Client {
    * @param sslSocketFactory 
    * @param apacheStarter 
    * @param jsocksStarter 
-   * @param secureDataConnection 
+   * @param secureDataConnection
    */
   @Inject
   public Client(LocalConf localConfiguration, List<ResourceRule> resourceRules, 
@@ -109,10 +110,12 @@ public class Client {
     // Bootstrap logging system
     PropertyConfigurator.configure(getBootstrapLoggingProperties());
     final Injector injector = Guice.createInjector(new ClientGuiceModule(args));
-    // Create the client instance and start services
-    Client client = injector.getInstance(Client.class);
+    
     try {
-      client.startUp();
+      // start the healthz service before we do anything else.
+      injector.getInstance(HealthzRequestHandler.class).init();
+      // Create the client instance and start services
+      injector.getInstance(Client.class).startUp();
     } catch (IOException e) {
       log.fatal("Connection error.", e);
     } catch (ConnectionException e) {
