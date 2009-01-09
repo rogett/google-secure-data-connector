@@ -22,7 +22,7 @@ WOODSTOCK_HOME=`pwd`
 
 export PATH=$JAVA_HOME/bin/:$PATH 
 export CLASSPATH=\
-$WOODSTOCK_HOME/third-party/jsocks/bin/jsocks-server.jar:\
+$WOODSTOCK_HOME/third-party/jsocks/jsocks.jar:\
 $WOODSTOCK_HOME/third-party//wpg-proxy/bin/wpgproxy.jar:\
 $WOODSTOCK_HOME/third-party/jline/jline-0.9.91.jar:\
 $WOODSTOCK_HOME/third-party/commons-io/commons-io-1.3.2.jar:\
