@@ -92,16 +92,6 @@ Build File for Secure Data Connector client and reference server.
         dir="third-party/apache-httpd"
         inheritAll="false"
         target="clean"/>
-    <ant
-        antfile="build.xml"
-        dir="third-party/jsocks"
-        target="clean"/>
-  </target>
-
-  <target name="jsocks" depends="init">
-    <ant 
-        antfile="build.xml"
-        dir="third-party/jsocks"/>
   </target>
 
   <target name="openssh" depends="init">
@@ -129,7 +119,7 @@ Build File for Secure Data Connector client and reference server.
     <exec executable="${basedir}/setup.sh"/>
   </target>
 
-  <target name="compile" depends="init,jsocks">
+  <target name="compile" depends="init">
     <javac 
         srcdir="${src}" 
         destdir="${classes}"
@@ -138,7 +128,7 @@ Build File for Secure Data Connector client and reference server.
         includes="**"
         >
       <classpath>
-        <pathelement path="third-party/jsocks/bin/jsocks-server.jar"/>
+        <pathelement path="third-party/jsocks/jsocks.jar"/>
         <pathelement path="third-party/commons-cli/commons-cli-1.1.jar"/>
         <pathelement path="third-party/commons-logging/commons-logging-1.1.jar"/>
         <pathelement path="third-party/apache-log4j/log4j-1.2.15.jar"/>
@@ -252,7 +242,7 @@ Build File for Secure Data Connector client and reference server.
     </tar>
   </target>
     
-  <target name="binary-distro" depends="jsocks,jar,openssh">
+  <target name="binary-distro" depends="jar,openssh">
     <tar 
         destfile="${dist}/secure-data-connector-${version}-${timestamp}-bin.tar.gz"
         longfile="gnu"
@@ -262,10 +252,7 @@ Build File for Secure Data Connector client and reference server.
           CHANGE_LOG,
           bin/**,
           build/**,
-          third-party/jsocks/bin/*.jar,
-          third-party/jsocks/third-party/**,
-          third-party/jsocks/docs/*,
-          third-party/jsocks/COPYING,
+          third-party/jsocks/**
           third-party/openssh/CREDITS,
           third-party/openssh/LICENCE,
           third-party/openssh/dist/*.tmpl,
@@ -302,7 +289,7 @@ Build File for Secure Data Connector client and reference server.
   </target>
 
   
-  <target name="binary-distro-win" depends="jsocks,jar,opensshwin">
+  <target name="binary-distro-win" depends="jar,opensshwin">
     <tar 
         destfile="${dist}/secure-data-connector-${version}-${timestamp}-bin-win.tar.gz"
         longfile="gnu"
@@ -312,10 +299,7 @@ Build File for Secure Data Connector client and reference server.
           CHANGE_LOG,
           bin/**,
           build/**,
-          third-party/jsocks/bin/*.jar,
-          third-party/jsocks/third-party/**,
-          third-party/jsocks/docs/*,
-          third-party/jsocks/COPYING,
+          third-party/jsocks/**
           third-party/openssh/CREDITS,
           third-party/openssh/LICENCE,
           third-party/openssh/dist/*.tmpl,
@@ -359,7 +343,7 @@ Build File for Secure Data Connector client and reference server.
 
 <!--  <taskdef resource="ant_deb_task.properties" classpathref="deb-classpath"/> -->
 
-  <target name="deb" depends="jsocks,jar">
+  <target name="deb" depends="jar">
     <mkdir dir="${deb}"/>
     <copy file="third-party/openssh/dist/start_sshd.sh.debian"
       todir="third-party/openssh/bin"/>
@@ -418,10 +402,7 @@ http://code.google.com/
         <include name="junit/**"/>
         <include name="oauth/**"/>
         <include name="openssh/**"/>
-      </tarfileset>
-      <tarfileset dir="third-party/jsocks/bin/" filemode="640" dirmode="750"
-                  prefix="opt/dataconnector/third-party/jsocks">
-         <include name="*.jar"/>
+        <include name="jsocks/**"/>
       </tarfileset>
       <tarfileset dir="." prefix="opt/dataconnector" filemode="444">
         <include name="third-party/openssh/home/woodstock-client/.ssh/*"/>

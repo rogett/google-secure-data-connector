@@ -14,9 +14,11 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
  */
 
-package net.sourceforge.jsocks.socks.server;
+package com.google.dataconnector.util;
 
 import net.sourceforge.jsocks.socks.ProxyMessage;
+import net.sourceforge.jsocks.socks.server.ServerAuthenticator;
+import net.sourceforge.jsocks.socks.server.ServerAuthenticatorNone;
 
 import org.apache.log4j.Logger;
 import org.json.JSONException;

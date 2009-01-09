@@ -21,11 +21,11 @@ import com.google.dataconnector.registration.v2.ResourceRule;
 import com.google.dataconnector.registration.v2.ResourceRuleUtil;
 import com.google.dataconnector.registration.v2.SocketInfo;
 import com.google.dataconnector.util.LocalConf;
+import com.google.dataconnector.util.Rfc1929SdcAuthenticator;
 import com.google.inject.Inject;
 
 import net.sourceforge.jsocks.SOCKS;
 import net.sourceforge.jsocks.socks.ProxyServer;
-import net.sourceforge.jsocks.socks.server.Rfc1929SdcAuthenticator;
 
 import org.apache.log4j.Logger;
 
