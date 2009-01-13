@@ -261,6 +261,11 @@ public class ResourceRuleUtil {
    * creates a healthz resource rule by for the given clientId with allowed entity being the given
    * user + domain. 
    * 
+   * healthz rule looks like this
+   *    http://localhost:portnum/<clientId>/healthz
+   *       clientId helps make url unique if two clients in the same domain 
+   *       start the HealthzRequest service on the same (ephemeral) portnum.
+   * 
    * @param user the userid who should be allowed to access this resource
    * @param domain the domain the above user belongs to
    * @param clientId the clientId this resource is attached to
@@ -273,7 +278,8 @@ public class ResourceRuleUtil {
     healthzRule.setClientId(clientId);
     // assign name of ZERO. should really be name of the last resource in the sorted list + 1
     healthzRule.setName("0");
-    healthzRule.setPattern(ResourceRule.HTTPID + "localhost:" + port + "/healthz");
+    healthzRule.setPattern(ResourceRule.HTTPID + "localhost:" + 
+        port + "/" + clientId + "/healthz");
     return healthzRule;
   }
 }
