@@ -262,7 +262,7 @@ public class ResourceRuleUtil {
    * user + domain. 
    * 
    * healthz rule looks like this
-   *    http://localhost:portnum/<clientId>/healthz
+   *    http://localhost:portnum/<clientId>/__SDCINTERNAL__/healthz
    *       clientId helps make url unique if two clients in the same domain 
    *       start the HealthzRequest service on the same (ephemeral) portnum.
    * 
@@ -279,7 +279,7 @@ public class ResourceRuleUtil {
     // assign name of ZERO. should really be name of the last resource in the sorted list + 1
     healthzRule.setName("0");
     healthzRule.setPattern(ResourceRule.HTTPID + "localhost:" + 
-        port + "/" + clientId + "/healthz");
+        port + "/" + clientId + "/__SDCINTERNAL__/healthz");
     return healthzRule;
   }
 }
