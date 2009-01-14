@@ -84,22 +84,16 @@ public class SecureDataConnection {
   public void connect() throws IOException, ConnectionException {
     log.info("Connecting to server");
 
-    Socket clientSocket;
-    if (localConf.getUseSsl()) { // if useSsl flag is set, use SSLSocketFactory.
-      clientSocket = sslSocketFactory.createSocket();
-      // Enable all support cipher suites.
-      SSLSocket sslClientSocketRef = (SSLSocket) clientSocket;
-      sslClientSocketRef.setEnabledCipherSuites(sslClientSocketRef.getSupportedCipherSuites());
-      // wait for 30 sec to connect. is that too long?
-      try {
-        clientSocket.connect(new InetSocketAddress(localConf.getSdcServerHost(),
-            localConf.getSdcServerPort()), 30 *1000);
-      } catch (SocketTimeoutException e) {
-        throw new ConnectionException(e);
-      }
-    } else { // Fall back to straight TCP (testing only!)
-      clientSocket = new Socket(localConf.getSdcServerHost(),
-          localConf.getSdcServerPort());
+    Socket clientSocket = sslSocketFactory.createSocket();
+    // Enable all support cipher suites.
+    SSLSocket sslClientSocketRef = (SSLSocket) clientSocket;
+    sslClientSocketRef.setEnabledCipherSuites(sslClientSocketRef.getSupportedCipherSuites());
+    // wait for 30 sec to connect. is that too long?
+    try {
+      clientSocket.connect(new InetSocketAddress(localConf.getSdcServerHost(),
+          localConf.getSdcServerPort()), 30 *1000);
+    } catch (SocketTimeoutException e) {
+      throw new ConnectionException(e);
     }
 
     // Attempt to login

@@ -57,9 +57,6 @@ public class LocalConf {
   @Flag(help = "Password.")
   private String password;
   
-  @Flag(help = "Use SSL for client connections.  Only use false for testing. " + 
-      "Google does not support clear text connection")
-  private boolean useSsl = true;
   @Flag(help = "Keystore password if using external keystore file")
   private String sslKeyStorePassword = DEFAULT_SSL_KEYSTORE_PASSWORD;
   @Flag(help = "External keystore to use.  Default only allows verified certs per java default " +
@@ -182,14 +179,6 @@ public class LocalConf {
 
   public void setSslKeyStoreFile(String sslKeyStoreFile) {
     this.sslKeyStoreFile = sslKeyStoreFile;
-  }
-
-  public Boolean getUseSsl() {
-    return useSsl;
-  }
-
-  public void setUseSsl(boolean useSsl) {
-    this.useSsl = useSsl;
   }
 
   public String getClientId() {

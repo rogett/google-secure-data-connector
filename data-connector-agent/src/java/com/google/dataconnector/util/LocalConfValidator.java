@@ -138,11 +138,6 @@ public class LocalConfValidator {
       errors.append("'oauthKey' or 'password' required\n");
     }
     
-    // useSsl
-    if (localConf.getUseSsl() == null) {
-      errors.append("'useSsl' required\n");
-    }
-    
     // sslKeyStoreFile
     if (localConf.getSslKeyStoreFile() != null) {
       errors.append(canReadFile("sslKeyStoreFile", localConf.getSslKeyStoreFile()));

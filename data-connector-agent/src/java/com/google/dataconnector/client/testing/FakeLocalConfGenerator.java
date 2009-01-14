@@ -47,7 +47,6 @@ public class FakeLocalConfGenerator {
   public static final String DOMAIN = "test.joonix.net";
   public static final String USER = "testuser";
   public static final String OAUTH_KEY = "testOauthKey";
-  public static final Boolean USE_SSL = true;
   public static final String SSL_KEY_STORE_PASSWORD = "woodstock";
   public static final String SSL_KEY_STORE_FILE = "./testSecureLinkClientTrustStore";
   public static final String CLIENT_ID = "testClientId1";
@@ -105,7 +104,6 @@ public class FakeLocalConfGenerator {
     "<domain>" + DOMAIN + "</domain>\n" +
     "<user>" + USER + "</user>\n" +
     "<oauthKey>" + OAUTH_KEY + "</oauthKey>\n" +
-    "<useSsl>" + USE_SSL.toString() + "</useSsl>\n" +
     "<sslKeyStorePassword>" + SSL_KEY_STORE_PASSWORD + "</sslKeyStorePassword>\n" +
     "<sslKeyStoreFile>" + SSL_KEY_STORE_FILE +"</sslKeyStoreFile>\n" +
     "<clientId>" + CLIENT_ID + "</clientId>\n" +

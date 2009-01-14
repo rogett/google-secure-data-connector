@@ -58,7 +58,6 @@ public class TestServerFailures {
     LOG.info("Starting " + procId);
     ProcessBuilder processBuilder = new ProcessBuilder("java", 
         "com.google.dataconnector.client.Client",
-        "-nouseSsl", "true",
         "-sdcServerHost", "localhost",
         "-sdcServerPort", String.valueOf(testConf.getTestServerListenPort()),
         "-localConfigFile", testConf.getLocalConfigFile(),

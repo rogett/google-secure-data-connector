@@ -4,7 +4,6 @@
   <domain>example.com</domain>
   <user>AnyValidDomainUsername</user>
   <oauthKey>fillMeInFromAdminPanelManageOauth</oauthKey>
-  <useSsl>true</useSsl>
   <clientId>test_example.com</clientId>
   <sshd>/opt/dataconnector/third-party/openssh/bin/start_sshd.sh</sshd>
   <startingHttpProxyPort>18000</startingHttpProxyPort>

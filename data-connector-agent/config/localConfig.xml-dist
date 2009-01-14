@@ -4,7 +4,6 @@
   <domain>example.com</domain>
   <user>AnyValidDomainUsername</user>
   <password>ValidDomainUserPassword</password>
-  <useSsl>true</useSsl>
   <clientId>test_example.com</clientId>
   <sshd>_SSHD_</sshd>
   <startingHttpProxyPort>18000</startingHttpProxyPort>
