@@ -16,6 +16,8 @@
  */
 package com.google.dataconnector.registration.v2;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -62,9 +64,17 @@ public class ResourceRuleValidator {
           "parsing issue where you must specify '<entity repeatable=\"true\">' even if one" +
           "rule is specified."); 
     }
+    Collection<String> seenNames = new ArrayList<String>(); 
     
-    // Go through each rule and validate.
+    // Go through each rule.
     for (ResourceRule resourceRule : resourceRules) {
+      // Rules must have unique names.
+      if (seenNames.contains(resourceRule.getName())) {
+        throw new ResourceException("Duplicate <name/> entries not allowed. Resource: " + 
+            resourceRule.getName());
+      } else {
+        seenNames.add(resourceRule.getName());
+      }
       validate(resourceRule);
     }
   }
