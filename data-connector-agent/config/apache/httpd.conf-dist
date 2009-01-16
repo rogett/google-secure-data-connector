@@ -1,0 +1,42 @@
+ServerRoot "_APACHE_ROOT_"
+
+Listen _APACHE_BIND_HOST_:_APACHE_PORT_
+
+User daemon
+Group daemon
+
+ServerAdmin sdc@localhost
+DocumentRoot "_APACHE_ROOT_/htdocs"
+TypesConfig "_APACHE_ROOT_/mime.types"
+PidFile  "_APACHE_LOG_DIR_/httpd.pid"
+
+ProxyRequests on
+ProxyVia on
+
+
+<ProxyMatch .*>
+  Order deny,allow
+  Deny from all
+</ProxyMatch>
+
+_PROXYMATCHRULES_
+
+<FilesMatch "^\.ht">
+    Order allow,deny
+    Deny from all
+    Satisfy All
+</FilesMatch>
+
+ErrorLog "_APACHE_LOG_DIR_/error_log"
+LogLevel warn
+
+<IfModule log_config_module>
+    LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" combined
+    LogFormat "%h %l %u %t \"%r\" %>s %b" common
+
+    <IfModule logio_module>
+      LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" %I %O" combinedio
+    </IfModule>
+
+    CustomLog "_APACHE_LOG_DIR_/access_log" common
+</IfModule>

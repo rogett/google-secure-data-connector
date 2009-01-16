@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Copyright 2007 Google Inc. All rights reserved. 
+
+NOTE: configure.sh edits the outputted build.xml make changes to build.xml-dist.
+  
+Build File for Secure Data Connector client and reference server.
+
+  Interesting targets:
+   -all: builds distros
+   -compile: creates all the jars.
+   -install: builds jars and runs setup.sh
+   -apache_httpd: builds the bundled copy of apache.
+-->
+
+<project 
+    name="secure-data-connector" 
+    default="compile"
+    basedir=".">
+
+  <!-- PROPERTIES -->
+  <property file="build.properties" />
+
+  <!-- TARGETS -->
+  <target name="timestamp">
+    <tstamp>
+      <format property="timestamp" pattern="MMddyyyyhhmm"/>
+    </tstamp>
+  </target>
+
+  <target name="init" depends="timestamp">    
+    <mkdir dir="${build}" />
+    <mkdir dir="${classes}" />
+  </target>
+
+  <target name="clean" description="Deletes all build files.">
+    <delete dir="${build}" />
+    <delete dir="${bin}" />
+    <ant
+        antfile="build.xml"
+        dir="third-party/apache-httpd"
+        inheritAll="false"
+        target="clean"/>
+  </target>
+
+  <target 
+      name="dist-clean" 
+      depends="clean"
+      description="Deletes all files to pre configured state.">
+    <delete file="build.xml"/>
+    <delete file="build.properties"/>
+    <delete file="runclient.sh"/>
+    <delete file="config/localConfig.xml"/>
+    <delete file="config/openssh/start_sshd.sh"/>
+    <delete file="config/openssh/sshd_config"/>
+    <delete file="config/apache/httpd.conf-template"/>
+    <delete file="third-party/apache-httpd/build.xml"/>
+  </target>
+
+  <target name="apache-httpd" depends="init">
+    <ant 
+        antfile="build.xml"
+        dir="third-party/apache-httpd"
+        inheritAll="false"/>
+  </target>
+
+  <target name="compile" depends="init__BUILDHTTPD__">
+
+    <javac 
+        srcdir="${src}" 
+        destdir="${classes}"
+        debug="${COMPILE_DEBUG_FLAG}"
+        debuglevel="${COMPILE_DEBUG_LEVEL}"
+        includes="**"
+        >
+      <classpath>
+        <pathelement path="third-party/jsocks/jsocks.jar"/>
+        <pathelement path="third-party/commons-cli/commons-cli-1.1.jar"/>
+        <pathelement path="third-party/commons-logging/commons-logging-1.1.jar"/>
+        <pathelement path="third-party/apache-log4j/log4j-1.2.15.jar"/>
+        <pathelement path="third-party/easymock/easymock.jar"/>
+        <pathelement path="third-party/easymock/easymockclassextension.jar"/>
+        <pathelement path="third-party/guice-snapshot20081016/guice-assistedinject-snapshot20081016.jar"/>
+        <pathelement path="third-party/guice-snapshot20081016/guice-snapshot20081016.jar"/>
+        <pathelement path="third-party/google-feedserver/commons-beanutils-1.8.0.jar"/>
+        <pathelement path="third-party/google-feedserver/commons-beanutils-core-1.8.0.jar"/>
+        <pathelement path="third-party/google-feedserver/gdata-client-1.0.jar"/>
+        <pathelement path="third-party/google-feedserver/gdata-core-1.0.jar"/>
+        <pathelement path="third-party/google-feedserver/google-feedserver-java-client-1.0.jar"/>
+        <pathelement path="third-party/jsch/jsch-20071024.jar"/>
+        <pathelement path="third-party/jline/jline-0.9.91.jar"/>
+        <pathelement path="third-party/json/json.jar"/>
+        <pathelement path="third-party/junit/junit-4.4.jar"/>
+        <pathelement path="third-party/oauth/core.jar"/>
+        <pathelement path="third-party/oauth/commons-codec-1.3.jar"/>
+      </classpath>
+    </javac>
+
+    <!-- create agent jar -->
+    <tstamp/>
+    <jar jarfile="${agent.jarfile}">
+      <fileset dir="${classes}" includes="**"/>
+      <manifest>
+        <attribute name="Implementation-Title" value="Secure Data Connector"/>
+        <attribute name="Implementation-Version" value="${version} ${TODAY}"/>
+        <attribute name="Implementation-Vendor" value="Google"/>
+        <attribute name="Main-Class"
+              value="com.google.dataconnector.client.Client"/>
+      </manifest>
+    </jar>
+
+    <jar jarfile="${protocol.jarfile}">
+      <fileset dir="${classes}" includes="com/google/dataconnector/registration/**"/>
+      <manifest>
+        <attribute name="Implementation-Title" value="Secure Data Connector Protocol"/>
+        <attribute name="Implementation-Version" value="${version} ${TODAY}"/>
+        <attribute name="Implementation-Vendor" value="Google"/>
+      </manifest>
+    </jar>
+
+    <!-- Source Jars -->
+    <tstamp/>
+    <jar jarfile="${agent-src.jarfile}">
+      <fileset dir="${src}"> 
+        <include name="com/google/dataconnector/**" />
+      </fileset>
+      <manifest>
+        <attribute name="Implementation-Title" value="Secure Data Connector"/>
+        <attribute name="Implementation-Version" value="${version} ${TODAY}"/>
+        <attribute name="Implementation-Vendor" value="Google"/>
+      </manifest>
+    </jar>
+
+    <tstamp/>
+    <jar jarfile="${protocol-src.jarfile}">
+      <fileset dir="${src}"> 
+        <include name="com/google/dataconnector/registration/**" />
+      </fileset>
+      <manifest>
+        <attribute name="Implementation-Title" value="Secure Data Connector Protocol"/>
+        <attribute name="Implementation-Version" value="${version} ${TODAY}"/>
+        <attribute name="Implementation-Vendor" value="Google"/>
+      </manifest>
+    </jar>
+
+  </target>
+
+  <target name="install" depends="compile,apache-httpd">
+    <mkdir dir="${install.prefix}" />
+    <mkdir dir="${install.lib.prefix}" />
+    <mkdir dir="${install.bin.prefix}" />
+    <mkdir dir="${install.etc.prefix}" />
+    <mkdir dir="${install.var.prefix}" />
+    <mkdir dir="${install.var.prefix}/log" />
+    <mkdir dir="${install.ssh.conf.dir}" />
+    <mkdir dir="${install.ssh.user.dir}" />
+    <mkdir dir="${install.apache.conf}" />
+    <mkdir dir="${install.apache.conf}/htdocs" />
+
+    <!-- binary -->
+    <copy file="runclient.sh" todir="${install.bin.prefix}"/>
+    <chmod dir="${install.bin.prefix}" includes="*" perm="755"/>
+
+    <!-- lib -->
+    <ant 
+        antfile="build.xml"
+        dir="third-party/apache-httpd"
+        inheritAll="false"
+        target="install_httpd"/>
+
+    <copy todir="${install.lib.prefix}">
+      <fileset dir="${build}" includes="*.jar"/>
+      <fileset 
+          dir="."
+          includes="third-party/**" 
+          excludes="third-party/apache-httpd/**"/>
+    </copy>
+
+    <!-- etc -->
+
+    <exec executable="./install/copy_if_exists.sh">
+      <arg value="${install.etc.prefix}/localConfig.xml"/>
+      <arg value="${install.etc.prefix}/localConfig.xml-existing-${timestamp}"/>
+    </exec>
+
+    <exec executable="./install/copy_if_exists.sh">
+      <arg value="${install.etc.prefix}/resourceRules.xml"/>
+      <arg value="${install.etc.prefix}/resourceRules.xml-existing-${timestamp}"/>
+    </exec>
+
+    <copy 
+        file="./config/localConfig.xml" 
+        tofile="${install.etc.prefix}/localConfig.xml"/>
+    <copy 
+        file="./config/resourceRules.xml-dist" 
+        tofile="${install.etc.prefix}/resourceRules.xml"/>
+    <copy 
+        file="./config/apache/httpd.conf-template"
+        tofile="${install.apache.conf}/httpd.conf-template"/>
+    <copy 
+        file="./config/apache/mime.types"
+        tofile="${install.apache.conf}/mime.types"/>
+
+    <!-- openssh -->
+    <copy 
+        file="./config/openssh/woodstock-authorized_keys"
+        tofile="${install.ssh.user.dir}/authorized_keys"/>
+    <chmod file="${install.ssh.user.dir}/authorized_keys" perm="600"/>
+    <copy todir="${install.ssh.conf.dir}">
+      <fileset dir="./config/openssh">
+        <include name="ssh_host_dsa_key*"/> 
+        <include name="ssh_host_rsa_key*"/> 
+      </fileset>
+    </copy>
+    <chmod file="${install.ssh.conf.dir}/ssh_host_dsa_key" perm="600"/>
+    <chmod file="${install.ssh.conf.dir}/ssh_host_dsa_key.pub" perm="600"/>
+    <chmod file="${install.ssh.conf.dir}/ssh_host_rsa_key" perm="600"/>
+    <chmod file="${install.ssh.conf.dir}/ssh_host_rsa_key.pub" perm="600"/>
+    <copy 
+        file="./config/openssh/sshd_config"
+        tofile="${install.ssh.conf.dir}/sshd_config"/>
+    <copy 
+        file="./config/openssh/start_sshd.sh"
+        tofile="${install.ssh.conf.dir}/start_sshd.sh"/>
+    <chmod file="${install.ssh.conf.dir}/start_sshd.sh" perm="755"/>
+  </target>
+
+  <target name="all" depends="test,compile,install"/>
+
+  <!-- Start of Testing-related stuff -->
+  <property name="testSrc.home"       value="src/javatests"/>
+  <property name="testClasses.home"   value="${build}/testClasses/"/>
+  <property name="testOutput.home"    value="${build}/testOutput"/>
+  <property name="junit.jar"          location="third-party/junit/junit-4.4.jar"/>
+
+  <path id="classpath.test">
+    <pathelement location="${testClasses.home}" />
+    <pathelement location="${agent.jarfile}" />
+    <fileset dir="third-party">
+      <include name="**/*.jar"/>
+    </fileset>
+  </path>
+  
+  <target name="test" depends="compile,cleanTests,compileTests">
+      <mkdir dir="${testOutput.home}"/>
+      <junit haltonfailure="yes" printsummary="yes">
+        <classpath refid="classpath.test"/>
+        <formatter type="plain" usefile="true" />
+        <batchtest todir="${testOutput.home}">
+          <fileset dir="${testSrc.home}">
+            <include name="**/*Test.java"/>
+          </fileset>
+        </batchtest>
+      </junit>
+  </target>
+
+  <target name="compileTests" depends="cleanTests" description="Compile Tests">
+    <mkdir dir="${testClasses.home}"/>
+    <javac 
+        srcdir="${testSrc.home}"
+        destdir="${testClasses.home}"
+        classpathref="classpath.test"
+        debug="true" 
+        debuglevel="lines,vars,source">
+    </javac>
+  </target>
+
+  <target 
+      name="cleanTests"
+      description="Delete old build and dist directories">
+    <delete dir="${testClasses.home}"/>
+    <delete dir="${testOutput.home}"/>
+  </target>
+
+  <!-- End of Testing-related stuff -->
+
+</project>
+

@@ -2,7 +2,7 @@
 
 <project 
     name="apache-httpd" 
-    default="install_httpd"
+    default="buildhttpd"
     basedir=".">
 
   <property name="version" value="1.0"/>
@@ -11,7 +11,7 @@
 
   <property name="binname" value="httpd-2.2.9" />
   <property name="targz" value="dist/${binname}.tar.gz" />
-  <property name="root" value="${basedir}/root" />
+  <property name="root" value="_APACHE_ROOT_" />
   <property name="httpd" value="${root}/bin/httpd" />
   <property name="apachectl" value="${root}/bin/apachectl" />
   <property name="srcdir" value="${basedir}/src" />
@@ -60,27 +60,23 @@
     <ant dir="." target="make" />
     <exec
         dir="${src}"
-        executable="make">
-      <arg value="install"/>
-    </exec>
+        executable="make"/>
   </target>
 
   <target name="check">
     <available property="present" file="${src}/httpd" />
   </target>
 
-  <target name="FileExists" depends="check" if="present">
-    <echo message="httpd file exists. Not rebuilding it.." />
-  </target>
-
-  <target name="decision" depends="FileExists,buildhttpd" />
-
-  <target name="install_httpd" depends="decision">
+  <target name="install_httpd" depends="buildhttpd">
+    <exec
+        dir="${src}"
+        executable="make">
+      <arg value="install"/>
+    </exec>
   </target>
 
   <target name="clean" description="Deletes all build files.">
     <delete dir="${srcdir}" />
-    <delete dir="${root}" />
   </target>
 
 </project>

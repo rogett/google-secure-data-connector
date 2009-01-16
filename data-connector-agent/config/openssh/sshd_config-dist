@@ -55,8 +55,8 @@ Ciphers blowfish-cbc
 #HostKey /etc/ssh/ssh_host_key
 
 # Host key files. (ssh2)
-HostKey _WSCLIENT_HOME_/third-party/openssh/etc/ssh_host_rsa_key
-HostKey _WSCLIENT_HOME_/third-party/openssh/etc/ssh_host_dsa_key
+HostKey _OPENSSHCONF_/ssh_host_rsa_key
+HostKey _OPENSSHCONF_/ssh_host_dsa_key
 
 ### LOGGING OPTIONS
 

@@ -16,4 +16,8 @@
 # * along with this program; if not, write to the Free Software
 # * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-exec /usr/sbin/sshd -i -e -f /etc/opt/dataconnector/openssh/sshd_config
+
+# Abort script on invalid return value.
+set -e
+
+_SSHD_ -i -f _OPENSSHCONF_/sshd_config

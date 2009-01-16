@@ -1,0 +1,40 @@
+Secure Data Connector Install Instructions (brief).
+
+1) sh configure.sh.
+
+Options:
+    --lsb) use LSB defaults no other PREFIX options are neccessary
+    --prefix) binary prefix
+    --etcprefix) etc prefix.  defaults to /usr/local/etc
+    --varprefix) var prefix. defaults to /usr/local/var
+    --use_supplied_apache) no other apache/ht options are needed.
+    --apachectl) location of apachectl binary.
+    --htpasswd) location of apache htpasswd binary.
+    --apache_modules_dir) location of apache modules dir.
+    --opensshd) location of openssh's sshd binary.
+    --javahome) system java location. Will look in the default path too.
+
+Generally only --prefix, --opensshd, --use_supplied_apache is required. The rest
+are for tuning to your platform. 
+
+It is possible to use Secure Data Connector with your own Apache.  It needs: 
+ - Apache 2.2
+ - mod_proxy
+ - mod_authn_basic
+ - mod_authn_file.
+
+
+2) ant 
+
+This compiles all the source into jars.
+
+3) ant install
+
+This installs to the locations specified when configure.sh was run.
+
+4) edit your PREFIX/etc/localConfig.xml and PREFIX/etc/resourceRules.xml files to add rules
+
+Other useful targets:
+
+1) ant dist-clean (returns to original downloaded state)
+2) ant clean (returns to prebuilt but configured state)
