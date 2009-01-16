@@ -35,7 +35,7 @@ public class FakeResourceRuleConfig {
       { "rcolline@test.joonix.net", "admin@test.joonix.net" };
   public static final String[] APPID = { "someappid", "someappid2" };
   public static final String HTTP_PATTERN = "http://www.example.com";
-  public static final String SOCKET_NAME = "2";;
+  public static final String SOCKET_NAME = "2";
   public static final String SOCKET_PATTERN = "socket://128.195.131";
   public static final String HTTP_PROXY_PORT = "10000";
   public static final String SOCKS_SERVER_PORT = "1080";
