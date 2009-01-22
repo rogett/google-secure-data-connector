@@ -269,6 +269,7 @@ sed -i ${template} -e 's^_PREFIX_^'${PREFIX}'^'
 sed -i ${template} -e 's^_ETCPREFIX_^'${ETCPREFIX}'^'
 sed -i ${template} -e 's^_JAVABIN_^'${JAVABIN}'^'
 sed -i ${template} -e 's^_USER_^'${USER}'^'
+sed -i ${template} -e 's^_GROUP_^'${GROUP}'^'
 
 # Supplied Apache build.xml
 if [ ${USE_SUPPLIED_APACHE} = "true" ]; then
