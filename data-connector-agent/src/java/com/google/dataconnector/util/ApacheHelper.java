@@ -25,6 +25,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.List;
 
@@ -202,7 +204,14 @@ public class ApacheHelper {
    * @return path used for apache configuration file.
    */
   public static String getHttpdConfFileName(LocalConf localConf) {
-      return localConf.getApacheConfDir() + File.separator + HTTP_CONF_FILE_NAME;
+    try {
+      return localConf.getApacheConfDir() + File.separator + HTTP_CONF_FILE_NAME +
+          "." + URLEncoder.encode(localConf.getClientId(), "UTF8");
+    } catch (UnsupportedEncodingException e) {
+      // meh, we only catch this because URLEncoder is dumb and throws a checked exception for
+      // what is programmer error.
+      throw new RuntimeException(e);
+    }
   }
   
   /**
@@ -211,7 +220,7 @@ public class ApacheHelper {
    * @return path used for apache configuration file.
    */
   static String getHttpdConfTemplateFileName(LocalConf localConf) {
-      return localConf.getApacheConfDir() + File.separator + LocalConf.HTTPD_CONF_TEMPLATE_FILE;
+    return localConf.getApacheConfDir() + File.separator + LocalConf.HTTPD_CONF_TEMPLATE_FILE;
   }
   
   /**
@@ -221,6 +230,13 @@ public class ApacheHelper {
    * @return a constructed path name.
    */
   static String makeHtpasswdPath(LocalConf localConf, String name) {
-    return localConf.getApacheConfDir() + File.separator + HTPASSWD_FILE_PREFIX + name;
+    try {
+      return localConf.getApacheConfDir() + File.separator + HTPASSWD_FILE_PREFIX + name + "." +
+          URLEncoder.encode(localConf.getClientId(), "UTF8");
+    } catch (UnsupportedEncodingException e) {
+      // meh, we only catch this because URLEncoder is dumb and throws a checked exception for
+      // what is programmer error.
+      throw new RuntimeException(e);
+    }
   }
 }

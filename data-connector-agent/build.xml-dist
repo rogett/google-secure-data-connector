@@ -33,9 +33,15 @@ Build File for Secure Data Connector client and reference server.
     <mkdir dir="${classes}" />
   </target>
 
-  <target name="clean" description="Deletes all build files.">
+  <target 
+      name="clean" 
+      description="Deletes all build files."
+      depends="__CLEANHTTPD__">
     <delete dir="${build}" />
     <delete dir="${bin}" />
+  </target>
+
+  <target name="clean-httpd">
     <ant
         antfile="build.xml"
         dir="third-party/apache-httpd"
@@ -45,19 +51,24 @@ Build File for Secure Data Connector client and reference server.
 
   <target 
       name="dist-clean" 
-      depends="clean"
+      depends="clean__DISTCLEANHTTPD__"
       description="Deletes all files to pre configured state.">
     <delete file="build.xml"/>
     <delete file="build.properties"/>
     <delete file="runclient.sh"/>
+    <delete file="install-sdc.sh"/>
     <delete file="config/localConfig.xml"/>
     <delete file="config/openssh/start_sshd.sh"/>
     <delete file="config/openssh/sshd_config"/>
     <delete file="config/apache/httpd.conf-template"/>
-    <delete file="third-party/apache-httpd/build.xml"/>
   </target>
 
-  <target name="apache-httpd" depends="init">
+  <target name="dist-clean-httpd" depends="clean">
+    <delete file="third-party/apache-httpd/build.xml"/>
+    <delete file="third-party/apache-httpd/apache-install-out"/>
+  </target>
+
+  <target name="compile-httpd" depends="init">
     <ant 
         antfile="build.xml"
         dir="third-party/apache-httpd"
@@ -145,84 +156,21 @@ Build File for Secure Data Connector client and reference server.
 
   </target>
 
-  <target name="install" depends="compile,apache-httpd">
-    <mkdir dir="${install.prefix}" />
-    <mkdir dir="${install.lib.prefix}" />
-    <mkdir dir="${install.bin.prefix}" />
-    <mkdir dir="${install.etc.prefix}" />
-    <mkdir dir="${install.var.prefix}" />
-    <mkdir dir="${install.var.prefix}/log" />
-    <mkdir dir="${install.ssh.conf.dir}" />
-    <mkdir dir="${install.ssh.user.dir}" />
-    <mkdir dir="${install.apache.conf}" />
-    <mkdir dir="${install.apache.conf}/htdocs" />
+  <!-- install -->
+  <target name="install" depends="install-sdc__INSTALLHTTPD__"/>
 
-    <!-- binary -->
-    <copy file="runclient.sh" todir="${install.bin.prefix}"/>
-    <chmod dir="${install.bin.prefix}" includes="*" perm="755"/>
-
-    <!-- lib -->
+  <target name="install-httpd" depends="compile-httpd">
+    <!-- install apache -->
     <ant 
         antfile="build.xml"
         dir="third-party/apache-httpd"
         inheritAll="false"
-        target="install_httpd"/>
+        target="install_httpd" />
+  </target>
 
-    <copy todir="${install.lib.prefix}">
-      <fileset dir="${build}" includes="*.jar"/>
-      <fileset 
-          dir="."
-          includes="third-party/**" 
-          excludes="third-party/apache-httpd/**"/>
-    </copy>
-
-    <!-- etc -->
-
-    <exec executable="./install/copy_if_exists.sh">
-      <arg value="${install.etc.prefix}/localConfig.xml"/>
-      <arg value="${install.etc.prefix}/localConfig.xml-existing-${timestamp}"/>
-    </exec>
-
-    <exec executable="./install/copy_if_exists.sh">
-      <arg value="${install.etc.prefix}/resourceRules.xml"/>
-      <arg value="${install.etc.prefix}/resourceRules.xml-existing-${timestamp}"/>
-    </exec>
-
-    <copy 
-        file="./config/localConfig.xml" 
-        tofile="${install.etc.prefix}/localConfig.xml"/>
-    <copy 
-        file="./config/resourceRules.xml-dist" 
-        tofile="${install.etc.prefix}/resourceRules.xml"/>
-    <copy 
-        file="./config/apache/httpd.conf-template"
-        tofile="${install.apache.conf}/httpd.conf-template"/>
-    <copy 
-        file="./config/apache/mime.types"
-        tofile="${install.apache.conf}/mime.types"/>
-
-    <!-- openssh -->
-    <copy 
-        file="./config/openssh/woodstock-authorized_keys"
-        tofile="${install.ssh.user.dir}/authorized_keys"/>
-    <chmod file="${install.ssh.user.dir}/authorized_keys" perm="600"/>
-    <copy todir="${install.ssh.conf.dir}">
-      <fileset dir="./config/openssh">
-        <include name="ssh_host_dsa_key*"/> 
-        <include name="ssh_host_rsa_key*"/> 
-      </fileset>
-    </copy>
-    <chmod file="${install.ssh.conf.dir}/ssh_host_dsa_key" perm="600"/>
-    <chmod file="${install.ssh.conf.dir}/ssh_host_dsa_key.pub" perm="600"/>
-    <chmod file="${install.ssh.conf.dir}/ssh_host_rsa_key" perm="600"/>
-    <chmod file="${install.ssh.conf.dir}/ssh_host_rsa_key.pub" perm="600"/>
-    <copy 
-        file="./config/openssh/sshd_config"
-        tofile="${install.ssh.conf.dir}/sshd_config"/>
-    <copy 
-        file="./config/openssh/start_sshd.sh"
-        tofile="${install.ssh.conf.dir}/start_sshd.sh"/>
-    <chmod file="${install.ssh.conf.dir}/start_sshd.sh" perm="755"/>
+  <!-- install sdc files -->
+  <target name="install-sdc" depends="compile">
+    <exec executable="./install-sdc.sh" failonerror="true"/>
   </target>
 
   <target name="all" depends="test,compile,install"/>

@@ -20,4 +20,10 @@
 # Abort script on invalid return value.
 set -e
 
-_SSHD_ -i -f _OPENSSHCONF_/sshd_config
+DEBUG=""
+if [ $1 = "debug" ]; then
+  DEBUG="-e -ddd"
+  shift 1
+fi
+
+_SSHD_ ${DEBUG} -i -f _OPENSSHCONF_/sshd_config $*

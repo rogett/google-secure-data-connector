@@ -32,7 +32,9 @@ public class LocalConf {
   private static final String DEFAULT_GOOGLE_SDC_HOST = "apps-secure-data-connector.google.com";
   private static final int DEFAULT_GOOGLE_SDC_PORT = 443;
   private static final String DEFAULT_SSL_KEYSTORE_PASSWORD = "woodstock";
+  private static boolean DEBUG = false;
   public static final String HTTPD_CONF_TEMPLATE_FILE = "httpd.conf-template";
+  public static final String DEFAULT_SOCKS_BIND_HOST = "127.0.0.1";
   
   private String name;
 
@@ -73,14 +75,14 @@ public class LocalConf {
   private String httpProxyBindHost = DEFAULT_BIND_HOST;
   @Flag(help = "Port to bind socks firewall port to.")
   private Integer socksServerPort;
-  @Flag(help = "Default bind host is localhost, One should not have to change this.")
-  private String socksdBindHost = DEFAULT_BIND_HOST;
   @Flag(help = "System apache2 htpassword location")
   private String apacheHtpasswd = "third-party/apache-httpd/root/bin/htpassword";
   @Flag(help = "System apache2 apachectl location")
   private String apacheCtl = "third-party/apache-httpd/root/bin/apachectl";
-  @Flag(help = "Apache configuratin files.  Must be writable by user agent runs as.")
+  @Flag(help = "Apache configuration files.  Must be writable by user agent runs as.")
   private String apacheConfDir;
+  @Flag(help = "Turn on debug logging.")
+  private Boolean debug = DEBUG;
   
   // Config File Only
   private String logProperties;
@@ -221,14 +223,6 @@ public class LocalConf {
     this.socksServerPort = socksServerPort;
   }
 
-  public String getSocksdBindHost() {
-    return socksdBindHost;
-  }
-
-  public void setSocksdBindHost(String socksdBindHost) {
-    this.socksdBindHost = socksdBindHost;
-  }
-
   public String getLogProperties() {
     return logProperties;
   }
@@ -275,5 +269,13 @@ public class LocalConf {
 
   public void setAuthType(AuthRequest.AuthType authType) {
     this.authType = authType;
+  }
+
+  public Boolean getDebug() {
+    return debug;
+  }
+
+  public void setDebug(Boolean debug) {
+    this.debug = debug;
   }
 }

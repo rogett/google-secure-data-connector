@@ -18,15 +18,17 @@ HTPASSWD=
 MODULESDIR=
 OPENSSHD=
 JAVAHOME=
+USER=daemon
+GROUP=daemon
 USE_SUPPLIED_APACHE="false"
 LSB="false"
-APACHE_MODULES="auth_basic authn_file authz_host authz_user proxy proxy_httpd"
+APACHE_MODULES="auth_basic authn_file authz_host authz_user proxy proxy_http mime mime_magic"
 
 # Check for getopt gnu util
 [ -x "$(which getopt)" ] || { echo "gnu getopt binary not found." ; exit 1; }
 
 # Command line arguments
-OPTS=$(getopt -o h --long lsb,prefix:,etcprefix::,varprefix::,binprefix::,apachectl:,htpasswd:,opensshd::,apache_modules_dir::,javahome::,use_supplied_apache -n 'configure' -- "$@") 
+OPTS=$(getopt -o h --long lsb,prefix:,etcprefix::,varprefix::,binprefix::,apachectl:,htpasswd:,opensshd::,apache_modules_dir::,javahome::,use_supplied_apache,user::,group:: -n 'configure' -- "$@") 
 if [ $? != 0 ]; then 
   echo -e "\nUsage:
     --lsb) use LSB defaults no other PREFIX options are neccessary
@@ -38,6 +40,8 @@ if [ $? != 0 ]; then
     --htpasswd) location of apache htpasswd binary.
     --apache_modules_dir) location of apache modules dir.
     --opensshd) location of openssh's sshd binary.
+    --user) user to run woodstock as. Default is 'daemon'
+    --group) group to run woodstock as. Default is 'daemon'
     --javahome) system java location.
   " >&2
   exit 1 
@@ -58,6 +62,8 @@ while true; do
     --apache_modules_dir) MODULESDIR=$2 ; shift 2 ;;
     --opensshd) OPENSSHD=$2 ; shift 2 ;;
     --javahome) JAVAHOME=$2 ; shift 2 ;;
+    --user) USER=$2 ; shift 2 ;;
+    --group) GROUP=$2 ; shift 2 ;;
     --) shift ; break ;;
     *) echo "Error!" ; exit 1 ;;
   esac
@@ -84,6 +90,24 @@ if [ ${USE_SUPPLIED_APACHE} = "true" ]; then
   HTPASSWD=${PREFIX}/lib/apache/bin/htpasswd
   APACHECTL=${PREFIX}/lib/apache/bin/apachectl
   APACHEMODULES=""  # we dont use modules in the supplied apache.
+fi
+
+# Check user and group for existence
+getent=$(which getent)
+if [ ! -x "${getent}" ]; then
+  echo "getent missing, cant check group and user. Assuming you entered it right"
+else
+  $getent passwd $USER 2>&1 > /dev/null
+  if [ $? != 0 ]; then
+    echo "user $USER does not exist"
+    exit 1
+  fi
+
+  $getent group $GROUP 2>&1 > /dev/null
+  if [ $? != 0 ]; then
+    echo "group $GROUP does not exist"
+    exit 1
+  fi
 fi
 
 # Semantic Checks
@@ -121,11 +145,11 @@ if [ ${USE_SUPPLIED_APACHE} = "false" ]; then
     fi
   
     if [ ! -x "${MODULESDIR}/mod_${module}.so" ]; then
-      echo "$module required.  for full list see APACHE_MODULES in this script."
+      echo "${module} required.  for full list see APACHE_MODULES in this script."
       exit 1
     fi
 
-    FOUND_MODULES="${FOUND_MODULES} module"
+    FOUND_MODULES="${FOUND_MODULES} ${module}"
   done
 fi
 
@@ -170,15 +194,34 @@ echo Generating ${template}
 sed -i ${template} -e 's^__PREFIX__^'${PREFIX}'^'
 sed -i ${template} -e 's^__ETCPREFIX__^'${ETCPREFIX}'^'
 sed -i ${template} -e 's^__VARPREFIX__^'${VARPREFIX}'^'
+sed -i ${template} -e 's^__USER__^'${USER}'^'
+sed -i ${template} -e 's^__GROUP__^'${GROUP}'^'
+
+# Edit install-sdc.sh
+template="install-sdc.sh"
+cp "install-sdc.sh-dist" ${template}
+echo Generating ${template}
+sed -i ${template} -e 's^__PREFIX__^'${PREFIX}'^'
+sed -i ${template} -e 's^__ETCPREFIX__^'${ETCPREFIX}'^'
+sed -i ${template} -e 's^__VARPREFIX__^'${VARPREFIX}'^'
+sed -i ${template} -e 's^__USER__^'${USER}'^'
+sed -i ${template} -e 's^__GROUP__^'${GROUP}'^'
+chmod 755 $template
 
 # Edit build.xml
 template=build.xml
 cp build.xml-dist ${template}
 echo Generating ${template}
 if [ ${USE_SUPPLIED_APACHE} = "true" ]; then
-  sed -i ${template} -e 's^__BUILDHTTPD__^,apache-httpd^'
+  sed -i ${template} -e 's^__BUILDHTTPD__^,compile-httpd^'
+  sed -i ${template} -e 's^__INSTALLHTTPD__^,install-httpd^'
+  sed -i ${template} -e 's^__CLEANHTTPD__^clean-httpd^'
+  sed -i ${template} -e 's^__DISTCLEANHTTPD__^,dist-clean-httpd^'
 else 
   sed -i ${template} -e 's^__BUILDHTTPD__^^'
+  sed -i ${template} -e 's^__INSTALLHTTPD__^^'
+  sed -i ${template} -e 's^__CLEANHTTPD__^^'
+  sed -i ${template} -e 's^__DISTCLEANHTTPD__^^'
 fi
 
 # Edit httpd.conf-dist
@@ -186,11 +229,15 @@ template=config/apache/httpd.conf-template
 cp config/apache/httpd.conf-dist ${template}
 echo Generating ${template}
 
+echo ${FOUND_MODULES}
 for module in ${FOUND_MODULES}; do  # Add modules to template
-  echo "LoadModule ${module}_module ${APACHEMODULES}/mod_${module}.so" >> config/${template}
+  echo Configuring load for ${module}
+  echo "LoadModule ${module}_module ${MODULESDIR}/mod_${module}.so" >> ${template}
 done
 sed -i ${template} -e 's^_APACHE_ROOT_^'${ETCPREFIX}'/apache^'
 sed -i ${template} -e 's^_APACHE_LOG_DIR_^'${VARPREFIX}'/log^'
+sed -i ${template} -e 's^_USER_^'${USER}'^'
+sed -i ${template} -e 's^_GROUP_^'${GROUP}'^'
 
 # Edit localConf.xml-dist
 template=config/localConfig.xml
@@ -221,6 +268,7 @@ echo Generating ${template}
 sed -i ${template} -e 's^_PREFIX_^'${PREFIX}'^'
 sed -i ${template} -e 's^_ETCPREFIX_^'${ETCPREFIX}'^'
 sed -i ${template} -e 's^_JAVABIN_^'${JAVABIN}'^'
+sed -i ${template} -e 's^_USER_^'${USER}'^'
 
 # Supplied Apache build.xml
 if [ ${USE_SUPPLIED_APACHE} = "true" ]; then

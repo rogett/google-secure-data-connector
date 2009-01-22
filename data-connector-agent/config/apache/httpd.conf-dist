@@ -2,8 +2,8 @@ ServerRoot "_APACHE_ROOT_"
 
 Listen _APACHE_BIND_HOST_:_APACHE_PORT_
 
-User daemon
-Group daemon
+User _USER_
+Group _GROUP_
 
 ServerAdmin sdc@localhost
 DocumentRoot "_APACHE_ROOT_/htdocs"

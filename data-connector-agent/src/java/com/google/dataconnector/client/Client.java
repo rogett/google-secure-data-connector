@@ -27,6 +27,7 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
@@ -94,6 +95,9 @@ public class Client {
     properties.load(new ByteArrayInputStream(
         localConfiguration.getLogProperties().trim().getBytes()));
     PropertyConfigurator.configure(properties);
+    if (localConfiguration.getDebug()) {
+	  Logger.getRootLogger().setLevel(Level.DEBUG);
+    }
     
     apacheStarter.startApacheHttpd();
     jsocksStarter.startJsocksProxy();

@@ -22,6 +22,8 @@ import com.google.dataconnector.util.ConnectionException;
 import com.google.dataconnector.util.LocalConf;
 import com.google.inject.Inject;
 
+import org.apache.log4j.Category;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import java.io.BufferedReader;
@@ -109,9 +111,17 @@ public class SecureDataConnection {
      * transmitted on its stdin and stdout.
      */
     log.info("Starting SSHD");
+    
+    // We add something like -oPermitOpen=127.0.0.1:1080 to the SSHD to restrict portforwards
+    // to only ourselves.  Otherwise the remote side could forward any where they want.
+    String startSshdArgs =  (localConf.getDebug() ? "debug " : " ") + 
+        PERMIT_OPEN_OPT + "127.0.0.1" + ":" + localConf.getSocksServerPort();
+    log.debug("startSshdArgs command: " + startSshdArgs);
+
+    
     // Add PermitOpen to SSHD exectuable to restrict portforwards based on configuration.
-    Process sshdProcess = Runtime.getRuntime().exec(localConf.getSshd() + " " + PERMIT_OPEN_OPT +
-        localConf.getSocksdBindHost() + ":" + localConf.getSocksdBindHost());
+    log.debug("Executing sshd: " + localConf.getSshd() + " " + startSshdArgs);
+    Process sshdProcess = Runtime.getRuntime().exec(localConf.getSshd() + " " + startSshdArgs);
     if (sshdProcess == null) {
       // couldn't start openssh? not good
       throw new ConnectionException("couldn't start SSH @ " + localConf.getSshd() + ". exiting");
@@ -128,6 +138,7 @@ public class SecureDataConnection {
     connectSshdInput.start();
     connectSshdOutput.start();
 
+    log.info("Last connection initialization step.");
     /*
      * OpenSSHD logs to stderr, so we pick up its log messages and log them
      * as our own.  This will stay active the entire length of the Secure Link Connection

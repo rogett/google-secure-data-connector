@@ -23,6 +23,7 @@ WOODSTOCK_LIB=${WOODSTOCK_HOME}/lib
 CONFIGFILE=_ETCPREFIX_/localConfig.xml
 RULESFILE=_ETCPREFIX_/resourceRules.xml
 JVM_ARGS="-Djava.net.preferIPv4Stack=true"
+DEBUG=""
 
 # Dynamically generate classpath from lib directory.
 jarfiles=$(find ${WOODSTOCK_LIB} -type f -a -name \*.jar)
@@ -32,9 +33,10 @@ done
 export CLASSPATH
 
 # Create flags for local config file.
-OPTS=$(getopt -o f:r:j: --long localConfigFile::,rulesFile::,jvm_args:: -n 'runagent' -- "$@")
+OPTS=$(getopt -o df:r:j: --long debug,localConfigFile::,rulesFile::,jvm_args:: -n 'runagent' -- "$@")
 if [ $? != 0 ]; then
   echo -e "\nUsage:
+    -d|--debug) Place into debug mode
     -f|--localConfigFile) Local configuration file
     -r|--rulesFile) Resource rules file.
     -j|--jvm-args) Override default jvmargs with these.
@@ -46,6 +48,7 @@ fi
 eval set -- "${OPTS}"  
 while true; do
   case "$1" in
+    -d|--debug) DEBUG="--debug"; shift 1 ;;
     -f|--localConfigFile) CONFIGFILE=$2; shift 2 ;;
     -r|--rulesFile) RULESFILE=$2; shift 2 ;;
     -j|--jvm-args) JVM_ARGS=$2; shift 2 ;;
@@ -58,9 +61,10 @@ done
 umask 0077
 
 while /bin/true; do
-  _JAVABIN_ ${JVM_ARGS} com.google.dataconnector.client.Client \
-    -localConfigFile "${CONFIGFILE}" \
-    -rulesFile "${RULESFILE}"
+  su _USER_ -c "_JAVABIN_ ${JVM_ARGS} com.google.dataconnector.client.Client \
+    $DEBUG \
+    -localConfigFile \"${CONFIGFILE}\" \
+    -rulesFile \"${RULESFILE}\""
   sleep 5
   echo "RECONNECTING..."
 done

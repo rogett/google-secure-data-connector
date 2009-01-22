@@ -113,7 +113,7 @@ public final class JsocksStarter extends Thread {
     
     // Resolve our bind host which should normally be localhost.
     try {
-      bindAddress = InetAddress.getByName(localConfiguration.getSocksdBindHost());
+      bindAddress = InetAddress.getByName(LocalConf.DEFAULT_SOCKS_BIND_HOST);
     } catch (UnknownHostException e) {
       throw new RuntimeException("Couldnt lookup bind host", e);
     }

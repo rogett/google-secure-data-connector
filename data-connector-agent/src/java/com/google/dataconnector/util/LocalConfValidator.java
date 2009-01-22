@@ -193,15 +193,6 @@ public class LocalConfValidator {
       errors.append("'socksServerPort' required\n");
     }
     
-    // sockdBindHost
-    if (localConf.getSocksdBindHost() != null) {
-      if (localConf.getSocksdBindHost().matches("\\s")) {
-        errors.append("'socksdBindHost' contains spaces\n");
-      }
-    } else {
-      errors.append("'socksdBindHost' required\n");
-    }
-    
     // logProperties 
     if (localConf.getLogProperties() == null) {
       errors.append("'logProperties' required\n");
