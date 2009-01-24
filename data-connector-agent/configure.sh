@@ -22,13 +22,14 @@ USER=daemon
 GROUP=daemon
 USE_SUPPLIED_APACHE="false"
 LSB="false"
+NOVERIFY="false"
 APACHE_MODULES="auth_basic authn_file authz_host authz_user proxy proxy_http mime mime_magic"
 
 # Check for getopt gnu util
 [ -x "$(which getopt)" ] || { echo "gnu getopt binary not found." ; exit 1; }
 
 # Command line arguments
-OPTS=$(getopt -o h --long lsb,prefix:,etcprefix::,varprefix::,binprefix::,apachectl:,htpasswd:,opensshd::,apache_modules_dir::,javahome::,use_supplied_apache,user::,group:: -n 'configure' -- "$@") 
+OPTS=$(getopt -o h --long lsb,noverify,prefix:,etcprefix::,varprefix::,binprefix::,apachectl:,htpasswd:,opensshd::,apache_modules_dir::,javahome::,use_supplied_apache,user::,group:: -n 'configure' -- "$@") 
 if [ $? != 0 ]; then 
   echo -e "\nUsage:
     --lsb) use LSB defaults no other PREFIX options are neccessary
@@ -43,6 +44,7 @@ if [ $? != 0 ]; then
     --user) user to run woodstock as. Default is 'daemon'
     --group) group to run woodstock as. Default is 'daemon'
     --javahome) system java location.
+    --noverify) do not perform configure validation steps.
   " >&2
   exit 1 
 fi
@@ -52,6 +54,7 @@ eval set -- "$OPTS"
 while true; do
   case "$1" in
     --lsb) LSB="true" ; shift 1 ;;
+    --noverify) NOVERIFY="true" ; shift 1 ;; 
     --use_supplied_apache) USE_SUPPLIED_APACHE="true" ; shift 1 ;;
     --prefix) PREFIX=$2 ; shift 2 ;;
     --etcprefix) ETCPREFIX=$2; shift 2 ;;
@@ -111,17 +114,31 @@ else
 fi
 
 # Semantic Checks
-if [ ! -x "${OPENSSHD}" ]; then
+if [ -z ${OPENSSHD} ]; then
+  echo "--opensshd option is missing!"
+  exit 1
+fi 
+
+if [ ! -x "${OPENSSHD}" -a ${NOVERIFY} = "false"  ]; then
   echo "opensshd: ${OPENSSHD} not found"
   exit 1
 fi
 
-if [ ${USE_SUPPLIED_APACHE} = "false" ]; then
+
+if [ ${USE_SUPPLIED_APACHE} = "false" -a ${NOVERIFY} = "false" ]; then
+
+  if [ -z ${APACHECTL} ]; then
+   echo "--apachectl option is missing!"
+   exit 1
+  fi
   if [ ! -x "${APACHECTL}" ]; then
     echo "httpd: ${APACHECTL} not found"
     exit 1
   fi
-
+  if [ -z ${HTPASSWD} ]; then
+    echo "--htpasswd option is missing!"
+    exit 1
+  fi
   if [ ! -x "${HTPASSWD}" ]; then
     echo "htpasswd: ${HTPASSWD} not found"
     exit 1
@@ -169,24 +186,34 @@ elif [ ${HOMEDIR} != ${ETCPREFIX}/woodstock-user ]; then
   exit 1
 fi
 
-# Check java version
-if [ -z ${JAVAHOME} ]; then
-  JAVABIN=$(which java)
-else 
-  JAVABIN=${JAVAHOME}/bin/java
-fi
+  # Check java version
+  if [ -z ${JAVAHOME} ]; then
+    JAVABIN=$(which java)
+  else 
+    JAVABIN=${JAVAHOME}/bin/java
+  fi
 
-if [ -x "${JAVABIN}" ]; then
-  ${JAVABIN} -version 2>&1 | grep 'java version' |grep -q '1.[65]'
-  if [ $? != 0 ]; then
-    echo "Secure Data Connector requires JDK 1.6"
+
+if [ ${NOVERIFY} = "false" ]; then
+
+  if [ -x "${JAVABIN}" ]; then
+    ${JAVABIN} -version 2>&1 | grep 'java version' |grep -q '1.[65]'
+    if [ $? != 0 ]; then
+      echo "Secure Data Connector requires JDK 1.6"
+      exit 1
+    fi
+  else 
+    echo "Java could not be found at $JAVABIN"
     exit 1
   fi
-else 
-  echo "Java could not be found at $JAVABIN"
+fi      
+
+if [ -z ${JAVAHOME} ]; then
+  echo "--javahome option missing!"
   exit 1
 fi
-      
+
+
 # Edit build.properties
 template=build.properties
 cp build.properties-dist ${template}
@@ -223,6 +250,9 @@ else
   sed -i ${template} -e 's^__CLEANHTTPD__^^'
   sed -i ${template} -e 's^__DISTCLEANHTTPD__^^'
 fi
+
+# Create resourceRules.xml since we don't need to edit this file.
+cp config/resourceRules.xml-dist config/resourceRules.xml
 
 # Edit httpd.conf-dist
 template=config/apache/httpd.conf-template

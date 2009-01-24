@@ -1,0 +1,48 @@
+<project name="pANTkage">
+  <target name="rpm" depends="rpmlsb">
+    <property file="third-party/pANTkage/rpm.properties"/>
+    <exec executable="third-party/pANTkage/rpm_env.py"/>
+    <exec executable="third-party/pANTkage/gen_spec.py">
+       <arg line="--name=${name} --release=${release} --version=${version} --license=${license} --summary=${summary} --description=${description} --type=src --group=${group} --deps=${deps}"/>
+    </exec>
+    <exec executable="third-party/pANTkage/gen_spec.py">
+      <arg line="--name=${name} --release=${release} --version=${version} --license=${license} --summary=${summary} --description=${description} --group=${group} --deps=${deps}"/>
+    </exec>
+    <exec executable="mv">
+      <arg line="${name}.spec rpm/SPECS/"/>
+    </exec>
+    <exec executable="cp">
+      <arg line="${sourcedir}${name}-${version}-${release}-bin.tar.gz rpm/SOURCES/"/>
+    </exec>
+    <exec executable="cp">
+      <arg line="${sourcedir}${name}-${version}-${release}-src.tar.gz rpm/SOURCES/"/>
+    </exec>
+    <rpm
+      specFile="${name}.spec"
+      topDir="rpm/"
+      cleanBuildDir="true"
+      command="-bb"
+      failOnError="true"/>
+    <rpm
+      specFile="${name}.spec"
+      topDir="rpm/"
+      cleanBuildDir="true"
+      command="-bs"
+      failOnError="true"/>
+    <exec executable="mv">
+      <arg line="rpm/SRPMS/${name}-${version}-${release}.src.rpm distribute/dist/"/>
+    </exec>
+    <exec executable="mv">
+      <arg line="rpm/RPMS/i386/${name}-${version}-${release}.i386.rpm distribute/dist/"/>
+    </exec>
+    <exec executable="rm">
+      <arg line="-rf rpm/SPECS"/>
+    </exec>
+    <exec executable="rm">
+      <arg line="-rf rpm/SOURCES"/>
+    </exec>
+    <exec executable="third-party/pANTkage/rpm_env.py">
+      <arg line="--clean y"/>
+    </exec>
+  </target>
+</project>

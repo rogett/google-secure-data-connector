@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Copyright 2007 Google Inc. All rights reserved. 
+  
+Build File for Secure Data Connector client and reference server.
+
+  Interesting targets:
+   -all: builds distros
+   -install: builds jars and runs setup.sh
+   -clean: 
+   -source-distro: creates the source.tar.gz for the whole project
+   -binary-distro: creates binary.tar.gz
+   -deb: builds a debian package that complies with the LSB FHS
+-->
+
+<project 
+    name="google-secure-data-connector" 
+    default="all"
+    basedir="..">
+
+  <!-- PROPERTIES -->
+  <property name="version" value="1.0"/>
+  <property name="release" value="3"/>
+  <property name="name" value="google-secure-data-connector"/>
+  <property name="sourcedir" value="distribute/dist/"/>
+  <property name="version.debian" value="3"/>
+  <property name="release" value="3"/>
+  <property name="projects.dir" value=".." />
+  <property name="COMPILE_DEBUG_FLAG" value="true" />
+  <property name="COMPILE_DEBUG_LEVEL" value="source,lines,vars" />
+
+  <property name="deb" value="distribute/deb" />
+  <property name="dist" value="distribute/dist" />
+
+  <!-- TARGETS -->
+
+  <import file="../third-party/pANTkage/rpm.xml"/>
+
+  <target name="timestamp">
+    <tstamp>
+      <format property="timestamp" pattern="MMddyyyyhhmm"/>
+    </tstamp>
+  </target>
+
+  <target name="init" depends="timestamp">    
+    <mkdir dir="${dist}" />
+  </target>
+
+  <target name="clean" description="Deletes all build files.">
+    <delete file="${deb}" />
+    <ant
+        antfile="build.xml"
+        dir="."
+        target="clean"/>
+  </target>
+  
+  <target name="lsb" depends="init">
+    <exec dir="." executable="./configure.sh">
+      <arg value="--lsb"/>
+      <arg value="--noverify"/>
+      <arg value="--opensshd=/usr/sbin/sshd"/>
+      <arg value="--apachectl=/usr/sbin/apache2ctl"/>
+      <arg value="--htpasswd=/usr/bin/htpasswd"/>
+      <arg value="--javahome=/usr"/>
+    </exec>
+   <ant 
+        antfile="build.xml"
+        dir="."
+        inheritAll="false"/>
+   </target>
+
+
+  <target name="deblsb" depends="init,binary-distro">
+    <exec dir="." executable="./configure.sh">
+      <arg value="--lsb"/>
+      <arg value="--noverify"/>
+      <arg value="--opensshd=/usr/sbin/sshd"/>
+      <arg value="--apachectl=/usr/sbin/apache2ctl"/>
+      <arg value="--htpasswd=/usr/bin/htpasswd"/>
+      <arg value="--javahome=/usr"/>
+    </exec>
+   <ant 
+        antfile="build.xml"
+        dir="."
+        inheritAll="false"/>
+   </target>
+
+
+  <target name="rpmlsb" depends="init,source-distro,binary-distro">
+   <mkdir dir="/rpm" /> 
+   <exec dir="." executable="./configure.sh">
+      <arg value="--lsb"/>
+      <arg value="--noverify"/>
+      <arg value="--opensshd=/usr/sbin/sshd"/>
+      <arg value="--apachectl=/usr/sbin/apachectl"/>
+      <arg value="--htpasswd=/usr/bin/htpasswd"/>
+      <arg value="--javahome=/usr"/>
+    </exec>
+   <ant 
+        antfile="build.xml"
+        dir="."
+        inheritAll="false"/>
+   </target>
+
+
+  <target name="source-distro" depends="clean,timestamp">
+    <mkdir dir="${dist}" />
+    <tar 
+        destfile="${dist}/${name}-${version}-${release}-src.tar.gz"
+        longfile="gnu"
+        compression="gzip"
+        excludes="third-party/jsch/com/**,tmp/**, third-party/*/docs/**">
+      <tarfileset dir="." prefix="data-connector-agent">
+        <include name="build.xml"/>
+        <include name="src/**"/>
+        <include name="CHANGE_LOG"/>
+        <include name="COPYING"/>
+        <include name="config/*"/>
+        <include name="third-party/**"/>
+      </tarfileset>
+      <tarfileset dir="." mode="600" prefix="data-connector-agent">
+        <include name="third-party/openssh/etc/*"/>
+        <include name="third-party/openssh/home/woodstock/.ssh/*"/>
+      </tarfileset>
+      <tarfileset dir="." mode="755" prefix="data-connector-agent">
+      	<include name="third-party/openssh/sbin/*"/>
+	      <include name="third-party/java-service-wrapper/windows/*.bat"/>
+      	<include name="third-party/java-service-wrapper/windows/bin/*.exe"/>
+      	<include name="third-party/java-service-wrapper/linux/googlesdc.sh"/>
+	      <include name="third-party/java-service-wrapper/linux/bin/*"/>
+        <include name="runclient.sh"/>
+	      <include name="runclient.bat"/>
+        <include name="setup.sh"/>
+        <include name="start.sh"/>
+        <include name="stop.sh"/>
+      </tarfileset>
+    </tar>
+  </target>
+    
+  <target name="binary-distro" depends="clean,lsb">
+    <tar 
+        destfile="${dist}/${name}-${version}-${release}-bin.tar.gz"
+        longfile="gnu"
+        basedir="."
+        includes="config/*,
+          config/openssh/*,
+          config/apache/*,
+          COPYING,
+          CHANGE_LOG,
+          build/agent.jar,
+          build/protocol.jar,
+          third-party/jsocks/jsocks.jar,
+          third-party/jsocks/third-party/**,
+          third-party/jsocks/docs/*,
+          third-party/jsocks/COPYING,
+          third-party/openssh/CREDITS,
+          third-party/openssh/LICENCE,
+	  third-party/openssh/dist/*.tmpl,
+          third-party/openssh/dist/*.redhat,
+          third-party/commons-*/*.txt,
+          third-party/commons-*/*.jar,
+          third-party/jsch/*.txt,
+          third-party/jsch/*.jar,
+          third-party/jline/*.txt,
+          third-party/jline/*.jar,
+          third-party/json/**,
+          third-party/junit/**,
+          third-party/cglib/**,
+          third-party/easymock/**,
+          third-party/apache-log4j/**,
+          third-party/aopalliance/**,
+          third-party/google-feedserver/**,
+          third-party/oauth/**,
+          third-party/guice-snapshot20081016/**,
+          third-party/java-service-wrapper/*,
+	  third-party/java-service-wrapper/linux/**"
+        compression="gzip">
+      <tarfileset dir="." mode="600">
+        <include name="config/openssh/*"/>
+      </tarfileset>
+      <tarfileset dir="." mode="755">
+        <include name="third-party/java-service-wrapper/linux/googlesdc.sh"/>
+        <include name="third-party/java-service-wrapper/linux/bin/*"/>
+        <include name="runclient.sh"/>
+      </tarfileset>
+    </tar>
+  </target>
+
+
+  <path id="deb-classpath">
+    <fileset dir="third-party/ant-deb" includes="ant-deb-0.0.1.jar"/>
+  </path>
+
+ <taskdef resource="ant_deb_task.properties" classpathref="deb-classpath"/>
+
+  <target name="deb" depends="deblsb">
+    <mkdir dir="${dist}"/>
+ 
+    <deb todir="${dist}"
+         package="google-secure-data-connector"
+         section="net"
+         architecture="i386"
+         depends="sun-java6-jre (>=6), openssh-server (>=4.7), apache2 (>=2.2)"
+         postinst="distribute/debian/securedataconnector.postinst"
+         prerm="distribute/debian/securedataconnector.prerm"
+         postrm="distribute/debian/securedataconnector.postrm">
+         <version upstream="${version}" debian="${version.debian}"/>
+      <maintainer name="Sebastian Welsh"
+                  email="sebastian.welsh@gmail.com"/>
+      <description synopsis="The Google secure dataconnector client package.">
+Google secure dataconnector is used to connect from Google Apps to internal network resources. The client is a java application that
+- connects to the Google Apps termination service
+- registers the resources published to Apps
+- registers the groups able to access the resources
+- provides a proxy to the internal resources for those groups.
+
+The current implementation permits access to http and socket services.
+
+http://code.google.com/
+      </description>
+      <conffiles dir="config" prefix="etc/opt/${name}"
+        filemode="640" dirmode="750">
+        <include name="resourceRules.xml"/>
+	<include name="localConfig.xml"/>
+        <include name="openssh/sshd_config"/>
+        <include name="openssh/ssh_host*"/>
+        <include name="apache/mime.types"/>
+        <include name="apache/httpd.conf-template"/>
+      </conffiles>
+      <conffiles dir="third-party/java-service-wrapper/linux/conf" prefix="etc/opt/${name}/jsw"
+        filemode="640" dirmode="750">
+        <include name="*.conf"/>
+      </conffiles>
+      <tarfileset dir="build" prefix="opt/${name}/lib"
+        filemode="640" dirmode="750">
+        <include name="agent.jar"/> 
+        <include name="protocol.jar"/> 
+      </tarfileset>
+      <tarfileset dir="third-party" prefix="opt/${name}/lib/third-party"
+	filemode="640" dirmode="750"
+        excludes="**/dist/, **/src/, **/build.xml, **/apache-httpd/**, **/java-service-wrapper/**, **/pANTakge/**">
+	<include name="**"/>
+      </tarfileset>
+      <tarfileset dir="third-party/java-service-wrapper/linux" filemode="640" dirmode="750"
+                  prefix="opt/${name}/lib/third-party/java-service-wrapper/linux">
+         <include name="lib/*.jar"/>
+      </tarfileset>
+      <tarfileset dir="third-party/java-service-wrapper/linux" filemode="750" dirmode="750"
+                  prefix="opt/${name}/lib/third-party/java-service-wrapper/linux">
+         <include name="*.sh"/>
+         <include name="bin/*"/>
+         <include name="lib/*.so"/>
+         <include name="lib/*.jnilib"/>
+      </tarfileset>
+      <tarfileset dir="." prefix="opt/${name}/bin" filemode="755">
+        <include name="runclient.sh"/>
+      </tarfileset>
+      <tarfileset dir="config" prefix="etc/opt/${name}" filemode="750">
+        <include name="openssh/start_sshd.sh"/>
+      </tarfileset>
+      <tarfileset dir="config/openssh" prefix="etc/opt/${name}/woodstock-user/.ssh" filemode="640">
+        <include name="authorized_keys"/>
+      </tarfileset>
+  </deb>
+  </target>
+
+	  <target name="all" depends="clean,source-distro,binary-distro,deb,rpm"/>
+
+</project>
+

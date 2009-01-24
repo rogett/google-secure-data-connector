@@ -1,0 +1,186 @@
+
+
+%preun
+
+%pre 
+
+%prep 
+#%setup -c -n %{name}-%{version} 
+
+%build
+#ant binary-distro 
+
+%install
+rm -rf $RPM_BUILD_ROOT
+mkdir -p $RPM_BUILD_ROOT
+mkdir -p $RPM_BUILD_ROOT/opt/%{name}
+mkdir -p $RPM_BUILD_ROOT/opt/%{name}/lib
+mkdir -p $RPM_BUILD_ROOT/opt/%{name}/bin
+mkdir -p $RPM_BUILD_ROOT/etc/opt/%{name}
+mkdir -p $RPM_BUILD_ROOT/etc/opt/%{name}/woodstock-user/.ssh
+mkdir -p $RPM_BUILD_ROOT/etc/opt/%{name}/openssh
+# mkdir -p $RPM_BUILD_ROOT/etc/opt/%{name}/jsw
+tar -xzf $RPM_SOURCE_DIR/%{name}-%{version}-%{release}-bin.tar.gz -C $RPM_BUILD_ROOT/opt/%{name}
+
+# Moving config files for ssh
+mv $RPM_BUILD_ROOT/opt/%{name}/config/openssh/sshd_config $RPM_BUILD_ROOT/etc/opt/%{name}/openssh/sshd_config
+mv $RPM_BUILD_ROOT/opt/%{name}/config/openssh/start_sshd.sh $RPM_BUILD_ROOT/etc/opt/%{name}/openssh/start_sshd.sh
+mv $RPM_BUILD_ROOT/opt/%{name}/config/openssh/ssh_host_rsa_key $RPM_BUILD_ROOT/etc/opt/%{name}/openssh
+mv $RPM_BUILD_ROOT/opt/%{name}/config/openssh/ssh_host_dsa_key $RPM_BUILD_ROOT/etc/opt/%{name}/openssh
+mv $RPM_BUILD_ROOT/opt/%{name}/config/openssh/ssh_host_rsa_key.pub $RPM_BUILD_ROOT/etc/opt/%{name}/openssh
+mv $RPM_BUILD_ROOT/opt/%{name}/config/openssh/ssh_host_dsa_key.pub $RPM_BUILD_ROOT/etc/opt/%{name}/openssh
+
+# Moving config files for /etc/opt/${name}
+mv $RPM_BUILD_ROOT/opt/%{name}/config/localConfig.xml $RPM_BUILD_ROOT/etc/opt/%{name}/localConfig.xml
+mv $RPM_BUILD_ROOT/opt/%{name}/config/resourceRules.xml $RPM_BUILD_ROOT/etc/opt/%{name}/resourceRules.xml
+mv $RPM_BUILD_ROOT/opt/%{name}/config/apache $RPM_BUILD_ROOT/etc/opt/%{name}
+
+# Relocate runclient.sh
+mv $RPM_BUILD_ROOT/opt/%{name}/runclient.sh $RPM_BUILD_ROOT/opt/%{name}/bin
+
+# Relocate core jars
+mv $RPM_BUILD_ROOT/opt/%{name}/build/agent.jar $RPM_BUILD_ROOT/opt/%{name}/lib
+mv $RPM_BUILD_ROOT/opt/%{name}/build/protocol.jar $RPM_BUILD_ROOT/opt/%{name}/lib
+rm -rf $RPM_BUILD_ROOT/opt/%{name}/build
+
+# Relocate third-party path
+mv $RPM_BUILD_ROOT/opt/%{name}/third-party $RPM_BUILD_ROOT/opt/%{name}/lib
+
+# Moving woodstock-user ssh authorized_keys file
+mv $RPM_BUILD_ROOT/opt/%{name}/config/openssh/authorized_keys $RPM_BUILD_ROOT/etc/opt/%{name}/woodstock-user/.ssh/authorized_keys
+
+# Removing source config directory
+rm -rf $RPM_BUILD_ROOT/opt/%{name}/config
+
+%post 
+set -e
+CLIENT_USER=daemon
+CLIENT_GROUP=daemon
+CONF_DIR="/etc/opt/%{name}"
+CLIENT_HOME="/opt/%{name}"
+LOGDIR="/var/opt/%{name}/log"
+WOODSTOCK_HOME="$CONF_DIR/woodstock-user"
+CLIENT_USER=daemon
+CLIENT_GROUP=daemon  
+
+# Create default apache log and htdocs directories
+mkdir -p $CONF_DIR/apache/htdocs
+mkdir -p $CLIENT_HOME/logs
+
+# Set up the user to access the client
+adduser -s /bin/false -U -d $WOODSTOCK_HOME -M \
+woodstock
+
+dd if=/dev/urandom bs=1024 count=1 |passwd --stdin woodstock
+
+  # Set up the logfile for %{name}
+  if [ ! -d $LOGDIR ]; then
+    mkdir -p $LOGDIR
+  fi
+  chown root:$CLIENT_GROUP $LOGDIR
+  chmod 770 $LOGDIR
+  for filename in "%{name}" "access_log" "error_log"; do
+    logfile="$LOGDIR/$filename"
+    if [ ! -f $logfile ]; then
+      touch $logfile
+    fi
+    chown root:$CLIENT_USER $logfile
+    chmod 660 $logfile
+  done
+
+  chmod 750 /etc/opt/%{name}
+  chown -R root:$CLIENT_USER /etc/opt/%{name}
+  chown -R root:$CLIENT_USER /opt/%{name}
+  chmod g+w /etc/opt/%{name}/apache
+
+  chown -R root:$CLIENT_GROUP /etc/opt/%{name}
+  chown -R root:$CLIENT_GROUP /etc/opt/%{name}/localConfig.xml
+  chown -R root:$CLIENT_GROUP /etc/opt/%{name}/resourceRules.xml
+  chown -R root:$CLIENT_GROUP /etc/opt/%{name}/apache
+
+  chmod 640 /etc/opt/%{name}/localConfig.xml
+  chmod 640 /etc/opt/%{name}/resourceRules.xml
+
+  chown -R root:$CLIENT_GROUP /etc/opt/%{name}/resourceRules.xml
+
+
+  chmod 770 /etc/opt/%{name}/apache
+
+  chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/%{name}/apache/httpd.conf-template
+  chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/%{name}/apache/mime.types
+  chmod 640 /etc/opt/%{name}/apache/httpd.conf-template
+  chmod 640 /etc/opt/%{name}/apache/mime.types
+
+  chown -R root:root /etc/opt/%{name}/openssh
+  chmod 755 etc/opt/%{name}/openssh
+
+  chmod 600 /etc/opt/%{name}/openssh/ssh_host_dsa_key
+  chmod 600 /etc/opt/%{name}/openssh/ssh_host_dsa_key.pub
+  chmod 600 /etc/opt/%{name}/openssh/ssh_host_rsa_key
+  chmod 600 /etc/opt/%{name}/openssh/ssh_host_rsa_key.pub
+  chmod 750 /etc/opt/%{name}/openssh/start_sshd.sh
+  chmod 600 /etc/opt/%{name}/openssh/sshd_config
+  chmod 600 /etc/opt/%{name}/woodstock-user/.ssh/authorized_keys
+
+  chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/%{name}/openssh/ssh_host_dsa_key
+  chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/%{name}/openssh/ssh_host_dsa_key.pub
+  chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/%{name}/openssh/ssh_host_rsa_key
+  chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/%{name}/openssh/ssh_host_rsa_key.pub
+  chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/%{name}/openssh/start_sshd.sh
+  chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/%{name}/openssh/sshd_config
+  chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/%{name}/woodstock-user/.ssh/authorized_keys
+
+  # Create htdocs path for apache
+  mkdir -p /etc/opt/%{name}/apache/htdocs
+
+# Test and Configure Apache Modules
+APACHE_MODULES="auth_basic authn_file authz_host authz_user proxy proxy_http mime mime_magic"
+APACHECTL=`which apachectl`
+MODULESDIR="/usr/lib/httpd/modules"
+TEMPLATE="/etc/opt/%{name}/apache/httpd.conf-template"
+FOUND_MODULES=""
+
+  for module in ${APACHE_MODULES}; do
+    if ${APACHECTL} -l |grep -q $module; then
+      continue
+    fi 
+    if [ -e "${MODULESDIR}/mod_${module}.so" ]; then
+      FOUND_MODULES="${FOUND_MODULES} ${module}"
+    else
+       echo Apache ${MODULESDIR}/mod_${module}.so not found in $MODULESDIR.
+       echo "You will need to update $TEMPLATE manually to use the correct apache modules $APACHE_MODULES"
+    fi
+  done
+
+# Edit httpd.conf-dist
+template=/etc/opt/%{name}/apache/httpd.conf-template
+for module in ${FOUND_MODULES}; do  # Add modules to template
+  echo Configuring Apache LoadModule for ${module}
+  echo "LoadModule ${module}_module ${MODULESDIR}/mod_${module}.so" >> ${template}
+done      
+
+%postun
+echo "Removing User Accounts.."
+
+userdel -r woodstock || true
+
+if [ -e /opt/${name} ] ; then
+ rm -rf /opt/${name} 
+fi
+
+# if [ -e /etc/init.d/securedataconnector ] ; then
+# rm -f /etc/init.d/securedataconnector
+# fi
+
+%clean                               
+rm -rf $RPM_BUILD_ROOT
+
+%files
+%defattr(-,root,root) 
+%config /etc/opt/%{name}/apache/httpd.conf-template
+%config /etc/opt/%{name}/resourceRules.xml
+%config /etc/opt/%{name}/localConfig.xml
+/etc/opt/%{name}/*
+/opt/%{name}/*  
+
+

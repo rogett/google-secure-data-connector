@@ -1,0 +1,17 @@
+#!/bin/sh
+
+set -e
+
+PKG_NAME="google-secure-data-connector"
+
+installinit_error() {
+  exit $?
+}
+
+if [ "$1" = "purge" ]; then
+  deluser --system --quiet woodstock || true
+  if [ -x /opt/$PKG_NAME ]; then  rm -rf /opt/$PKG_NAME; fi
+  if [ -x /etc/opt/$PKG_NAME ]; then rm -rf /etc/opt/$PKG_NAME; fi
+  if [ -x /var/log/$PKG_NAME ]; then rm -rf /var/log/$PKG_NAME; fi
+  if [ -x /var/opt/$PKG_NAME ]; then rm -rf /var/opt/$PKG_NAME; fi
+fi

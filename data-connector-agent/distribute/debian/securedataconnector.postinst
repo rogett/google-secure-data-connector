@@ -1,0 +1,108 @@
+#!/bin/sh
+
+set -e
+
+PKG_NAME="google-secure-data-connector"
+WOODSTOCK_HOME="/etc/opt/$PKG_NAME/woodstock-user"
+LOGDIR="/var/opt/$PKG_NAME/log"
+RULES_DIR="/var/opt/$PKG_NAME"
+CLIENT_USER=daemon
+CLIENT_GROUP=daemon
+
+if [ "$1" = "configure" ]; then
+  # Set up the user to access the client
+  adduser --system --quiet --group --home $WOODSTOCK_HOME --no-create-home \
+    woodstock || :
+
+  # Set up the logfile for $PKG_NAME
+  if [ ! -d $LOGDIR ]; then
+    mkdir -p $LOGDIR
+  fi
+  chown root:$CLIENT_GROUP $LOGDIR
+  chmod 770 $LOGDIR
+  for filename in "$PKG_NAME" "access_log" "error_log"; do
+    logfile="$LOGDIR/$filename"
+    if [ ! -f $logfile ]; then
+      touch $logfile
+    fi
+    chown root:$CLIENT_USER $logfile
+    chmod 660 $logfile
+  done
+
+  chmod 750 /etc/opt/$PKG_NAME
+  chown -R root:$CLIENT_USER /etc/opt/$PKG_NAME
+  chown -R root:$CLIENT_USER /opt/$PKG_NAME
+
+  chown -R root:$CLIENT_GROUP /etc/opt/$PKG_NAME
+  chown -R root:$CLIENT_GROUP /etc/opt/$PKG_NAME/localConfig.xml
+  chown -R root:$CLIENT_GROUP /etc/opt/$PKG_NAME/resourceRules.xml
+  chmod 640 /etc/opt/%{name}/localConfig.xml
+  chmod 640 /etc/opt/%{name}/resourceRules.xml 
+
+  chown -R root:$CLIENT_GROUP /etc/opt/$PKG_NAME/apache 
+  chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/$PKG_NAME/apache/httpd.conf-template 
+  chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/$PKG_NAME/apache/mime.types
+  chmod 770 /etc/opt/$PKG_NAME/apache 
+  chmod 640 /etc/opt/%{name}/apache/httpd.conf-template
+  chmod 640 /etc/opt/%{name}/apache/mime.types 
+
+  chown -R root:root /etc/opt/$PKG_NAME/openssh
+  chmod 600 /etc/opt/$PKG_NAME/openssh/ssh_host_dsa_key
+  chmod 600 /etc/opt/$PKG_NAME/openssh/ssh_host_dsa_key.pub
+  chmod 600 /etc/opt/$PKG_NAME/openssh/ssh_host_rsa_key
+  chmod 600 /etc/opt/$PKG_NAME/openssh/ssh_host_rsa_key.pub
+  chmod 750 /etc/opt/$PKG_NAME/openssh/start_sshd.sh
+  chmod 600 /etc/opt/$PKG_NAME/openssh/sshd_config
+  chmod 600 /etc/opt/$PKG_NAME/woodstock-user/.ssh/authorized_keys 
+
+  chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/$PKG_NAME/openssh/ssh_host_dsa_key
+  chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/$PKG_NAME/openssh/ssh_host_dsa_key.pub
+  chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/$PKG_NAME/openssh/ssh_host_rsa_key
+  chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/$PKG_NAME/openssh/ssh_host_rsa_key.pub
+  chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/$PKG_NAME/openssh/start_sshd.sh 
+  chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/$PKG_NAME/openssh/sshd_config
+  chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/$PKG_NAME/woodstock-user/.ssh/authorized_keys 
+ 
+  # Create htdocs path for apache
+  mkdir -p /etc/opt/$PKG_NAME/apache/htdocs
+
+# Test and Configure Apache Modules
+APACHE_MODULES="auth_basic authn_file authz_host authz_user proxy proxy_http mime mime_magic"
+APACHECTL=`which apache2ctl`
+MODULESDIR="/usr/lib/apache2/modules"
+TEMPLATE="/etc/opt/$PKG_NAME/apache/httpd.conf-template"
+FOUND_MODULES=""
+
+  for module in ${APACHE_MODULES}; do
+    if ${APACHECTL} -l |grep -q $module; then
+      continue
+    fi
+    if [ -e "${MODULESDIR}/mod_${module}.so" ]; then
+      FOUND_MODULES="${FOUND_MODULES} ${module}"
+    else
+       echo Apache ${MODULESDIR}/mod_${module}.so not found in $MODULESDIR.
+       echo "You will need to update $TEMPLATE manually to use the correct apache modules $APACHE_MODULES"
+    fi
+  done
+
+# Edit httpd.conf-dist
+template=/etc/opt/$PKG_NAME/apache/httpd.conf-template
+for module in ${FOUND_MODULES}; do  # Add modules to template
+  echo Configuring Apache LoadModule for ${module}
+  echo "LoadModule ${module}_module ${MODULESDIR}/mod_${module}.so" >> ${template}
+done
+
+fi
+
+installinit_error() {
+  exit $?
+}
+
+# if [ -x "/etc/init.d/$PKG_NAME" ]; then
+#  update-rc.d $PKG_NAME defaults 50 15 >/dev/null
+#  if [ -x "`which invoke-rc.d 2>/dev/null`" ]; then
+#    invoke-rc.d $PKG_NAME start || installinit_error
+#  else
+#    /etc/init.d/$PKG_NAME start || installinit_error
+#  fi
+#fi

@@ -1,0 +1,24 @@
+#!/bin/sh
+
+set -e
+
+PKG_NAME="google-secure-data-connector"
+
+installinit_error() {
+  status=$?
+  # start-stop-daemon doesn't work at the moment. Check we're killing a java
+  # app
+  #pid=$(cat /var/run/$PKG_NAME)
+  #if $(ps -o comm= $pid | grep -q java); then
+  #  kill $(cat /var/run/$PKG_NAME) && exit 0
+  #fi
+  #exit $status
+}
+
+#if [ -x "/etc/init.d/$PKG_NAME" ]; then
+#  if [ -x "`which invoke-rc.d 2>/dev/null`" ]; then
+#    invoke-rc.d $PKG_NAME stop || installinit_error
+#  else
+#    /etc/init.d/$PKG_NAME stop || installinit_error
+#  fi
+#fi
