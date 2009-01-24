@@ -100,7 +100,7 @@ install -g ${GROUP} -o ${USER} -m 640 ./config/apache/mime.types ${file}
 # authorized_keys 
 file="${SSH_USER_DIR}/authorized_keys"
 echo installing ${file}
-install -T -g ${GROUP} -o ${USER} -m 600 "config/openssh/woodstock-authorized_keys" ${file}
+install -T -g ${GROUP} -o ${USER} -m 600 "config/openssh/authorized_keys" ${file}
 
 # ssh host keys 
 for file in "ssh_host_rsa_key" "ssh_host_dsa_key" "ssh_host_rsa_key.pub" \

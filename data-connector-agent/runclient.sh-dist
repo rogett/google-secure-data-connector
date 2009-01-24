@@ -27,7 +27,7 @@ JVM_ARGS="-Djava.net.preferIPv4Stack=true"
 GROUP=_GROUP_
 USER=_USER_
 DEBUG=""
-
+NOVERIFY="false"
 # Dynamically generate classpath from lib directory.
 jarfiles=$(find ${WOODSTOCK_LIB} -type f -a -name \*.jar)
 for jar in ${jarfiles}; do
@@ -36,10 +36,11 @@ done
 export CLASSPATH
 
 # Create flags for local config file.
-OPTS=$(getopt -o df:r:j: --long debug,localConfigFile::,rulesFile::,jvm_args:: -n 'runagent' -- "$@")
+OPTS=$(getopt -o dnf:r:j: --long debug,noverify,localConfigFile::,rulesFile::,jvm_args:: -n 'runagent' -- "$@")
 if [ $? != 0 ]; then
   echo -e "\nUsage:
     -d|--debug) Place into debug mode
+    -n|--noverify) Skip file permission checks.  
     -f|--localConfigFile) Local configuration file
     -r|--rulesFile) Resource rules file.
     -j|--jvm-args) Override default jvmargs with these.
@@ -52,6 +53,7 @@ eval set -- "${OPTS}"
 while true; do
   case "$1" in
     -d|--debug) DEBUG="--debug"; shift 1 ;;
+    -n|--noverify) NOVERIFY="true"; shift 1 ;;
     -f|--localConfigFile) CONFIGFILE=$2; shift 2 ;;
     -r|--rulesFile) RULESFILE=$2; shift 2 ;;
     -j|--jvm-args) JVM_ARGS=$2; shift 2 ;;
@@ -72,13 +74,16 @@ umask 0077
 # $2 owner
 # $3 group
 # $4 mode
+
 function checkfile {
+
+if [ ${NOVERIFY} = "false" ]; then 
 
   file=$1
   if [ -e ${file} ]; then
-    filegroup=$(stat -c "%G\n" ${file})
-    fileowner=$(stat -c "%U\n" ${file})
-    filemode=$(stat -c "%a\n" ${file})
+    filegroup=$(stat -c "%G" ${file})
+    fileowner=$(stat -c "%U" ${file})
+    filemode=$(stat -c "%a" ${file})
 
     if [ ${fileowner} != "$2" -o  \
         ${filegroup} != "$3" -o \
@@ -90,22 +95,25 @@ function checkfile {
     echo $file does not exist!
     exit
   fi
+fi
 }
 
-# Check current file permissions and refuse to run if they arent correct.
-checkfile ${ETCPREFIX}/localConfig.xml root nonconf 640
-checkfile ${ETCPREFIX}/resourceRules.xml root nonconf 640
-checkfile ${ETCPREFIX}/apache root ${GROUP} 770
-checkfile ${ETCPREFIX}/apache/httpd.conf-template ${USER} ${GROUP} 640
-checkfile ${ETCPREFIX}/apache/mime.types ${USER} ${GROUP} 640
-checkfile ${ETCPREFIX}/openssh root root 755
-checkfile ${ETCPREFIX}/openssh/ssh_host_dsa_key ${USER} ${GROUP} 600
-checkfile ${ETCPREFIX}/openssh/ssh_host_dsa_key.pub ${USER} ${GROUP} 600
-checkfile ${ETCPREFIX}/openssh/ssh_host_rsa_key ${USER} ${GROUP} 600
-checkfile ${ETCPREFIX}/openssh/ssh_host_rsa_key.pub ${USER} ${GROUP} 600
-checkfile ${ETCPREFIX}/openssh/sshd_config ${USER} ${GROUP} 600
-checkfile ${ETCPREFIX}/openssh/start_sshd.sh ${USER} ${GROUP} 750
-checkfile ${ETCPREFIX}/woodstock-user/.ssh/authorized_keys ${USER} ${GROUP} 600
+if [ ${NOVERIFY} = "false" ]; then 
+  # Check current file permissions and refuse to run if they arent correct.
+  checkfile ${ETCPREFIX}/localConfig.xml root ${GROUP} 640
+  checkfile ${ETCPREFIX}/resourceRules.xml root ${GROUP} 640
+  checkfile ${ETCPREFIX}/apache root ${GROUP} 770
+  checkfile ${ETCPREFIX}/apache/httpd.conf-template ${USER} ${GROUP} 640
+  checkfile ${ETCPREFIX}/apache/mime.types ${USER} ${GROUP} 640
+  checkfile ${ETCPREFIX}/openssh root root 755
+  checkfile ${ETCPREFIX}/openssh/ssh_host_dsa_key ${USER} ${GROUP} 600
+  checkfile ${ETCPREFIX}/openssh/ssh_host_dsa_key.pub ${USER} ${GROUP} 600
+  checkfile ${ETCPREFIX}/openssh/ssh_host_rsa_key ${USER} ${GROUP} 600
+  checkfile ${ETCPREFIX}/openssh/ssh_host_rsa_key.pub ${USER} ${GROUP} 600
+  checkfile ${ETCPREFIX}/openssh/sshd_config ${USER} ${GROUP} 600
+  checkfile ${ETCPREFIX}/openssh/start_sshd.sh ${USER} ${GROUP} 750
+  checkfile ${ETCPREFIX}/woodstock-user/.ssh/authorized_keys ${USER} ${GROUP} 600
+fi
 
 while /bin/true; do
   su ${USER} -c "_JAVABIN_ ${JVM_ARGS} com.google.dataconnector.client.Client \
