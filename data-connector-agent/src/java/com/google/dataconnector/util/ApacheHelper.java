@@ -140,6 +140,8 @@ public class ApacheHelper {
 
       // Substitute 
       String proxyMatchRule = new String(PROXY_MATCH_RULE_TEMPLATE);
+      // Add sequence number to config file for debugging.
+      proxyMatchRule = "# Sequence Number " + resourceRule.getName() + "\n" + proxyMatchRule;
       proxyMatchRule = proxyMatchRule.replace("__PATTERN__", resourceRule.getPattern());
       proxyMatchRule = proxyMatchRule.replace("__HTPASSWDFILE__", 
           makeHtpasswdPath(localConf, resourceRule.getName()));

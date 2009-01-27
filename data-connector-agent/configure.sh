@@ -33,7 +33,7 @@ chmod 755 config.status
 [ -x "$(which getopt)" ] || { echo "gnu getopt binary not found." ; exit 1; }
 
 # Command line arguments
-OPTS=$(getopt -o h --long lsb,noverify,prefix:,etcprefix::,varprefix::,binprefix::,apachectl:,htpasswd:,opensshd::,apache_modules_dir::,javahome::,use_supplied_apache,user::,group:: -n 'configure' -- "$@") 
+OPTS=$(getopt -o h --long lsb,noverify,prefix:,etcprefix::,varprefix::,binprefix::,apachectl:,htpasswd::,opensshd:,apache_modules_dir::,javahome::,use_supplied_apache,user::,group:: -n 'configure' -- "$@") 
 if [ $? != 0 ] || [ $# = 0 ]; then 
   echo -e "\nUsage:
     --lsb) use LSB defaults no other PREFIX options are neccessary
@@ -76,7 +76,10 @@ while true; do
   esac
 done
 
-# Argument logic - set other prefixes
+#
+### Argument logic - set other prefixes
+#
+
 if [ -z ${ETCPREFIX} ]; then
   ETCPREFIX=${PREFIX}/etc
 fi
@@ -84,8 +87,8 @@ fi
 if [ -z ${VARPREFIX} ]; then
   VARPREFIX=${PREFIX}/var
 fi
-  
-# LSB Check.
+
+# Set LSB. 
 if [ ${LSB} = "true" ]; then
   PREFIX=/opt/${PACKAGE}
   ETCPREFIX=/etc/opt/${PACKAGE}
@@ -99,9 +102,26 @@ if [ ${USE_SUPPLIED_APACHE} = "true" ]; then
   APACHEMODULES=""  # we dont use modules in the supplied apache.
 fi
 
+# Infer java binary location from JAVAHOME setting.
+if [ -z ${JAVAHOME} ]; then
+  JAVABIN=$(which java)
+else 
+  JAVABIN=${JAVAHOME}/bin/java
+fi
+
+#
+### Verification Checks
+#
+
 if [ ${NOVERIFY} = "false" ]; then
 
-  # Check user and group for existence
+  # verify opensshd
+  if [ ! -x "${OPENSSHD}" ]; then
+    echo "opensshd: ${OPENSSHD} not found"
+    exit 1
+  fi
+
+  # verify user and group for existence
   getent=$(which getent)
   if [ ! -x "${getent}" ]; then
     echo "getent missing, cant check group and user. Assuming you entered it right"
@@ -118,46 +138,71 @@ if [ ${NOVERIFY} = "false" ]; then
       exit 1
     fi
   fi
-fi
+  
+  # verify non supplied apache.
+  if [ ${USE_SUPPLIED_APACHE} = "false" ]; then
 
-# Semantic Checks
-if [ -z ${OPENSSHD} ]; then
-  echo "--opensshd option is missing!"
-  exit 1
+    if [ -z ${APACHECTL} ]; then
+     echo "--apachectl option is missing!"
+     exit 1
+    fi
+    if [ ! -x "${APACHECTL}" ]; then
+      echo "httpd: ${APACHECTL} not found"
+      exit 1
+    fi
+    if [ -z ${HTPASSWD} ]; then
+      echo "--htpasswd option is missing!"
+      exit 1
+    fi
+    if [ ! -x "${HTPASSWD}" ]; then
+      echo "htpasswd: ${HTPASSWD} not found"
+      exit 1
+    fi
+
+    # Check version
+    echo checking apache version for 2.2
+    ${APACHECTL} -v |grep version |grep -q 2.2
+    if [ $? != 0 ]; then
+      echo "Secure Data Connector requires apache 2.2"
+      exit 1
+    fi
+
+  fi
+
+  # verify woodstock user
+  HOMEDIR=~woodstock
+  if [ ${HOMEDIR} = '~woodstock' ]; then
+    # if the user doesnt exist, the string '~woodstock' will be present
+    echo "'woodstock' user does not exist."
+    echo "Create woodstock user with homedir as ${ETCPREFIX}/woodstock-user"
+    echo "To create on most linux systems run:"
+    echo "useradd --home-dir=${ETCPREFIX}/woodstock-user" \
+        "--comment='Woodstock User' --shell=/bin/false" 
+    exit 1
+  elif [ ${HOMEDIR} != ${ETCPREFIX}/woodstock-user ]; then
+    echo "'woodstock' home directory is incorrect."
+    echo It should be \"${ETCPREFIX}/woodstock-user\"
+    exit 1
+  fi
+
+  # verify java binary.
+  if [ -x "${JAVABIN}" ]; then
+    ${JAVABIN} -version 2>&1 | grep 'java version' |grep -q '1.[65]'
+    if [ $? != 0 ]; then
+      echo "Secure Data Connector requires JDK 1.6"
+      exit 1
+    fi
+  else 
+    echo "Java could not be found at $JAVABIN"
+    exit 1
+  fi
 fi 
 
-if [ ! -x "${OPENSSHD}" -a ${NOVERIFY} = "false"  ]; then
-  echo "opensshd: ${OPENSSHD} not found"
-  exit 1
-fi
+#
+### Getting Apache Module list for config files.
+#
 
-
-if [ ${USE_SUPPLIED_APACHE} = "false" -a ${NOVERIFY} = "false" ]; then
-
-  if [ -z ${APACHECTL} ]; then
-   echo "--apachectl option is missing!"
-   exit 1
-  fi
-  if [ ! -x "${APACHECTL}" ]; then
-    echo "httpd: ${APACHECTL} not found"
-    exit 1
-  fi
-  if [ -z ${HTPASSWD} ]; then
-    echo "--htpasswd option is missing!"
-    exit 1
-  fi
-  if [ ! -x "${HTPASSWD}" ]; then
-    echo "htpasswd: ${HTPASSWD} not found"
-    exit 1
-  fi
-
-  # Check version
-  echo checking apache version for 2.2
-  ${APACHECTL} -v |grep version |grep -q 2.2
-  if [ $? != 0 ]; then
-    echo "Secure Data Connector requires apache 2.2"
-    exit 1
-  fi
+if [ ${USE_SUPPLIED_APACHE} = "false" ]; then
 
   FOUND_MODULES=""
   for module in ${APACHE_MODULES}; do
@@ -177,54 +222,9 @@ if [ ${USE_SUPPLIED_APACHE} = "false" -a ${NOVERIFY} = "false" ]; then
   done
 fi
 
-
-if [ ${NOVERIFY} = "false" ]; then
-
-  # Check woodstock user
-  HOMEDIR=~woodstock
-  if [ ${HOMEDIR} = '~woodstock' ]; then
-    # if the user doesnt exist, the string '~woodstock' will be present
-    echo "'woodstock' user does not exist."
-    echo "Create woodstock user with homedir as ${ETCPREFIX}/woodstock-user"
-    echo "To create on most linux systems run:"
-    echo "useradd --home-dir=${ETCPREFIX}/woodstock-user" \
-        "--comment='Woodstock User' --shell=/bin/false" 
-    exit 1
-  elif [ ${HOMEDIR} != ${ETCPREFIX}/woodstock-user ]; then
-    echo "'woodstock' home directory is incorrect."
-    echo It should be \"${ETCPREFIX}/woodstock-user\"
-    exit 1
-  fi
-fi
-
-
-  # Check java version
-  if [ -z ${JAVAHOME} ]; then
-    JAVABIN=$(which java)
-  else 
-    JAVABIN=${JAVAHOME}/bin/java
-  fi
-
-
-if [ ${NOVERIFY} = "false" ]; then
-
-  if [ -x "${JAVABIN}" ]; then
-    ${JAVABIN} -version 2>&1 | grep 'java version' |grep -q '1.[65]'
-    if [ $? != 0 ]; then
-      echo "Secure Data Connector requires JDK 1.6"
-      exit 1
-    fi
-  else 
-    echo "Java could not be found at $JAVABIN"
-    exit 1
-  fi
-fi      
-
-if [ -z ${JAVAHOME} ]; then
-  echo "--javahome option missing!"
-  exit 1
-fi
-
+#
+### Setup files
+#
 
 # Edit build.properties
 template=build.properties
@@ -271,11 +271,15 @@ template=config/apache/httpd.conf-template
 cp config/apache/httpd.conf-dist ${template}
 echo Generating ${template}
 
-echo ${FOUND_MODULES}
-for module in ${FOUND_MODULES}; do  # Add modules to template
-  echo Configuring load for ${module}
-  echo "LoadModule ${module}_module ${MODULESDIR}/mod_${module}.so" >> ${template}
-done
+if [ ! -z "${FOUND_MODULES}" ]; 
+then
+  echo ${FOUND_MODULES}
+  for module in ${FOUND_MODULES}; do  # Add modules to template
+    echo Configuring load for ${module}
+    echo "LoadModule ${module}_module ${MODULESDIR}/mod_${module}.so" >> ${template}
+  done
+fi
+
 sed -i ${template} -e 's^_APACHE_ROOT_^'${ETCPREFIX}'/apache^'
 sed -i ${template} -e 's^_APACHE_LOG_DIR_^'${VARPREFIX}'/log^'
 sed -i ${template} -e 's^_USER_^'${USER}'^'
