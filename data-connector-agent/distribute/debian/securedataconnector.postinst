@@ -36,15 +36,15 @@ if [ "$1" = "configure" ]; then
   chown -R root:$CLIENT_GROUP /etc/opt/$PKG_NAME
   chown -R root:$CLIENT_GROUP /etc/opt/$PKG_NAME/localConfig.xml
   chown -R root:$CLIENT_GROUP /etc/opt/$PKG_NAME/resourceRules.xml
-  chmod 640 /etc/opt/%{name}/localConfig.xml
-  chmod 640 /etc/opt/%{name}/resourceRules.xml 
+  chmod 640 /etc/opt/$PKG_NAME/localConfig.xml
+  chmod 640 /etc/opt/$PKG_NAME/resourceRules.xml 
 
   chown -R root:$CLIENT_GROUP /etc/opt/$PKG_NAME/apache 
   chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/$PKG_NAME/apache/httpd.conf-template 
   chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/$PKG_NAME/apache/mime.types
   chmod 770 /etc/opt/$PKG_NAME/apache 
-  chmod 640 /etc/opt/%{name}/apache/httpd.conf-template
-  chmod 640 /etc/opt/%{name}/apache/mime.types 
+  chmod 640 /etc/opt/$PKG_NAME/apache/httpd.conf-template
+  chmod 640 /etc/opt/$PKG_NAME/apache/mime.types 
 
   chown -R root:root /etc/opt/$PKG_NAME/openssh
   chmod 600 /etc/opt/$PKG_NAME/openssh/ssh_host_dsa_key

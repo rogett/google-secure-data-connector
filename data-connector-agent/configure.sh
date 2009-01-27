@@ -30,7 +30,7 @@ APACHE_MODULES="auth_basic authn_file authz_host authz_user proxy proxy_http mim
 
 # Command line arguments
 OPTS=$(getopt -o h --long lsb,noverify,prefix:,etcprefix::,varprefix::,binprefix::,apachectl:,htpasswd:,opensshd::,apache_modules_dir::,javahome::,use_supplied_apache,user::,group:: -n 'configure' -- "$@") 
-if [ $? != 0 ]; then 
+if [ $? != 0 ] || [ $# = 0 ]; then 
   echo -e "\nUsage:
     --lsb) use LSB defaults no other PREFIX options are neccessary
     --prefix) binary prefix

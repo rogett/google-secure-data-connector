@@ -46,16 +46,13 @@ Build File for Secure Data Connector client and reference server.
     <mkdir dir="${dist}" />
   </target>
 
-  <target name="clean-binary-distro" description="Deletes all build files.">
+  <target name="clean-distro" description="Deletes all build files.">
     <delete file="${dist}/${name}-${version}-${release}-bin.tar.gz" />
+    <delete file="${dist}/${name}-${version}-${release}-src.tar.gz" />
   </target>
  
   <target name="clean" description="Deletes all build files.">
     <delete file="${deb}" />
-    <ant
-        antfile="build.xml"
-        dir="."
-        target="clean"/>
   </target>
  
   <target name="lsb" depends="init">
@@ -74,7 +71,7 @@ Build File for Secure Data Connector client and reference server.
    </target>
 
 
-  <target name="cfgdeb" depends="init,clean-binary-distro">
+  <target name="cfgdeb" depends="init,clean-distro">
     <exec dir="." executable="./configure.sh">
       <arg value="--lsb"/>
       <arg value="--noverify"/>
@@ -90,7 +87,7 @@ Build File for Secure Data Connector client and reference server.
    </target>
 
 
-  <target name="cfgrpm" depends="init,clean-binary-distro">
+  <target name="cfgrpm" depends="init,clean-distro">
    <mkdir dir="/rpm" /> 
    <exec dir="." executable="./configure.sh">
       <arg value="--lsb"/>
@@ -143,7 +140,7 @@ Build File for Secure Data Connector client and reference server.
     </tar>
   </target>
     
-  <target name="binary-distro" depends="clean">
+  <target name="binary-distro" depends="init">
     <tar 
         destfile="${dist}/${name}-${version}-${release}-bin.tar.gz"
         longfile="gnu"
@@ -265,8 +262,14 @@ http://code.google.com/
       </tarfileset>
   </deb>
   </target>
+<!--
+ Need to make the target all build deb and rpm as well. Have a dependacy and configureation 
+ issue that needs fixed fist.
 
-	  <target name="all" depends="source-distro,binary-distro"/>
+ In the mean time we can run ant deb and ant rpm separately and then all for tarballs.
+--> 
+
+	  <target name="all" depends="clean-distro,source-distro,binary-distro"/>
 
 </project>
 

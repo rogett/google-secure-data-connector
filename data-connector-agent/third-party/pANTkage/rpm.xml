@@ -1,5 +1,5 @@
 <project name="pANTkage">
-  <target name="rpm" depends="clean-binary-distro,source-distro,cfgrpm,binary-distro">
+  <target name="rpm" depends="source-distro,cfgrpm,binary-distro">
     <property file="third-party/pANTkage/rpm.properties"/>
     <exec executable="third-party/pANTkage/rpm_env.py"/>
     <exec executable="third-party/pANTkage/gen_spec.py">
