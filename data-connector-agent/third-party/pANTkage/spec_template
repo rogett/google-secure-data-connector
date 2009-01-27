@@ -54,24 +54,22 @@ rm -rf $RPM_BUILD_ROOT/opt/%{name}/config
 
 %post 
 set -e
-CLIENT_USER=daemon
-CLIENT_GROUP=daemon
+CLIENT_USER=securedataconnector
+CLIENT_GROUP=securedataconnector
 CONF_DIR="/etc/opt/%{name}"
 CLIENT_HOME="/opt/%{name}"
 LOGDIR="/var/opt/%{name}/log"
 WOODSTOCK_HOME="$CONF_DIR/woodstock-user"
-CLIENT_USER=daemon
-CLIENT_GROUP=daemon  
 
 # Create default apache log and htdocs directories
 mkdir -p $CONF_DIR/apache/htdocs
-mkdir -p $CLIENT_HOME/logs
 
 # Set up the user to access the client
-adduser -s /bin/false -U -d $WOODSTOCK_HOME -M \
-woodstock
+adduser -s /bin/false -U -d $WOODSTOCK_HOME -M woodstock
+adduser -s /bin/bash -U -M $CLIENT_USER
 
 dd if=/dev/urandom bs=1024 count=1 |passwd --stdin woodstock
+dd if=/dev/urandom bs=1024 count=1 |passwd --stdin $CLIENT_USER
 
   # Set up the logfile for %{name}
   if [ ! -d $LOGDIR ]; then
@@ -163,6 +161,7 @@ done
 echo "Removing User Accounts.."
 
 userdel -r woodstock || true
+userdel -r securedataconnector || true
 
 if [ -e /opt/${name} ] ; then
  rm -rf /opt/${name} 

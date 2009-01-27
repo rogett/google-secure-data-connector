@@ -95,21 +95,24 @@ if [ ${USE_SUPPLIED_APACHE} = "true" ]; then
   APACHEMODULES=""  # we dont use modules in the supplied apache.
 fi
 
-# Check user and group for existence
-getent=$(which getent)
-if [ ! -x "${getent}" ]; then
-  echo "getent missing, cant check group and user. Assuming you entered it right"
-else
-  $getent passwd $USER 2>&1 > /dev/null
-  if [ $? != 0 ]; then
-    echo "user $USER does not exist"
-    exit 1
-  fi
+if [ ${NOVERIFY} = "false" ]; then
 
-  $getent group $GROUP 2>&1 > /dev/null
-  if [ $? != 0 ]; then
-    echo "group $GROUP does not exist"
-    exit 1
+  # Check user and group for existence
+  getent=$(which getent)
+  if [ ! -x "${getent}" ]; then
+    echo "getent missing, cant check group and user. Assuming you entered it right"
+  else
+    $getent passwd $USER 2>&1 > /dev/null
+    if [ $? != 0 ]; then
+      echo "user $USER does not exist"
+      exit 1
+    fi
+
+    $getent group $GROUP 2>&1 > /dev/null
+    if [ $? != 0 ]; then
+      echo "group $GROUP does not exist"
+      exit 1
+    fi
   fi
 fi
 
@@ -170,21 +173,26 @@ if [ ${USE_SUPPLIED_APACHE} = "false" -a ${NOVERIFY} = "false" ]; then
   done
 fi
 
-# Check woodstock user
-HOMEDIR=~woodstock
-if [ ${HOMEDIR} = '~woodstock' ]; then
-  # if the user doesnt exist, the string '~woodstock' will be present
-  echo "'woodstock' user does not exist."
-  echo "Create woodstock user with homedir as ${ETCPREFIX}/woodstock-user"
-  echo "To create on most linux systems run:"
-  echo "useradd --home-dir=${ETCPREFIX}/woodstock-user" \
-      "--comment='Woodstock User' --shell=/bin/false" 
-  exit 1
-elif [ ${HOMEDIR} != ${ETCPREFIX}/woodstock-user ]; then
-  echo "'woodstock' home directory is incorrect."
-  echo It should be \"${ETCPREFIX}/woodstock-user\"
-  exit 1
+
+if [ ${NOVERIFY} = "false" ]; then
+
+  # Check woodstock user
+  HOMEDIR=~woodstock
+  if [ ${HOMEDIR} = '~woodstock' ]; then
+    # if the user doesnt exist, the string '~woodstock' will be present
+    echo "'woodstock' user does not exist."
+    echo "Create woodstock user with homedir as ${ETCPREFIX}/woodstock-user"
+    echo "To create on most linux systems run:"
+    echo "useradd --home-dir=${ETCPREFIX}/woodstock-user" \
+        "--comment='Woodstock User' --shell=/bin/false" 
+    exit 1
+  elif [ ${HOMEDIR} != ${ETCPREFIX}/woodstock-user ]; then
+    echo "'woodstock' home directory is incorrect."
+    echo It should be \"${ETCPREFIX}/woodstock-user\"
+    exit 1
+  fi
 fi
+
 
   # Check java version
   if [ -z ${JAVAHOME} ]; then

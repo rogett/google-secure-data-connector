@@ -46,6 +46,10 @@ Build File for Secure Data Connector client and reference server.
     <mkdir dir="${dist}" />
   </target>
 
+  <target name="clean-binary-distro" description="Deletes all build files.">
+    <delete file="${dist}/${name}-${version}-${release}-bin.tar.gz" />
+  </target>
+ 
   <target name="clean" description="Deletes all build files.">
     <delete file="${deb}" />
     <ant
@@ -53,12 +57,12 @@ Build File for Secure Data Connector client and reference server.
         dir="."
         target="clean"/>
   </target>
-  
+ 
   <target name="lsb" depends="init">
     <exec dir="." executable="./configure.sh">
       <arg value="--lsb"/>
       <arg value="--noverify"/>
-      <arg value="--opensshd=/usr/sbin/sshd"/>
+      <arg value="--openssh=/usr/sbin/sshd"/>
       <arg value="--apachectl=/usr/sbin/apache2ctl"/>
       <arg value="--htpasswd=/usr/bin/htpasswd"/>
       <arg value="--javahome=/usr"/>
@@ -70,11 +74,11 @@ Build File for Secure Data Connector client and reference server.
    </target>
 
 
-  <target name="deblsb" depends="init,binary-distro">
+  <target name="cfgdeb" depends="init,clean-binary-distro">
     <exec dir="." executable="./configure.sh">
       <arg value="--lsb"/>
       <arg value="--noverify"/>
-      <arg value="--opensshd=/usr/sbin/sshd"/>
+      <arg value="--openssh=/usr/sbin/sshd"/>
       <arg value="--apachectl=/usr/sbin/apache2ctl"/>
       <arg value="--htpasswd=/usr/bin/htpasswd"/>
       <arg value="--javahome=/usr"/>
@@ -86,14 +90,16 @@ Build File for Secure Data Connector client and reference server.
    </target>
 
 
-  <target name="rpmlsb" depends="init,source-distro,binary-distro">
+  <target name="cfgrpm" depends="init,clean-binary-distro">
    <mkdir dir="/rpm" /> 
    <exec dir="." executable="./configure.sh">
       <arg value="--lsb"/>
       <arg value="--noverify"/>
-      <arg value="--opensshd=/usr/sbin/sshd"/>
+      <arg value="--openssh=/usr/sbin/sshd"/>
       <arg value="--apachectl=/usr/sbin/apachectl"/>
       <arg value="--htpasswd=/usr/bin/htpasswd"/>
+      <arg value="--user=securedataconnector"/>
+      <arg value="--group=securedataconnector"/>
       <arg value="--javahome=/usr"/>
     </exec>
    <ant 
@@ -137,7 +143,7 @@ Build File for Secure Data Connector client and reference server.
     </tar>
   </target>
     
-  <target name="binary-distro" depends="clean,lsb">
+  <target name="binary-distro" depends="clean">
     <tar 
         destfile="${dist}/${name}-${version}-${release}-bin.tar.gz"
         longfile="gnu"
@@ -153,10 +159,6 @@ Build File for Secure Data Connector client and reference server.
           third-party/jsocks/third-party/**,
           third-party/jsocks/docs/*,
           third-party/jsocks/COPYING,
-          third-party/openssh/CREDITS,
-          third-party/openssh/LICENCE,
-	  third-party/openssh/dist/*.tmpl,
-          third-party/openssh/dist/*.redhat,
           third-party/commons-*/*.txt,
           third-party/commons-*/*.jar,
           third-party/jsch/*.txt,
@@ -193,7 +195,7 @@ Build File for Secure Data Connector client and reference server.
 
  <taskdef resource="ant_deb_task.properties" classpathref="deb-classpath"/>
 
-  <target name="deb" depends="deblsb">
+  <target name="deb" depends="cfgdeb,binary-distro">
     <mkdir dir="${dist}"/>
  
     <deb todir="${dist}"
@@ -264,7 +266,7 @@ http://code.google.com/
   </deb>
   </target>
 
-	  <target name="all" depends="clean,source-distro,binary-distro,deb,rpm"/>
+	  <target name="all" depends="source-distro,binary-distro"/>
 
 </project>
 
