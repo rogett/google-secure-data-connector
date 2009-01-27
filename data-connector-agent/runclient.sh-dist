@@ -100,6 +100,8 @@ fi
 
 if [ ${NOVERIFY} = "false" ]; then 
   # Check current file permissions and refuse to run if they arent correct.
+  checkfile ${CONFIGFILE} root nonconf 640
+  checkfile ${RULESFILE} root nonconf 640
   checkfile ${ETCPREFIX}/localConfig.xml root ${GROUP} 640
   checkfile ${ETCPREFIX}/resourceRules.xml root ${GROUP} 640
   checkfile ${ETCPREFIX}/apache root ${GROUP} 770

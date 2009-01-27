@@ -25,6 +25,10 @@ LSB="false"
 NOVERIFY="false"
 APACHE_MODULES="auth_basic authn_file authz_host authz_user proxy proxy_http mime mime_magic"
 
+# Save last run config options to config.status
+echo $0 $* > config.status
+chmod 755 config.status
+
 # Check for getopt gnu util
 [ -x "$(which getopt)" ] || { echo "gnu getopt binary not found." ; exit 1; }
 
