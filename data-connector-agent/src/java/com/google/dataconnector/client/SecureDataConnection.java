@@ -22,9 +22,9 @@ import com.google.dataconnector.util.ConnectionException;
 import com.google.dataconnector.util.LocalConf;
 import com.google.inject.Inject;
 
-import org.apache.log4j.Category;
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+
+import sun.security.x509.X500Name;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -35,10 +35,14 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.security.Principal;
 import java.util.List;
 
+import javax.net.ssl.SSLPeerUnverifiedException;
+import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
+import javax.security.cert.X509Certificate;
 
 /**
  * Implements a Secure Data Connector client.  Connects to Secure Data Connector Server and spawns 
@@ -53,6 +57,11 @@ public class SecureDataConnection {
 
   public static final Integer DEFAULT_SOCKS_PORT = 1080;
   private static final String PERMIT_OPEN_OPT = "-o PermitOpen=";
+
+  private static final String[] SECURE_CIPHER_SUITE = {
+    "TLS_RSA_WITH_AES_256_CBC_SHA",
+    "TLS_RSA_WITH_AES_128_CBC_SHA"
+  };
 
   // Injected dependencies. TODO(rayc) fully DI this code.
   /** Secure Data Connector Configuration */
@@ -86,14 +95,15 @@ public class SecureDataConnection {
   public void connect() throws IOException, ConnectionException {
     log.info("Connecting to server");
 
-    Socket clientSocket = sslSocketFactory.createSocket();
-    // Enable all support cipher suites.
-    SSLSocket sslClientSocketRef = (SSLSocket) clientSocket;
-    sslClientSocketRef.setEnabledCipherSuites(sslClientSocketRef.getSupportedCipherSuites());
+    SSLSocket clientSocket = (SSLSocket) sslSocketFactory.createSocket();
+    clientSocket.setEnabledCipherSuites(SECURE_CIPHER_SUITE);
     // wait for 30 sec to connect. is that too long?
     try {
       clientSocket.connect(new InetSocketAddress(localConf.getSdcServerHost(),
           localConf.getSdcServerPort()), 30 *1000);
+      
+      verifySubjectInCertificate(clientSocket);
+      
     } catch (SocketTimeoutException e) {
       throw new ConnectionException(e);
     }
@@ -145,6 +155,33 @@ public class SecureDataConnection {
      * as our transport is openssh.  NOTE that this thread will run forever.
      */
     new RedirectStreamToLog(sshdProcess.getErrorStream(), log, "OpenSSH Logline").start();
+  }
+
+  /**
+   * Verifies that the server certificate has the correct Subject DN name.
+   * Throws an exception otherwise, since the server may be impersonating a 
+   * legitimate Tunnel Server.
+   */
+  private void verifySubjectInCertificate(SSLSocket clientSocket)
+      throws SSLPeerUnverifiedException, ConnectionException, IOException {
+    
+    SSLSession session = clientSocket.getSession();
+    X509Certificate[] certificates = session.getPeerCertificateChain();
+
+    X509Certificate certificate = certificates[0];  // The first one is the server.
+    Principal principal = certificate.getSubjectDN();
+    if (!(principal instanceof X500Name)) {
+      log.error("Certificate DN was not a proper X.500 name.");
+      throw new ConnectionException("Certificate DN was not a proper X.500 name.");
+    }
+    X500Name name = (X500Name) principal;
+    String serverName = name.getCommonName();
+    if (serverName == null || !serverName.equals(localConf.getSdcServerHost())) {
+      String errorMessage = "Wrong server X.500 name. Expected: <"
+        + localConf.getSdcServerHost() + ">. Actual: <" + serverName + ">.";
+      log.error(errorMessage);
+      throw new ConnectionException(errorMessage);
+    }
   }
 
   /**
