@@ -58,7 +58,6 @@ Build File for Secure Data Connector client and reference server.
   <target name="lsb" depends="init">
     <exec dir="." executable="./configure.sh">
       <arg value="--lsb"/>
-      <arg value="--noverify"/>
       <arg value="--openssh=/usr/sbin/sshd"/>
       <arg value="--apachectl=/usr/sbin/apache2ctl"/>
       <arg value="--htpasswd=/usr/bin/htpasswd"/>
@@ -78,6 +77,7 @@ Build File for Secure Data Connector client and reference server.
       <arg value="--openssh=/usr/sbin/sshd"/>
       <arg value="--apachectl=/usr/sbin/apache2ctl"/>
       <arg value="--htpasswd=/usr/bin/htpasswd"/>
+      <arg value="--apache_modules_dir=/usr/lib/apache2/modules"/>
       <arg value="--javahome=/usr"/>
     </exec>
    <ant 

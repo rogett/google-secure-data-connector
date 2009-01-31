@@ -213,7 +213,7 @@ if [ ${USE_SUPPLIED_APACHE} = "false" ]; then
       continue
     fi
   
-    if [ ! -x "${MODULESDIR}/mod_${module}.so" ]; then
+    if [ ! -e "${MODULESDIR}/mod_${module}.so" ]; then
       echo "${module} required.  for full list see APACHE_MODULES in this script."
       exit 1
     fi
