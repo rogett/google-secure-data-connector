@@ -16,9 +16,9 @@
  */
 package com.google.dataconnector.registration.v2;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Validates a resource rule and produces errors.
@@ -64,18 +64,17 @@ public class ResourceRuleValidator {
           "parsing issue where you must specify '<entity repeatable=\"true\">' even if one" +
           "rule is specified."); 
     }
-    Collection<String> seenNames = new ArrayList<String>(); 
-    
-    // Go through each rule.
+     
+    // Go through each rule and validate it and make sure no two resources have the same seqNum.
+    Set<Integer> seenSeqNums = new HashSet<Integer>();
     for (ResourceRule resourceRule : resourceRules) {
-      // Rules must have unique names.
-      if (seenNames.contains(resourceRule.getName())) {
-        throw new ResourceException("Duplicate <name/> entries not allowed. Resource: " + 
-            resourceRule.getName());
-      } else {
-        seenNames.add(resourceRule.getName());
-      }
       validate(resourceRule);
+      if (seenSeqNums.contains(resourceRule.getSeqNum())) {
+        throw new ResourceException("Duplicate <seqNum/> entries not allowed. Resource: " + 
+            resourceRule.getSeqNum());
+      } else {
+        seenSeqNums.add(resourceRule.getSeqNum());
+      }
     }
   }
   
@@ -129,15 +128,19 @@ public class ResourceRuleValidator {
    */
   public void validate(ResourceRule resourceRule) throws ResourceException {
     
-    // Name 
+    // Name - this is not to be used anymore.
     if (resourceRule.getName() != null) {
-      try {
-        Integer.valueOf(resourceRule.getName().trim());
-       } catch (NumberFormatException e) {
-         throw new ResourceException("'name' field must be a valid integer", e);
-       }
+      throw new ResourceException("Resource " +  resourceRule.getName() + " uses deprecated " +
+          "<name/> element.  Please use <seqNum>" + resourceRule.getName() + "</seqNum> instead.");
+    }
+    
+    // seqNum
+    if (resourceRule.getSeqNum() > 0) {
+      // set name to seqNum
+      resourceRule.setName(String.valueOf(resourceRule.getSeqNum()));
     } else {
-      throw new ResourceException("'name' field must be present");
+      throw new ResourceException("Resource " + resourceRule.getPattern() + "must have <seqNum/> " +
+          "greater than 0.");
     }
     
     // clientId
