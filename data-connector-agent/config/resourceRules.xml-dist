@@ -1,20 +1,20 @@
 <feed>
   <entity repeatable="true">
-    <seqNum>1</seqNum>
+    <ruleNum>1</ruleNum>
     <clientId>all</clientId>
     <allowedEntities repeatable="true">testuser@example.com</allowedEntities>
     <allowedEntities>admin@example.com</allowedEntities>
     <pattern>http://internal.corp.example.com/.*</pattern>
   </entity>
   <entity>
-    <seqNum>2</seqNum>
+    <ruleNum>2</ruleNum>
     <clientId>all</clientId>
     <allowedEntities repeatable="true">testuser@example.com</allowedEntities>
     <allowedEntities>admin@example.com</allowedEntities>
     <pattern>http://feed.example.com/userlookup?user=.*/$</pattern>
   </entity>
   <entity>
-    <seqNum>3</seqNum>
+    <ruleNum>3</ruleNum>
     <clientId>all</clientId>
     <allowedEntities repeatable="true">testuser@example.com</allowedEntities>
     <allowedEntities>admin@example.com</allowedEntities>

@@ -277,7 +277,7 @@ public class ResourceRuleUtil {
     healthzRule.setAllowedEntities(new String[] {user + "@" + domain});
     healthzRule.setClientId(clientId);
     // assign name of Integer.MAX_VALUE
-    healthzRule.setSeqNum(Integer.MAX_VALUE);
+    healthzRule.setRuleNum(Integer.MAX_VALUE);
     healthzRule.setPattern(ResourceRule.HTTPID + "localhost:" + 
         port + "/" + clientId + "/__SDCINTERNAL__/healthz");
     return healthzRule;

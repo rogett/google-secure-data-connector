@@ -65,15 +65,15 @@ public class ResourceRuleValidator {
           "rule is specified."); 
     }
      
-    // Go through each rule and validate it and make sure no two resources have the same seqNum.
-    Set<Integer> seenSeqNums = new HashSet<Integer>();
+    // Go through each rule and validate it and make sure no two resources have the same ruleNum.
+    Set<Integer> seenRuleNums = new HashSet<Integer>();
     for (ResourceRule resourceRule : resourceRules) {
       validate(resourceRule);
-      if (seenSeqNums.contains(resourceRule.getSeqNum())) {
-        throw new ResourceException("Duplicate <seqNum/> entries not allowed. Resource: " + 
-            resourceRule.getSeqNum());
+      if (seenRuleNums.contains(resourceRule.getRuleNum())) {
+        throw new ResourceException("Duplicate <ruleNum/> entries not allowed. Resource: " + 
+            resourceRule.getRuleNum());
       } else {
-        seenSeqNums.add(resourceRule.getSeqNum());
+        seenRuleNums.add(resourceRule.getRuleNum());
       }
     }
   }
@@ -131,16 +131,17 @@ public class ResourceRuleValidator {
     // Name - this is not to be used anymore.
     if (resourceRule.getName() != null) {
       throw new ResourceException("Resource " +  resourceRule.getName() + " uses deprecated " +
-          "<name/> element.  Please use <seqNum>" + resourceRule.getName() + "</seqNum> instead.");
+          "<name/> element.  Please use <ruleNum>" + resourceRule.getName() + 
+          "</ruleNum> instead.");
     }
     
-    // seqNum
-    if (resourceRule.getSeqNum() > 0) {
-      // set name to seqNum
-      resourceRule.setName(String.valueOf(resourceRule.getSeqNum()));
+    // ruleNum
+    if (resourceRule.getRuleNum() > 0) {
+      // set name to ruleNum
+      resourceRule.setName(String.valueOf(resourceRule.getRuleNum()));
     } else {
-      throw new ResourceException("Resource " + resourceRule.getPattern() + "must have <seqNum/> " +
-          "greater than 0.");
+      throw new ResourceException("Resource " + resourceRule.getPattern() + 
+          " must have <ruleNum/> greater than 0.");
     }
     
     // clientId

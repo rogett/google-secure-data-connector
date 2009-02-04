@@ -29,8 +29,8 @@ public class ResourceRule implements Comparable<ResourceRule> {
   public static final String HTTPSID = "https://";
   public static final String SOCKETID = "socket://";
   
-  private int seqNum;
-  // this exists for backward compatibility. clients with seqNum field will not have this field
+  private int ruleNum;
+  // this exists for backward compatibility. clients with ruleNum field will not have this field
   private String name; 
   
   private String clientId;
@@ -50,12 +50,12 @@ public class ResourceRule implements Comparable<ResourceRule> {
     this.name = name;
   }
 
-  public int getSeqNum() {
-    return seqNum;
+  public int getRuleNum() {
+    return ruleNum;
   }
 
-  public void setSeqNum(int seqNum) {
-    this.seqNum = seqNum;
+  public void setRuleNum(int ruleNum) {
+    this.ruleNum = ruleNum;
   }
 
   public String getClientId() {
@@ -118,9 +118,9 @@ public class ResourceRule implements Comparable<ResourceRule> {
    * Compares two rules by sequence number.
    */
   public int compareTo(ResourceRule o) {
-    if (getSeqNum() < o.getSeqNum()) {
+    if (getRuleNum() < o.getRuleNum()) {
       return -1;
-    } else if (getSeqNum() > o.getSeqNum()) {
+    } else if (getRuleNum() > o.getRuleNum()) {
       return 1;
     } else {
       return 0;
