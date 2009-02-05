@@ -23,7 +23,6 @@
     <tstamp>
       <format property="timestamp" pattern="MMddyyyyhhmm"/>
     </tstamp>
-    <mkdir dir="${root}"/>
     <mkdir dir="${src}"/>
   </target>
 
