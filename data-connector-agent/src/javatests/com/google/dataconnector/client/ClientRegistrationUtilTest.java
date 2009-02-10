@@ -20,11 +20,15 @@ import com.google.dataconnector.client.ClientRegistrationUtil;
 import com.google.dataconnector.client.testing.FakeLocalConfGenerator;
 import com.google.dataconnector.registration.v2.AuthRequest;
 import com.google.dataconnector.registration.v2.AuthResponse;
+import com.google.dataconnector.registration.v2.RegistrationRequest;
 import com.google.dataconnector.registration.v2.RegistrationResponse;
+import com.google.dataconnector.registration.v2.ResourceRuleUtil;
 import com.google.dataconnector.registration.v2.testing.FakeResourceRuleConfig;
 import com.google.dataconnector.util.AuthenticationException;
 import com.google.dataconnector.util.ConnectionException;
 import com.google.dataconnector.util.RegistrationException;
+import com.google.feedserver.util.BeanUtil;
+import com.google.feedserver.util.XmlUtil;
 
 import junit.framework.TestCase;
 
@@ -47,8 +51,10 @@ import java.net.Socket;
 public class ClientRegistrationUtilTest extends TestCase {
 
   private AuthRequest authRequest;
+  private RegistrationRequest regRequest;
   private FakeLocalConfGenerator fakeLocalConfGenerator;
   private FakeResourceRuleConfig fakeResourceRuleConfig;
+  private ClientRegistrationUtil clientRegistrationUtil;
   
   @Override
   protected void setUp() throws Exception {
@@ -57,6 +63,10 @@ public class ClientRegistrationUtilTest extends TestCase {
     fakeLocalConfGenerator = new FakeLocalConfGenerator();
     fakeResourceRuleConfig = new FakeResourceRuleConfig();
     authRequest = new AuthRequest();
+    ResourceRuleUtil resourceRuleUtil = new ResourceRuleUtil(new XmlUtil(), new BeanUtil(), null, 
+        null);
+    regRequest = new RegistrationRequest(resourceRuleUtil);
+    clientRegistrationUtil = new ClientRegistrationUtil(authRequest, regRequest);
   }
 
   /**
@@ -84,7 +94,7 @@ public class ClientRegistrationUtilTest extends TestCase {
         (authResponse.toJson().toString() + "\n").getBytes());
     OutputStream os = new ByteArrayOutputStream();
     try {
-      ClientRegistrationUtil.authorize(getFakeSocket(is, os),
+      clientRegistrationUtil.authorize(getFakeSocket(is, os),
           fakeLocalConfGenerator.getFakeLocalConf());
     } catch (AuthenticationException e) {
       fail("not supposed to receive exception");
@@ -97,7 +107,7 @@ public class ClientRegistrationUtilTest extends TestCase {
     os = new ByteArrayOutputStream();
     boolean threwException = false;
     try {
-      ClientRegistrationUtil.authorize(getFakeSocket(is, os),
+      clientRegistrationUtil.authorize(getFakeSocket(is, os),
           fakeLocalConfGenerator.getFakeLocalConf());
     } catch (AuthenticationException e) {
       threwException = true;
@@ -109,7 +119,7 @@ public class ClientRegistrationUtilTest extends TestCase {
     os = new ByteArrayOutputStream();
     threwException = false;
     try {
-      ClientRegistrationUtil.authorize(getFakeSocket(is, os),
+      clientRegistrationUtil.authorize(getFakeSocket(is, os),
           fakeLocalConfGenerator.getFakeLocalConf());
     } catch (AuthenticationException e) {
       threwException = true;
@@ -125,7 +135,7 @@ public class ClientRegistrationUtilTest extends TestCase {
     responseJson.setStatus(RegistrationResponse.Status.OK);
     InputStream is = new ByteArrayInputStream((responseJson.toJson().toString() + "\n").getBytes());
     OutputStream os = new ByteArrayOutputStream();
-    ClientRegistrationUtil.register(getFakeSocket(is, os), authRequest, 
+    clientRegistrationUtil.register(getFakeSocket(is, os), authRequest, 
         fakeResourceRuleConfig.getFakeRuntimeResourceRules());
 
     // Negative Server Response case:
@@ -136,7 +146,7 @@ public class ClientRegistrationUtilTest extends TestCase {
     os = new ByteArrayOutputStream();
     boolean threwException = false;
     try {
-      ClientRegistrationUtil.register(getFakeSocket(is, os), authRequest,
+      clientRegistrationUtil.register(getFakeSocket(is, os), authRequest,
           fakeResourceRuleConfig.getFakeRuntimeResourceRules());
     } catch (RegistrationException e) {
       threwException = true;
@@ -148,7 +158,7 @@ public class ClientRegistrationUtilTest extends TestCase {
     os = new ByteArrayOutputStream();
     threwException = false;
     try {
-      ClientRegistrationUtil.register(getFakeSocket(is, os), authRequest, 
+      clientRegistrationUtil.register(getFakeSocket(is, os), authRequest, 
           fakeResourceRuleConfig.getFakeRuntimeResourceRules());
     } catch (RegistrationException e) {
       threwException = true;

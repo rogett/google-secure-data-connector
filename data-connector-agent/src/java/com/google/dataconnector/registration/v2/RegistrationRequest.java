@@ -17,6 +17,7 @@
 package com.google.dataconnector.registration.v2;
 
 import com.google.dataconnector.registration.v2.ResourceException;
+import com.google.inject.Inject;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -42,11 +43,7 @@ public class RegistrationRequest {
   private JSONArray resourcesJsonArray;
   private List<ResourceRule> resourceRules;
   
-  
-  public RegistrationRequest() {
-    this(new ResourceRuleUtil());
-  }
-  
+  @Inject
   public RegistrationRequest(ResourceRuleUtil resourceRuleUtil) {
     this.resourceRuleUtil = resourceRuleUtil;
     resourceRules = new ArrayList<ResourceRule>();

@@ -40,7 +40,9 @@ public class AuthRequestTest extends TestCase {
   protected void setUp() throws Exception {
     super.setUp();
     rawAuthJson = new JSONObject();
-    rawAuthJson.putOpt(AuthRequest.OAUTH_KEY, "test_oauth_key");
+    rawAuthJson.putOpt(AuthRequest.DOMAIN_KEY, "testdomain");
+    rawAuthJson.putOpt(AuthRequest.USER_KEY, "testuser");
+    rawAuthJson.putOpt(AuthRequest.PASSWORD_KEY, "testpassword");
   }
 
   public void testConstructorAndToJson() throws JSONException {

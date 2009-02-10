@@ -54,8 +54,6 @@ public class ApacheStarterTest extends TestCase {
   public void testStartApacheHttpd() throws IOException, ApacheSetupException {
     // setup
     ApacheHelper mockApacheHelper = EasyMock.createMock(ApacheHelper.class);
-    mockApacheHelper.generateHtpasswdFiles();
-    EasyMock.expectLastCall();
     mockApacheHelper.generateHttpdConf();
     EasyMock.expectLastCall();
     EasyMock.replay(mockApacheHelper);

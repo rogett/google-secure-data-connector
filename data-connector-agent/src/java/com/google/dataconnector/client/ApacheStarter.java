@@ -25,7 +25,6 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
@@ -63,7 +62,6 @@ public class ApacheStarter {
    */
   public void startApacheHttpd() throws ApacheSetupException {
     LOG.info("Configuring httpd");
-    apacheHelper.generateHtpasswdFiles();
     apacheHelper.generateHttpdConf();
     // We cleanup existing httpds if they are still running.
     LOG.info("Shutting down any existing httpd processes");

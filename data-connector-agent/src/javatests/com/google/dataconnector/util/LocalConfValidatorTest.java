@@ -65,8 +65,6 @@ public class LocalConfValidatorTest extends TestCase {
     EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.SSHD)).andReturn(mockGoodFile);
     EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.APACHE_CTL))
         .andReturn(mockGoodFile);
-    EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.APACHE_HTPASSWD))
-        .andReturn(mockGoodFile);
     EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.APACHE_CONF_DIR + 
         File.separator + LocalConf.HTTPD_CONF_TEMPLATE_FILE)).andReturn(mockGoodFile);
     EasyMock.replay(mockFileFactory); 
@@ -102,8 +100,6 @@ public class LocalConfValidatorTest extends TestCase {
         mockGoodFile);
     EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.SSHD)).andReturn(mockGoodFile);
     EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.APACHE_CTL))
-        .andReturn(mockGoodFile);
-    EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.APACHE_HTPASSWD))
         .andReturn(mockGoodFile);
     EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.APACHE_CONF_DIR + 
         File.separator + LocalConf.HTTPD_CONF_TEMPLATE_FILE)).andReturn(mockGoodFile);
@@ -183,8 +179,6 @@ public class LocalConfValidatorTest extends TestCase {
     EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.SSHD)).andReturn(mockGoodFile);
     EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.APACHE_CTL))
         .andReturn(mockGoodFile);
-    EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.APACHE_HTPASSWD))
-        .andReturn(mockGoodFile);
     EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.APACHE_CONF_DIR + 
         File.separator + LocalConf.HTTPD_CONF_TEMPLATE_FILE)).andReturn(mockGoodFile);    
     EasyMock.replay(mockFileFactory);
@@ -203,21 +197,6 @@ public class LocalConfValidatorTest extends TestCase {
       return;
     }
     fail("did not get LocalConfException");
-  }
-  
-  // Socks Server Port
-  public void testBadStartingHttpProxyPort() {
-    // Setup bad data
-    localConf.setHttpProxyPort(3242343);
-    
-    // Test and verify
-    try {
-      localConfValidator.validate(localConf);
-    } catch (LocalConfException e) {
-      assertTrue(e.getMessage().contains("invalid 'startingHttpProxyPort'"));
-      return;
-    }
-    fail("did not get LocalConf");
   }
   
   // Socks Server Port
@@ -249,8 +228,6 @@ public class LocalConfValidatorTest extends TestCase {
         mockGoodFile);
     EasyMock.expect(mockFileFactory.getFile(badFile)).andReturn(mockBadFile);
     EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.APACHE_CTL))
-        .andReturn(mockGoodFile);
-    EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.APACHE_HTPASSWD))
         .andReturn(mockGoodFile);
     EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.APACHE_CONF_DIR + 
         File.separator + LocalConf.HTTPD_CONF_TEMPLATE_FILE)).andReturn(mockGoodFile);

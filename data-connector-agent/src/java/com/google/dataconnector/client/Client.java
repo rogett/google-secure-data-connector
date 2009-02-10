@@ -16,6 +16,7 @@
  */
 package com.google.dataconnector.client;
 
+import com.google.dataconnector.registration.v2.RegistrationV2GuiceModule;
 import com.google.dataconnector.registration.v2.ResourceRule;
 import com.google.dataconnector.util.ApacheSetupException;
 import com.google.dataconnector.util.ClientGuiceModule;
@@ -113,7 +114,8 @@ public class Client {
   public static void main(String[] args) {
     // Bootstrap logging system
     PropertyConfigurator.configure(getBootstrapLoggingProperties());
-    final Injector injector = Guice.createInjector(new ClientGuiceModule(args));
+    final Injector injector = Guice.createInjector(new ClientGuiceModule(args), 
+        new RegistrationV2GuiceModule());
     
     try {
       // start the healthz service before we do anything else.

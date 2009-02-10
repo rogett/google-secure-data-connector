@@ -52,10 +52,6 @@ public class LocalConf {
   
   @Flag(help = "Any valid admin user on the domain. This is only used for authentication.")
   private String user;
-  
-  // for authn, either oauthkey or password should be present.
-  @Flag(help = "Two-legged oauth consumer key.")
-  private String oauthKey;
   @Flag(help = "Password.")
   private String password;
   
@@ -69,14 +65,10 @@ public class LocalConf {
   private String clientId;
   @Flag(help = "Location of sshd binary to use for SDC protocol multiplexor")
   private String sshd;
-  @Flag(help = "Starting http proxy port to assign for each HTTP Resource Rule")
-  private Integer httpProxyPort;
   @Flag(help = "Default bind host is localhost, One should not have to change this.")
   private String httpProxyBindHost = DEFAULT_BIND_HOST;
   @Flag(help = "Port to bind socks firewall port to.")
   private Integer socksServerPort;
-  @Flag(help = "System apache2 htpassword location")
-  private String apacheHtpasswd = "third-party/apache-httpd/root/bin/htpassword";
   @Flag(help = "System apache2 apachectl location")
   private String apacheCtl = "third-party/apache-httpd/root/bin/apachectl";
   @Flag(help = "Apache configuration files.  Must be writable by user agent runs as.")
@@ -151,14 +143,6 @@ public class LocalConf {
     this.user = user;
   }
 
-  public String getOauthKey() {
-    return oauthKey;
-  }
-
-  public void setOauthKey(String oauthKey) {
-    this.oauthKey = oauthKey;
-  }
-
   public String getPassword() {
     return password;
   }
@@ -199,14 +183,6 @@ public class LocalConf {
     this.sshd = sshd;
   }
 
-  public Integer getHttpProxyPort() {
-    return httpProxyPort;
-  }
-
-  public void setHttpProxyPort(Integer httpProxyPort) {
-    this.httpProxyPort = httpProxyPort;
-  }
-
   public String getHttpProxyBindHost() {
     return httpProxyBindHost;
   }
@@ -239,14 +215,6 @@ public class LocalConf {
     this.socksProperties = socksProperties;
   }
   
-  public String getApacheHtpasswd() {
-    return apacheHtpasswd;
-  }
-
-  public void setApacheHtpasswd(String apacheHtpasswd) {
-    this.apacheHtpasswd = apacheHtpasswd;
-  }
-
   public String getApacheCtl() {
     return apacheCtl;
   }

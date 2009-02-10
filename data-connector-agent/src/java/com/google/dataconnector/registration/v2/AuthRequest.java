@@ -29,16 +29,10 @@ import org.json.JSONObject;
 public class AuthRequest {
   
   /** Keys used for the Auth Request JSON representation */ 
-  static final String OAUTH_KEY = "oauthString";
   static final String USER_KEY = "user";
   static final String DOMAIN_KEY = "domain";
   static final String PASSWORD_KEY = "password";
 
-  public static final String OAUTH_SIGNATURE_METHOD = "HMAC-SHA1";
-  public static final String URL_FOR_OAUTH = "http://www.google.com/woodstockAgent";
-  public static final String OAUTH_REQUESTOR_ID_KEY = "xoauth_requestor_id";
-  
-  private String oauthString;
   private String email;
   private String domain;
   private String user;
@@ -46,7 +40,6 @@ public class AuthRequest {
   
   // what type of authn mechanism can be used - enumerate
   public static enum AuthType {
-    OAUTH,
     PASSWORD,
     NONE
   }
@@ -61,13 +54,9 @@ public class AuthRequest {
    */
   public JSONObject toJson() throws JSONException {
     JSONObject json = new JSONObject();
-    if (oauthString != null) {
-      json.put(OAUTH_KEY, oauthString);
-    } else {
-      json.put(USER_KEY, user);
-      json.put(PASSWORD_KEY, password);
-      json.put(DOMAIN_KEY, domain);
-    }
+    json.put(USER_KEY, user);
+    json.put(PASSWORD_KEY, password);
+    json.put(DOMAIN_KEY, domain);
     return json;
   }
   
@@ -78,17 +67,11 @@ public class AuthRequest {
    * @throws JSONException if any required fields are missing.
    */
   public AuthRequest(final JSONObject json) throws JSONException {
-    // look for oauth keys
-    if (json.has(OAUTH_KEY)) {
-      setOauthString(json.getString(OAUTH_KEY));
-      setAuthType(AuthType.OAUTH);
-    } else {
-      // look for password key. if not found, then let the exception be thrown
-      setUser(json.getString(USER_KEY));
-      setDomain(json.getString(DOMAIN_KEY));
-      setPassword(json.getString(PASSWORD_KEY));
-      setAuthType(AuthType.PASSWORD);
-    }
+    // look for password key. if not found, then let the exception be thrown
+    setUser(json.getString(USER_KEY));
+    setDomain(json.getString(DOMAIN_KEY));
+    setPassword(json.getString(PASSWORD_KEY));
+    setAuthType(AuthType.PASSWORD);
   }
   
   /**
@@ -98,22 +81,10 @@ public class AuthRequest {
    */
   public AuthRequest() {}
   
-  public static String getOAUTH_KEY() {
-    return OAUTH_KEY;
-  }
-  
   public static String getPASSWORD_KEY() {
     return PASSWORD_KEY;
   }
 
-  public String getOauthString() {
-    return oauthString;
-  }
-
-  public void setOauthString(String oauthString) {
-    this.oauthString = oauthString;
-  }
-  
   // Readonly.
   public String getEmail() {
     setEmail();

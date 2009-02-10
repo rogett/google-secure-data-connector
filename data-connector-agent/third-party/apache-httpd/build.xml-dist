@@ -38,12 +38,19 @@
         failonerror="true"
         executable="sh">
       <arg value="configure"/>
-      <arg value="--enable-ssl"/>
-      <arg value="--enable-proxy-connect"/>
+      <arg value="--disable-authz-user"/>
+      <arg value="--disable-authz-groupfile"/>
+      <arg value="--disable-auth-basic"/>
+      <arg value="--disable-auth-file"/>
+      <arg value="--disable-include"/>
+      <arg value="--disable-proxy-connect"/>
+      <arg value="--disable-proxy-ftp"/>
+      <arg value="--disable-proxy-ajp"/>
+      <arg value="--disable-proxy-balancer"/>
       <arg value="--enable-proxy"/>
       <arg value="--enable-proxy-http"/>
-      <arg value="--enable-static-htpasswd"/>
-      <arg value="--enable-rewrite"/>
+      <arg value="--enable-mime-magic"/>
+      <arg value="--enable-mime"/>
       <arg value="--prefix=${root}"/>
     </exec>
   </target>

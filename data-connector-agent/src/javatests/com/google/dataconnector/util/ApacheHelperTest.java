@@ -17,15 +17,23 @@
 package com.google.dataconnector.util;
 
 import com.google.dataconnector.client.testing.FakeLocalConfGenerator;
-import com.google.dataconnector.client.testing.StringArrayMatcher;
 import com.google.dataconnector.registration.v2.ResourceRule;
 import com.google.dataconnector.registration.v2.ResourceRuleUtil;
 import com.google.dataconnector.registration.v2.testing.FakeResourceRuleConfig;
+import com.google.dataconnector.util.ApacheHelper.ApacheVersion;
+import com.google.feedserver.util.BeanUtil;
+import com.google.feedserver.util.XmlUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.net.Socket;
+import java.net.SocketAddress;
+import java.net.URLEncoder;
 import java.util.List;
+import java.util.Random;
+
+import javax.net.SocketFactory;
 
 import junit.framework.TestCase;
 
@@ -39,19 +47,45 @@ import org.easymock.IArgumentMatcher;
  */
 public class ApacheHelperTest extends TestCase {
   
+  private final String APACHE_22_VERSION_OUTPUT = new String(
+      "Server version: Apache/2.2.6 (Unix)\n" +
+      "Server built:   Dec 17 2007 19:06:00\n");
+  
+  private final String APACHE_20_VERSION_OUTPUT = new String(
+      "Server version: Apache/2.0.63 (Unix)\n" +
+      "Server built:   Dec 17 2007 19:06:00\n");
+  
   FakeLocalConfGenerator fakeLocalConfGenerator = new FakeLocalConfGenerator();
   FakeResourceRuleConfig fakeResourceRuleConfig = new FakeResourceRuleConfig();
   LocalConf localConf;
   List<ResourceRule> resourceRules;
   ApacheHelper apacheHelper;
+  SocketFactory mockSocketFactory;
+  Socket mockSocket;
   
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    
+    SocketAddress mockSocketAddress = EasyMock.createMock(SocketAddress.class);
+    EasyMock.replay(mockSocketAddress);
+    
+    // Socket
+    mockSocket = EasyMock.createMock(Socket.class);
+    mockSocket.bind(EasyMock.isA(SocketAddress.class));
+    EasyMock.expectLastCall().anyTimes();
+    EasyMock.expect(mockSocket.getLocalPort()).andReturn(new Random().nextInt()).anyTimes();
+    EasyMock.replay(mockSocket);
+    
+    // SocketFactory
+    mockSocketFactory = EasyMock.createMock(SocketFactory.class);
+    EasyMock.expect(mockSocketFactory.createSocket()).andReturn(mockSocket).anyTimes();
+    EasyMock.replay(mockSocketFactory);
+    
     localConf = fakeLocalConfGenerator.getFakeLocalConf(); 
     resourceRules = fakeResourceRuleConfig.getFakeRuntimeResourceRules();
-    ResourceRuleUtil resourceRuleUtil = new ResourceRuleUtil();
-    resourceRuleUtil.setHttpProxyPorts(resourceRules, localConf.getHttpProxyPort());
+    ResourceRuleUtil resourceRuleUtil = new ResourceRuleUtil(new XmlUtil(), new BeanUtil(), 
+        mockSocketFactory, mockSocketAddress);
   }
   
   @Override
@@ -60,25 +94,121 @@ public class ApacheHelperTest extends TestCase {
     resourceRules = null;
     super.tearDown();
   }
-
-  public void testGetHttpdConfFileName() {
-    apacheHelper = new ApacheHelper(null, null, null, null);
-    assertEquals(FakeLocalConfGenerator.APACHE_CONF_DIR + File.separator + 
-        ApacheHelper.HTTP_CONF_FILE_NAME, ApacheHelper.getHttpdConfFileName(localConf));
+  
+  public void testGetApache22Version() throws ApacheSetupException, IOException {
+    // Setup
+    ByteArrayInputStream bis = new ByteArrayInputStream(APACHE_22_VERSION_OUTPUT.getBytes());
+    Process mockProcess = EasyMock.createMock(Process.class);
+    mockProcess.destroy();
+    EasyMock.expectLastCall();
+    EasyMock.expect(mockProcess.getInputStream()).andReturn(bis);
+    EasyMock.replay(mockProcess);
+    Runtime mockRuntime = EasyMock.createMock(Runtime.class);
+    EasyMock.expect(mockRuntime.exec((String[]) EasyMock.anyObject())).andReturn(mockProcess);
+    EasyMock.replay(mockRuntime);
+    
+    // Test
+    ApacheHelper apacheHelper = new ApacheHelper(localConf, null, mockRuntime, null);
+    ApacheVersion version = apacheHelper.getApacheVersion();
+    
+    // Verify
+    assertEquals(ApacheVersion.TWOTWO, version);
+    EasyMock.verify(mockRuntime);
+    EasyMock.verify(mockProcess);
+    EasyMock.verify(mockSocket);
+    EasyMock.verify(mockSocketFactory);
+  }
+    
+  public void testGetApache20Version() throws ApacheSetupException, IOException {
+    // Setup
+    ByteArrayInputStream bis = new ByteArrayInputStream(APACHE_20_VERSION_OUTPUT.getBytes());
+    Process mockProcess = EasyMock.createMock(Process.class);
+    EasyMock.expect(mockProcess.getInputStream()).andReturn(bis);
+    mockProcess.destroy();
+    EasyMock.expectLastCall();
+    EasyMock.replay(mockProcess);
+    Runtime mockRuntime = EasyMock.createMock(Runtime.class);
+    EasyMock.expect(mockRuntime.exec(EasyMock.isA(String[].class))).andReturn(mockProcess);
+    EasyMock.replay(mockRuntime);
+    
+    // Test
+    ApacheHelper apacheHelper = new ApacheHelper(localConf, null, mockRuntime, null);
+    ApacheVersion version = apacheHelper.getApacheVersion();
+    
+    // Verify
+    assertEquals(ApacheVersion.TWOZERO, version);
+    EasyMock.verify(mockRuntime);
+    EasyMock.verify(mockProcess);
   }
   
-  public void testGenerateHttpdConf() throws IOException, ApacheSetupException {
+  public void testGetApacheInvalidVersion() throws ApacheSetupException, IOException {
+    // Setup
+    ByteArrayInputStream bis = new ByteArrayInputStream("TOTALLY BOGUS VERSION".getBytes());
+    Process mockProcess = EasyMock.createMock(Process.class);
+    EasyMock.expect(mockProcess.getInputStream()).andReturn(bis);
+    mockProcess.destroy();
+    EasyMock.expectLastCall();
+    EasyMock.replay(mockProcess);
+    Runtime mockRuntime = EasyMock.createMock(Runtime.class);
+    EasyMock.expect(mockRuntime.exec(EasyMock.isA(String[].class))).andReturn(mockProcess);
+    EasyMock.replay(mockRuntime);
     
+    // Test
+    ApacheHelper apacheHelper = new ApacheHelper(localConf, null, mockRuntime, null);
+    ApacheVersion version = apacheHelper.getApacheVersion();
+    
+    // Verify
+    assertEquals(ApacheVersion.INVALID, version);
+    EasyMock.verify(mockRuntime);
+    EasyMock.verify(mockProcess);
+  }
+  
+  public void testGetApacheVersionThrowsException() throws IOException {
+    Runtime mockRuntime = EasyMock.createMock(Runtime.class);
+      EasyMock.expect(mockRuntime.exec(EasyMock.isA(String[].class)))
+          .andThrow(new IOException("httpd execution error"));
+    EasyMock.replay(mockRuntime);
+    ApacheHelper apacheHelper = new ApacheHelper(localConf, null, mockRuntime, null);
+    try {
+      apacheHelper.getApacheVersion();
+    } catch (ApacheSetupException e) {
+      EasyMock.verify(mockRuntime);
+      return;
+    }
+    fail("Did not recieve ApacheSetupException");
+    
+  }
+    
+  public void testGetHttpdConfFileName() throws Exception {
+    apacheHelper = new ApacheHelper(null, null, null, null);
+    assertEquals(FakeLocalConfGenerator.APACHE_CONF_DIR + File.separator + 
+            ApacheHelper.HTTP_CONF_FILE_NAME + "." + 
+            URLEncoder.encode(localConf.getClientId(), "UTF8"), 
+        ApacheHelper.getHttpdConfFileName(localConf));
+  }
+  
+  public void testGenerate22HttpdConf() throws IOException, ApacheSetupException {
+    
+    // We ignore the real conf and only put in the values that ApacheHelper should substitute.
     String testConf = "_PROXYMATCHRULES_\n" +
-        "_APACHE_PORT_\n" +
-        "_APACHE_BIND_HOST_\n";
+        "_LISTENENTRIES_\n";
     
     // Setup test.
+    ByteArrayInputStream bis = new ByteArrayInputStream(APACHE_22_VERSION_OUTPUT.getBytes());
+    Process mockProcess = EasyMock.createMock(Process.class);
+    EasyMock.expect(mockProcess.getInputStream()).andReturn(bis);
+    mockProcess.destroy();
+    EasyMock.expectLastCall();
+    EasyMock.replay(mockProcess);
+    Runtime mockRuntime = EasyMock.createMock(Runtime.class);
+    EasyMock.expect(mockRuntime.exec(EasyMock.isA(String[].class))).andReturn(mockProcess);
+    EasyMock.replay(mockRuntime);
+    
     FileUtil mockFileUtil = EasyMock.createMock(FileUtil.class);
     EasyMock.expect(mockFileUtil.readFile(ApacheHelper.getHttpdConfTemplateFileName(localConf)))
         .andReturn(testConf);
     mockFileUtil.writeFile(EasyMock.eq(ApacheHelper.getHttpdConfFileName(localConf)), 
-        checkHttpConf());
+        checkHttpConf(ApacheVersion.TWOTWO));
     EasyMock.expectLastCall();
     mockFileUtil.deleteFile(ApacheHelper.getHttpdConfFileName(localConf));
     EasyMock.expectLastCall();
@@ -87,92 +217,88 @@ public class ApacheHelperTest extends TestCase {
     EasyMock.replay(mockFileUtil);
     
     // Execute
-    ApacheHelper apacheHelper = new ApacheHelper(localConf, resourceRules, null, mockFileUtil);
+    ApacheHelper apacheHelper = new ApacheHelper(localConf, resourceRules, mockRuntime, 
+        mockFileUtil);
     apacheHelper.generateHttpdConf();
     
     // Check to see if our httpdconf has the right stuff in it.
     EasyMock.verify(mockFileUtil);
+    EasyMock.verify(mockRuntime);
+    EasyMock.verify(mockProcess);
+    EasyMock.verify(mockSocketFactory);
+    EasyMock.verify(mockSocket);
   }
   
-  public void testMakeProxyMatchConfEntries() {
-    ApacheHelper apacheHelper = new ApacheHelper(localConf, resourceRules, null, null);
+  public void testGenerate20HttpdConf() throws IOException, ApacheSetupException {
+    
+    // We ignore the real conf and only put in the values that ApacheHelper should substitute.
+    String testConf = "_PROXYMATCHRULES_\n" +
+        "_LISTENENTRIES_\n";
+    
+    // Setup test.
+    ByteArrayInputStream bis = new ByteArrayInputStream(APACHE_20_VERSION_OUTPUT.getBytes());
+    Process mockProcess = EasyMock.createMock(Process.class);
+    EasyMock.expect(mockProcess.getInputStream()).andReturn(bis);
+    mockProcess.destroy();
+    EasyMock.expectLastCall();
+    EasyMock.replay(mockProcess);
+    Runtime mockRuntime = EasyMock.createMock(Runtime.class);
+    EasyMock.expect(mockRuntime.exec(EasyMock.isA(String[].class))).andReturn(mockProcess);
+    EasyMock.replay(mockRuntime);
+    
+    FileUtil mockFileUtil = EasyMock.createMock(FileUtil.class);
+    EasyMock.expect(mockFileUtil.readFile(ApacheHelper.getHttpdConfTemplateFileName(localConf)))
+        .andReturn(testConf);
+    mockFileUtil.writeFile(EasyMock.eq(ApacheHelper.getHttpdConfFileName(localConf)), 
+        checkHttpConf(ApacheVersion.TWOZERO));
+    EasyMock.expectLastCall();
+    mockFileUtil.deleteFile(ApacheHelper.getHttpdConfFileName(localConf));
+    EasyMock.expectLastCall();
+    mockFileUtil.deleteFileOnExit(ApacheHelper.getHttpdConfFileName(localConf));
+    EasyMock.expectLastCall();
+    EasyMock.replay(mockFileUtil);
+    
+    // Execute
+    ApacheHelper apacheHelper = new ApacheHelper(localConf, resourceRules, mockRuntime, 
+        mockFileUtil);
+    apacheHelper.generateHttpdConf();
+    
+    // Check to see if our httpdconf has the right stuff in it.
+    EasyMock.verify(mockFileUtil);
+    EasyMock.verify(mockProcess);
+    EasyMock.verify(mockRuntime);
+  }
+  
+  public void testMakeProxyMatchConfEntries() throws ApacheSetupException, IOException {
+    ByteArrayInputStream bis = new ByteArrayInputStream(APACHE_20_VERSION_OUTPUT.getBytes());
+    Process mockProcess = EasyMock.createMock(Process.class);
+    EasyMock.expect(mockProcess.getInputStream()).andReturn(bis);
+    mockProcess.destroy();
+    EasyMock.expectLastCall();
+    EasyMock.replay(mockProcess);
+    Runtime mockRuntime = EasyMock.createMock(Runtime.class);
+    EasyMock.expect(mockRuntime.exec(EasyMock.isA(String[].class))).andReturn(mockProcess);
+    EasyMock.replay(mockRuntime);
+    
+    ApacheHelper apacheHelper = new ApacheHelper(localConf, resourceRules, mockRuntime, null);
     String proxyMatchEntries = apacheHelper.makeProxyMatchConfEntries();
     for (ResourceRule resourceRule : resourceRules) {
       if (!resourceRule.getPattern().startsWith(ResourceRule.HTTPID)) {
         continue;
       }
       assertTrue(proxyMatchEntries.contains(resourceRule.getPattern()));
-      assertTrue(proxyMatchEntries.contains(ApacheHelper.makeHtpasswdPath(localConf, 
-          resourceRule.getName())));
+      assertTrue(proxyMatchEntries.contains(resourceRule.getHttpProxyPort().toString()));
     }
-  }
- 
-  public void testGenerateHtpasswdFiles() throws ApacheSetupException, InterruptedException, 
-      IOException {
-    // Setup
-    Runtime mockRuntime = EasyMock.createMock(Runtime.class);
-    FileUtil mockFileUtil = EasyMock.createMock(FileUtil.class);
-    Process mockProcess = EasyMock.createMock(Process.class);
-    EasyMock.expect(mockProcess.waitFor()).andReturn(0).anyTimes();
-    ByteArrayInputStream bis = new ByteArrayInputStream("".getBytes());
-    EasyMock.expect(mockProcess.getErrorStream()).andReturn(bis).anyTimes();
-    EasyMock.replay(mockProcess);
-    
-    for (ResourceRule resourceRule : resourceRules) {
-      if (!resourceRule.getPattern().startsWith(ResourceRule.HTTPID)) {
-        continue;
-      }
-      
-      // Mock Process
-      
-      // Mock File Util
-      String expectedHtpasswdFile = ApacheHelper.makeHtpasswdPath(localConf, 
-          resourceRule.getName());
-      mockFileUtil.deleteFile(expectedHtpasswdFile);
-      EasyMock.expectLastCall();
-      mockFileUtil.deleteFileOnExit(expectedHtpasswdFile);
-      EasyMock.expectLastCall();
-      EasyMock.replay(mockFileUtil);
-      
-      // Mock Runtime
-      EasyMock.expect(mockRuntime.exec(checkRuntimeArgs(resourceRule, expectedHtpasswdFile)))
-         .andReturn(mockProcess);
-      EasyMock.replay(mockRuntime);
-    }
-    
-    // Test
-    ApacheHelper apacheHelper = new ApacheHelper(localConf, resourceRules, mockRuntime, 
-        mockFileUtil);
-    apacheHelper.generateHtpasswdFiles();
-    
-    // Verify
     EasyMock.verify(mockRuntime);
-    EasyMock.verify(mockFileUtil);
     EasyMock.verify(mockProcess);
   }
-  
-  /**
-   * Creates argument matcher that compares our expected runtime command line array.
-   * 
-   * @param resourceRule expected ResourceRule
-   * @param expectedHtpasswdFile expected htpasswd file name.
-   * @return null
-   */
-  public String[] checkRuntimeArgs(ResourceRule resourceRule, String expectedHtpasswdFile) {
-    EasyMock.reportMatcher(new StringArrayMatcher(new String[] {
-          localConf.getApacheHtpasswd(),
-          "-b",
-          "-c", 
-          expectedHtpasswdFile,
-          ApacheHelper.DEFAULT_PROXY_AUTH_USER,
-          resourceRule.getSecretKey().toString() }));
-    return null;
-  }
-  
+ 
   /**
    * Creates the EasyMock report matcher for use with checking the Http Conf.
+   * 
+   * @param apacheVersion the version of conf we should check validity for.
    */
-  public String checkHttpConf() {
+  public String checkHttpConf(ApacheVersion apacheVersion) {
     EasyMock.reportMatcher(new HttpConfChecker(localConf, resourceRules));
     return null; 
   }
@@ -216,17 +342,19 @@ public class ApacheHelperTest extends TestCase {
       }
       
       String httpConf = (String) arg0;  
-      // Verify the http proxy bind host was set.
-      if (!httpConf.contains(localConf.getHttpProxyBindHost())) {
-        return false;
-      }
       
       // Verify each pattern is in the written httpd conf.
       for (ResourceRule resourceRule : resourceRules) { 
-        if (resourceRule.getPattern().startsWith(ResourceRule.HTTPID) && 
-            (!(httpConf.contains(resourceRule.getHttpProxyPort().toString()))) && 
-            (!(httpConf.contains(resourceRule.getPattern())))) {
-          return false;
+        if (resourceRule.getPattern().startsWith(ResourceRule.HTTPID)) {
+          // Check to see Listen pattern made it.
+          if (!(httpConf.contains("Listen " + localConf.getHttpProxyBindHost() + ":" +
+              resourceRule.getHttpProxyPort().toString()))) {
+            return false;
+          }
+          // Check pattern
+          if (!(httpConf.contains(resourceRule.getPattern()))) {
+            return false; 
+          }
         }
       }
       return true;

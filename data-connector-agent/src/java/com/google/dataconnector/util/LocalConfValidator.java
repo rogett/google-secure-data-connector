@@ -130,12 +130,10 @@ public class LocalConfValidator {
     }
     
     // oauthKey or password required
-    if (localConf.getOauthKey() != null) {
-      localConf.setAuthType(AuthRequest.AuthType.OAUTH);
-    } else if (localConf.getPassword() != null) {
+    if (localConf.getPassword() != null) {
       localConf.setAuthType(AuthRequest.AuthType.PASSWORD);
     } else {
-      errors.append("'oauthKey' or 'password' required\n");
+      errors.append("'password' required\n");
     }
     
     // sslKeyStoreFile
@@ -150,8 +148,9 @@ public class LocalConfValidator {
     
     // clientId
     if (localConf.getClientId() != null) {
-      if (localConf.getClientId().matches("\\s")) {
-        errors.append("'clientId' contains spaces\n");
+      if (!localConf.getClientId().matches("^[A-z0-9_-]+$")) {
+        errors.append("'clientId' " + localConf.getClientId() + " not valid.  Only a-z,A-Z,0-9," +
+            "-_ allowed.\n");
       }
     } else {
       errors.append("'clientId' required\n");
@@ -162,16 +161,6 @@ public class LocalConfValidator {
       errors.append(canReadFile("sshd", localConf.getSshd()));
     } else {
       errors.append("'sshd' required\n");
-    }
-    
-    // startingHttpProxyPort 
-    Integer httpProxyPort = localConf.getHttpProxyPort();
-    if (httpProxyPort != null) {
-      if (httpProxyPort > MAX_PORT || httpProxyPort < 0) {
-        errors.append("invalid 'startingHttpProxyPort': " +  httpProxyPort);
-      }
-    } else {
-      errors.append("'httpProxyPort' required\n");
     }
     
     // httpProxyBindHost
@@ -201,13 +190,6 @@ public class LocalConfValidator {
     // socksProperties 
     if (localConf.getSocksProperties() == null) {
       errors.append("'socksProperties' required\n");
-    }
-    
-    // apache htpasswd
-    if (localConf.getApacheHtpasswd() != null) {
-      errors.append(canReadFile("apacheHtpasswd", localConf.getApacheHtpasswd()));
-    } else {
-      errors.append("'apacheHtpasswd' required.");
     }
     
     // apachectl

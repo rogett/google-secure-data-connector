@@ -26,17 +26,10 @@ import com.google.dataconnector.registration.v2.ResourceRule;
 import com.google.dataconnector.util.LocalConf;
 import com.google.dataconnector.util.AuthenticationException;
 import com.google.dataconnector.util.RegistrationException;
-
-import net.oauth.OAuth;
-import net.oauth.OAuthAccessor;
-import net.oauth.OAuthConsumer;
-import net.oauth.OAuthException;
-import net.oauth.OAuthMessage;
+import com.google.inject.Inject;
 
 import java.net.Socket;
-import java.net.URISyntaxException;
 import java.util.List;
-import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
 import org.json.JSONException;
@@ -55,9 +48,24 @@ import java.io.PrintWriter;
 public class ClientRegistrationUtil {
 
   //Logging instance
-  private static final Logger log = Logger.getLogger(ClientRegistrationUtil.class);
+  private static final Logger LOG = Logger.getLogger(ClientRegistrationUtil.class);
   
-  private ClientRegistrationUtil() {} //Hide constructor for utility classes
+  // Injected Dependencies.
+  private RegistrationRequest registrationRequest;
+  private AuthRequest authRequest;
+  
+  /**
+   * Creates the client registration util with injected dependencies.
+   * 
+   * @param authRequest dependency.
+   * @param registrationRequest dependency.
+   */
+  @Inject
+  public ClientRegistrationUtil(AuthRequest authRequest, RegistrationRequest registrationRequest) {
+    this.authRequest = authRequest;
+    this.registrationRequest = registrationRequest;
+  }
+      
   public static final String INITIAL_HANDSHAKE_MSG = "connect v2.0";
  
   /**
@@ -70,59 +78,31 @@ public class ClientRegistrationUtil {
    * @throws AuthenticationException if authorization fails 
    * @throws IOException if socket communication errors occur.
    */
-  public static AuthRequest authorize(final Socket socket, 
+  public AuthRequest authorize(final Socket socket, 
       LocalConf localConf) throws AuthenticationException, IOException {
 
     String userEmail = localConf.getUser() + "@" + 
     localConf.getDomain();
-    log.info("Attempting login for " + userEmail);
+    LOG.info("Attempting login for " + userEmail);
 
     PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
     BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
     try {
       // send a message to initiate handshake with tunnelserver
-      log.info("Sending initial handshake msg");
+      LOG.info("Sending initial handshake msg");
       pw.println(INITIAL_HANDSHAKE_MSG);
       pw.flush();
       
-      /**
-       * 2 authn mechanism are available:
-       *   2-legged-oauth if localConfig has oauth key defined
-       *   otherwise, username/password mechanism
-      */
-      AuthRequest authRequest = new AuthRequest();
-      if (localConf.getAuthType() == AuthRequest.AuthType.OAUTH) {
-        // create oauth aignature + request string
-        long currentTime = System.currentTimeMillis() / 1000l;
-        OAuthConsumer consumer = new OAuthConsumer(null, localConf.getDomain(), 
-            localConf.getOauthKey(), null);
-        OAuthMessage message = new OAuthMessage("GET", AuthRequest.URL_FOR_OAUTH, 
-            new ArrayList<OAuth.Parameter>());
-        message.addParameter(OAuth.OAUTH_SIGNATURE_METHOD, AuthRequest.OAUTH_SIGNATURE_METHOD);
-        message.addParameter(OAuth.OAUTH_VERSION, OAuth.VERSION_1_0);
-        message.addParameter(OAuth.OAUTH_CONSUMER_KEY, consumer.consumerKey);
-        message.addParameter(OAuth.OAUTH_TIMESTAMP, Long.toString(
-            System.currentTimeMillis() / 1000l));
-        message.addParameter(OAuth.OAUTH_NONCE, "doesnotmatter");
-        message.addParameter(AuthRequest.OAUTH_REQUESTOR_ID_KEY, userEmail);
-        OAuthAccessor accessor = new OAuthAccessor(consumer);
-        message.sign(accessor);
-      
-        // create auth request packet
-        authRequest.setOauthString(AuthRequest.URL_FOR_OAUTH + "?" +
-            OAuth.formEncode(message.getParameters()));
-        log.info("Sending login packet: " + authRequest.toJson().toString());
-      } else if (localConf.getAuthType() == AuthRequest.AuthType.PASSWORD) {
+      if (localConf.getAuthType() == AuthRequest.AuthType.PASSWORD) {
         authRequest.setUser(localConf.getUser());
         authRequest.setDomain(localConf.getDomain());
-        log.info("Sending login packet: " + authRequest.toJson().toString());
+        LOG.info("Sending login packet: " + authRequest.toJson().toString());
        // set the password now - to avoid having it printed in the above step
         authRequest.setPassword(localConf.getPassword());
       } else {
-        // shouldn't haave come here because LocalConfValidator should have thrown error
-        throw new AuthenticationException("could find neither oauthkey nor password. " +
-            "can't authenticate. exiting");
+        // shouldn't have come here because LocalConfValidator should have thrown error
+        throw new AuthenticationException("Unsupported AuthType specified. Check localConfig.");
       }
       
       // send auth request packet
@@ -130,13 +110,13 @@ public class ClientRegistrationUtil {
       pw.flush();
       
       // wait for response and check.
-      log.debug("Reading auth response");
+      LOG.debug("Reading auth response");
       String jsonResponseString = br.readLine();
       if (jsonResponseString == null ||
           jsonResponseString.trim().length() == 0) {
         throw new AuthenticationException("No Authorization response recvd. exiting.");
       }
-      log.debug("Got an auth response");
+      LOG.debug("Got an auth response");
       
       String email = localConf.getUser() + "@" + localConf.getDomain();
       AuthResponse authResponse = new AuthResponse(new JSONObject(jsonResponseString));
@@ -144,16 +124,10 @@ public class ClientRegistrationUtil {
         throw new AuthenticationException("Authentication Failed for " + email + ": " + 
             authResponse.getStatus());
       }
-      log.info("Login for " + email + " successful");
+      LOG.info("Login for " + email + " successful");
       return authRequest;
     } catch (JSONException e) {
       throw new AuthenticationException("Mangled JSON response during auth", e);
-    } catch (URISyntaxException e) {
-      throw new AuthenticationException("Authentication Failed due to Oauth error: " + 
-          e.getMessage());
-    } catch (OAuthException e) {
-      throw new AuthenticationException("Authentication Failed due to Oauth error: " + 
-          e.getMessage());
     }
   }
   
@@ -169,7 +143,7 @@ public class ClientRegistrationUtil {
    *             backend issues.
    * @throws IOException if any socket communication issues occur.
    */
-  public static void register(final Socket socket, final AuthRequest authRequest, 
+  public void register(final Socket socket, final AuthRequest authRequest, 
       List<ResourceRule> resourceRules) throws RegistrationException, IOException {
 
     PrintWriter pw = new PrintWriter(socket.getOutputStream(), true);
@@ -178,20 +152,19 @@ public class ClientRegistrationUtil {
 
     try {
       // send registration request packet
-      RegistrationRequest regRequest = new RegistrationRequest();
-      regRequest.populateFromResources(resourceRules);
-      log.info("Registering rules: " + regRequest.toJson().toString());
-      pw.println(regRequest.toJson().toString());
+      registrationRequest.populateFromResources(resourceRules);
+      LOG.info("Registering rules: " + registrationRequest.toJson().toString());
+      pw.println(registrationRequest.toJson().toString());
       pw.flush();
     
       // Receive registration response packet
-      log.debug("Waiting for registration response");
+      LOG.debug("Waiting for registration response");
       String jsonResponseString = br.readLine();
       if (jsonResponseString == null ||
           jsonResponseString.trim().length() == 0) {
         throw new RegistrationException("No Registration response recvd. exiting.");
       }
-      log.debug("Read registration response: " + jsonResponseString);
+      LOG.debug("Read registration response: " + jsonResponseString);
 
       RegistrationResponse regResponse = new RegistrationResponse(
           new JSONObject(jsonResponseString));

@@ -1,6 +1,6 @@
 ServerRoot "_APACHE_ROOT_"
 
-Listen _APACHE_BIND_HOST_:_APACHE_PORT_
+_LISTENENTRIES_
 
 User _USER_
 Group _GROUP_
@@ -12,12 +12,6 @@ PidFile  "_APACHE_LOG_DIR_/httpd.pid"
 
 ProxyRequests on
 ProxyVia on
-
-
-<ProxyMatch .*>
-  Order deny,allow
-  Deny from all
-</ProxyMatch>
 
 _PROXYMATCHRULES_
 

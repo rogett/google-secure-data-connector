@@ -46,19 +46,17 @@ public class FakeLocalConfGenerator {
   public static final Integer SDC_SERVER_PORT = 443;
   public static final String DOMAIN = "test.joonix.net";
   public static final String USER = "testuser";
-  public static final String OAUTH_KEY = "testOauthKey";
+  public static final String PASSWORD = "testpassword";
   public static final String SSL_KEY_STORE_PASSWORD = "woodstock";
   public static final String SSL_KEY_STORE_FILE = "./testSecureLinkClientTrustStore";
   public static final String CLIENT_ID = "testClientId1";
   public static final String SSHD = "./sshd";
-  public static final Integer HTTP_PROXY_PORT = 31823;
   public static final String HTTP_PROXY_BIND_HOST = "127.0.0.1";
   public static final Integer SOCKS_SERVER_PORT = 1080;
   public static final String SOCKSD_BIND_HOST = "127.0.0.1";
   public static final String RULES_FILE = "/tmp/rulesConf.xml";
   public static final String APACHE_CONF_DIR = "/tmp/apache";
   public static final String APACHE_CTL = "/tmp/apacheroot/bin/apachectl";
-  public static final String APACHE_HTPASSWD = "/tmp/apacheroot/bin/htpassword";
   
   /**
    * Creates a configuration beans from the fake hardcoded XML files.  
@@ -68,7 +66,7 @@ public class FakeLocalConfGenerator {
     FeedServerEntry configEntry = new FeedServerEntry(CONFIG_XML);
     fakeLocalConf = new LocalConf();
     // TODO: write tests for LocalConf.AuthType.PASSWORD also
-    fakeLocalConf.setAuthType(AuthRequest.AuthType.OAUTH);
+    fakeLocalConf.setAuthType(AuthRequest.AuthType.PASSWORD);
     ContentUtil contentUtil = new ContentUtil();
     try {
       contentUtil.fillBean((OtherContent) configEntry.getContent(), fakeLocalConf);
@@ -103,18 +101,16 @@ public class FakeLocalConfGenerator {
     "<sdcServerPort>" + SDC_SERVER_PORT + "</sdcServerPort>\n" +
     "<domain>" + DOMAIN + "</domain>\n" +
     "<user>" + USER + "</user>\n" +
-    "<oauthKey>" + OAUTH_KEY + "</oauthKey>\n" +
+    "<password>" + PASSWORD + "</password>\n" +
     "<sslKeyStorePassword>" + SSL_KEY_STORE_PASSWORD + "</sslKeyStorePassword>\n" +
     "<sslKeyStoreFile>" + SSL_KEY_STORE_FILE +"</sslKeyStoreFile>\n" +
     "<clientId>" + CLIENT_ID + "</clientId>\n" +
     "<sshd>\n" + SSHD + "</sshd>\n" +
-    "<httpProxyPort>" + HTTP_PROXY_PORT + "</httpProxyPort>\n" +
     "<httpProxyBindHost>" + HTTP_PROXY_BIND_HOST + "</httpProxyBindHost>\n" +
     "<socksServerPort>" + SOCKS_SERVER_PORT + "</socksServerPort>\n" +
     "<socksdBindHost>" + SOCKSD_BIND_HOST + "</socksdBindHost>\n" +
     "<apacheConfDir>" + APACHE_CONF_DIR + "</apacheConfDir>\n" +
     "<apacheCtl>" + APACHE_CTL + "</apacheCtl>" +
-    "<apacheHtpasswd>" + APACHE_HTPASSWD + "</apacheHtpasswd>" +
     // We hard code socks properties and log properties because they are not used in our tests.
     "<socksProperties>\n" +
     "iddleTimeout    = 600000   # 10 minutes\n" +

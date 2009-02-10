@@ -126,26 +126,13 @@ public class ResourceRuleValidatorTest extends TestCase {
     fail("did not get ResourceException");
   }
   
-  // Name (Sequence ID)
-  public void testBadName() {
-    runtimeHttpResourceRule.setName("notANumber");
+  public void testRuleNumSetAsZero() {
+    runtimeHttpResourceRule.setRuleNum(0);
     
     try {
       resourceRuleValidator.validateRuntime(runtimeHttpResourceRule);
     } catch (ResourceException e) {
-      assertTrue(e.getMessage().contains("must be a valid integer"));
-      return;
-    }
-    fail("did not get ResourceException");
-  }
-  
-  public void testMissingName() {
-    runtimeHttpResourceRule.setName(null);
-    
-    try {
-      resourceRuleValidator.validateRuntime(runtimeHttpResourceRule);
-    } catch (ResourceException e) {
-      assertTrue(e.getMessage().contains("must be present"));
+      assertTrue(e.getMessage().contains("greater than 0"));
       return;
     }
     fail("did not get ResourceException");
@@ -190,6 +177,8 @@ public class ResourceRuleValidatorTest extends TestCase {
       testfail = false;
     }
     
+    // Reset test.
+    runtimeHttpResourceRule.setName(null);
     String[] allowedEntitiesSpace = { "has a space" };   
     runtimeHttpResourceRule.setAllowedEntities(allowedEntitiesSpace);
     try {

@@ -6,24 +6,24 @@
 # OPTIONS
 # -prefix Secure Data Connector install location
 # -httpd Apache2 httpd location (Must have mod_proxy).
-# -htpasswd Apache2 htpassword location
 # -opensshd OpenSSH daemon binary.
 
 PACKAGE="google-secure-data-connector"
 PREFIX="/usr/local"
 ETCPREFIX=
 VARPREFIX=
+APACHEVERSION="2.2"
 APACHECTL=
-HTPASSWD=
 MODULESDIR=
 OPENSSHD=
-JAVAHOME=
+JAVAHOME=${JAVAHOME}  # Get it from the environment
 USER=daemon
 GROUP=daemon
 USE_SUPPLIED_APACHE="false"
 LSB="false"
 NOVERIFY="false"
-APACHE_MODULES="auth_basic authn_file authz_host authz_user proxy proxy_http mime mime_magic"
+APACHE_20_MODULES="access proxy proxy_http mime mime_magic"
+APACHE_22_MODULES="authz_host proxy proxy_http mime mime_magic"
 
 # Save last run config options to config.status
 echo $0 $* > config.status
@@ -33,7 +33,7 @@ chmod 755 config.status
 [ -x "$(which getopt)" ] || { echo "gnu getopt binary not found." ; exit 1; }
 
 # Command line arguments
-OPTS=$(getopt -o h --long lsb,noverify,prefix:,etcprefix::,varprefix::,binprefix::,apachectl:,htpasswd::,opensshd:,apache_modules_dir::,javahome::,use_supplied_apache,user::,group:: -n 'configure' -- "$@") 
+OPTS=$(getopt -o h --long lsb,noverify,prefix:,etcprefix::,varprefix::,binprefix::,apachectl::,opensshd:,apache_modules_dir::,javahome::,use_supplied_apache,user::,group:: -n 'configure' -- "$@") 
 if [ $? != 0 ] || [ $# = 0 ]; then 
   echo -e "\nUsage:
     --lsb) use LSB defaults no other PREFIX options are neccessary
@@ -42,7 +42,6 @@ if [ $? != 0 ] || [ $# = 0 ]; then
     --varprefix) var prefix. defaults to $PREFIX/var
     --use_supplied_apache) no other apache/ht options are needed.
     --apachectl) location of apachectl binary.
-    --htpasswd) location of apache htpasswd binary.
     --apache_modules_dir) location of apache modules dir.
     --opensshd) location of openssh's sshd binary.
     --user) user to run woodstock as. Default is 'daemon'
@@ -65,7 +64,6 @@ while true; do
     --varprefix) VARPREFIX=$2; shift 2 ;;
     --binprefix) BINPREFIX=$2; shift 2 ;;
     --apachectl) APACHECTL=$2 ; shift 2 ;;
-    --htpasswd) HTPASSWD=$2 ; shift 2 ;;
     --apache_modules_dir) MODULESDIR=$2 ; shift 2 ;;
     --opensshd) OPENSSHD=$2 ; shift 2 ;;
     --javahome) JAVAHOME=$2 ; shift 2 ;;
@@ -97,17 +95,20 @@ fi
 
 # Check supplied apache and check.
 if [ ${USE_SUPPLIED_APACHE} = "true" ]; then
-  HTPASSWD=${PREFIX}/lib/apache/bin/htpasswd
   APACHECTL=${PREFIX}/lib/apache/bin/apachectl
   APACHEMODULES=""  # we dont use modules in the supplied apache.
 fi
 
-# Infer java binary location from JAVAHOME setting.
-if [ -z ${JAVAHOME} ]; then
-  JAVABIN=$(which java)
-else 
+# Infer java binary location from JAVA_HOME env, JAVAHOME env 
+# or --javabin setting.
+if [ ${JAVA_HOME} ]; then
+  JAVABIN=${JAVA_HOME}/bin/java
+elif [ ${JAVAHOME} ]; then
   JAVABIN=${JAVAHOME}/bin/java
+else # Try to figure it out.
+  JAVABIN=$(which java)
 fi
+
 
 #
 ### Verification Checks
@@ -138,32 +139,28 @@ if [ ${NOVERIFY} = "false" ]; then
       exit 1
     fi
   fi
-  
+
   # verify non supplied apache.
   if [ ${USE_SUPPLIED_APACHE} = "false" ]; then
+
+    # Check version
+    echo -n "checking apache version: " 
+    APACHEVERSION=$(${APACHECTL} -v | grep version | awk -F/ '{print $2}' \
+        | cut -c 1-3)
+    if [ ${APACHEVERSION} != "2.2" -a ${APACHEVERSION} != "2.0" ]; then
+      echo Apache version not correct - must be 2.0 or 2.2
+      exit 1
+    else 
+      echo ${APACHEVERSION}
+    fi
 
     if [ -z ${APACHECTL} ]; then
      echo "--apachectl option is missing!"
      exit 1
     fi
+
     if [ ! -x "${APACHECTL}" ]; then
       echo "httpd: ${APACHECTL} not found"
-      exit 1
-    fi
-    if [ -z ${HTPASSWD} ]; then
-      echo "--htpasswd option is missing!"
-      exit 1
-    fi
-    if [ ! -x "${HTPASSWD}" ]; then
-      echo "htpasswd: ${HTPASSWD} not found"
-      exit 1
-    fi
-
-    # Check version
-    echo checking apache version for 2.2
-    ${APACHECTL} -v |grep version |grep -q 2.2
-    if [ $? != 0 ]; then
-      echo "Secure Data Connector requires apache 2.2"
       exit 1
     fi
 
@@ -187,36 +184,69 @@ if [ ${NOVERIFY} = "false" ]; then
 
   # verify java binary.
   if [ -x "${JAVABIN}" ]; then
-    ${JAVABIN} -version 2>&1 | grep 'java version' |grep -q '1.[65]'
+    ${JAVABIN} -version 2>&1 | grep 'java version' |grep -q '1.6'
     if [ $? != 0 ]; then
+      echo "Java found at ${JAVABIN} not suitable."
       echo "Secure Data Connector requires JDK 1.6"
       exit 1
+    else
+      echo "Found java at ${JAVABIN}"
     fi
-  else 
+  else
     echo "Java could not be found at $JAVABIN"
     exit 1
   fi
-fi 
+
+fi
 
 #
 ### Getting Apache Module list for config files.
 #
+
+if [ ${APACHEVERSION} = "2.2" ]; then
+  APACHE_MODULES=${APACHE_22_MODULES}
+else
+  APACHE_MODULES=${APACHE_20_MODULES}
+fi
+
+#
+# Checks MODULESDIR for both apache 2.0 and 2.2 style module names and
+# echos the results (for use with eval).
+#
+# $1 module name.
+# 
+function getPathToModuleFile {
+
+  module=$1
+  if [ -e "${MODULESDIR}/mod_${module}.so" ]; then
+    echo "${MODULESDIR}/mod_${module}.so"
+  else 
+    echo "NOTFOUND"
+  fi
+
+  return
+}
 
 if [ ${USE_SUPPLIED_APACHE} = "false" ]; then
 
   FOUND_MODULES=""
   for module in ${APACHE_MODULES}; do
 
-    echo checking apache for $module
-    ${APACHECTL} -l |grep -q $module
+    echo -n checking for statically compiled module: ${module}:
+    ${APACHECTL} -l |grep -q ${module}
     if [ $? = 0 ]; then
       continue
     fi
-  
-    if [ ! -e "${MODULESDIR}/mod_${module}.so" ]; then
-      echo "${module} required.  for full list see APACHE_MODULES in this script."
+    echo " no"
+
+    echo -n checking dynamically compiled apache for: ${module}:
+    modulepath=$(getPathToModuleFile ${module})
+    if [ $modulepath = "NOTFOUND" ]; then
+      echo " no"
+      echo "Please install module \"${module}\"."
       exit 1
     fi
+    echo " yes"
 
     FOUND_MODULES="${FOUND_MODULES} ${module}"
   done
@@ -276,7 +306,8 @@ then
   echo ${FOUND_MODULES}
   for module in ${FOUND_MODULES}; do  # Add modules to template
     echo Configuring load for ${module}
-    echo "LoadModule ${module}_module ${MODULESDIR}/mod_${module}.so" >> ${template}
+    moduledir=$(getPathToModuleFile ${module})
+    echo "LoadModule ${module}_module ${moduledir}" >> ${template}
   done
 fi
 
@@ -290,7 +321,6 @@ template=config/localConfig.xml
 cp config/localConfig.xml-dist ${template}
 echo Generating ${template}
 sed -i ${template} -e 's^_APACHE_CTL_^'${APACHECTL}'^'
-sed -i ${template} -e 's^_APACHE_HTPASSWD_^'${HTPASSWD}'^'
 sed -i ${template} -e 's^_APACHE_CONF_DIR_^'${ETCPREFIX}'/apache^'
 sed -i ${template} -e 's^_START_SSHD_^'${ETCPREFIX}'/openssh/start_sshd.sh^'
 

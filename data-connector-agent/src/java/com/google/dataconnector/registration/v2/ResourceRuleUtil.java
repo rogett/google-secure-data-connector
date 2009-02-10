@@ -17,8 +17,10 @@
 
 package com.google.dataconnector.registration.v2;
 
+import com.google.dataconnector.registration.v2.RegistrationV2Annotations.MyHostname;
 import com.google.feedserver.util.BeanUtil;
 import com.google.feedserver.util.XmlUtil;
+import com.google.inject.Inject;
 
 import org.xml.sax.SAXException;
 
@@ -26,6 +28,8 @@ import java.beans.IntrospectionException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
+import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import javax.net.SocketFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 /**
@@ -50,24 +55,24 @@ public class ResourceRuleUtil {
   // Dependencies
   private XmlUtil xmlUtil;
   private BeanUtil beanUtil;
-
-  /**
-   * Creates a new resource util and its dependencies
-   */
-  public ResourceRuleUtil() {
-    this(new XmlUtil(), new BeanUtil());
-
-  }
+  private SocketFactory socketFactory;
+  private SocketAddress ephemeralLocalhostAddress;
 
   /**
    * Creates a new resource util with provided dependcies
    * 
    * @param xmlUtil utility to convert XML into map properties
    * @param beanUtil utility to covert properties map into a bean.
+   * @param ephemeralLocalhostAddress a created InetAddress resolved to localhost.
+   * @param socketFactory a way to get sockets such that we can bind with to get ephemeral ports.
    */
-  public ResourceRuleUtil(XmlUtil xmlUtil, BeanUtil beanUtil) {
+  @Inject
+  public ResourceRuleUtil(XmlUtil xmlUtil, BeanUtil beanUtil, SocketFactory socketFactory, 
+      @MyHostname SocketAddress ephemeralLocalhostAddress) {
     this.xmlUtil = xmlUtil;
     this.beanUtil = beanUtil;
+    this.ephemeralLocalhostAddress = ephemeralLocalhostAddress;
+    this.socketFactory = socketFactory;
   }
 
   /**
@@ -78,6 +83,33 @@ public class ResourceRuleUtil {
   public void setSecretKeys(List<ResourceRule> resourceRules) {
     for (ResourceRule resourceRule : resourceRules) {
       resourceRule.setSecretKey(new Random().nextLong());
+    }
+  }
+  
+  /**
+   * Gets ephermal port for each rule that is used to bind an Apache VirtualHost proxy to. 
+   * 
+   * @param resourceRules list of resource rules for this domain.
+   * @throws ResourceException if any socket errors occur while trying to bind.
+   */
+  public void getVirtualHostBindPortsAndSetHttpProxyPorts(List<ResourceRule> resourceRules) 
+      throws ResourceException {
+    for (ResourceRule resourceRule : resourceRules) {
+      // We only get ports for HTTP rules as others do not transverse the HTTP Proxy (apache)
+      if (!resourceRule.getPattern().startsWith(HTTP)) {
+        continue;
+      }
+      try {
+        // In order for the OS to return us an available ephemeral port we have to bind a socket
+        // to "127.0.0.1:0" we get the port then close the socket.  Its a bit lame but I have
+        // not found a better way to do it.
+        Socket socket = socketFactory.createSocket();
+        socket.bind(ephemeralLocalhostAddress);
+        resourceRule.setHttpProxyPort(socket.getLocalPort());
+        socket.close();
+      } catch (IOException e) {
+        throw new ResourceException("Error while trying to obtain ephemeral ports.", e);
+      }
     }
   }
 

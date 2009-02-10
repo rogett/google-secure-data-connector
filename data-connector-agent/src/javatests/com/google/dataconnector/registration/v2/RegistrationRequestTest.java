@@ -17,6 +17,8 @@
 package com.google.dataconnector.registration.v2;
 
 import com.google.dataconnector.registration.v2.testing.FakeResourceRuleConfig;
+import com.google.feedserver.util.BeanUtil;
+import com.google.feedserver.util.XmlUtil;
 
 import junit.framework.TestCase;
 
@@ -35,6 +37,7 @@ public class RegistrationRequestTest extends TestCase {
 
   private JSONObject registrationJson;
   private FakeResourceRuleConfig fakeResourceRuleConfig;
+  private ResourceRuleUtil resourceRuleUtil;
   
   @Override
   protected void setUp() throws Exception {
@@ -44,10 +47,13 @@ public class RegistrationRequestTest extends TestCase {
     JSONArray jsonArray = new JSONArray();
     jsonArray.put(FakeResourceRuleConfig.RUNTIME_RESOURCE_ENTITY_XML);
     registrationJson.put("resources", jsonArray);
+    // We don't need to provide socket and inet address because ResourceRequest does not call 
+    // RegistrationUtil#getVirtualHostBindPortsAndSetHttpProxyPorts
+    resourceRuleUtil = new ResourceRuleUtil(new XmlUtil(), new BeanUtil(), null, null);
   }
   
   public void testPopulateFromJSON() throws ResourceException {
-    RegistrationRequest registrationRequest = new RegistrationRequest();
+    RegistrationRequest registrationRequest = new RegistrationRequest(resourceRuleUtil);
     registrationRequest.populateFromJSON(registrationJson);
     ResourceRule actual = registrationRequest.getResources().get(0);
     ResourceRule expected = fakeResourceRuleConfig.getRuntimeHttpResourceRule();
@@ -55,7 +61,7 @@ public class RegistrationRequestTest extends TestCase {
   }
     
   public void testPopulateFromResources() throws ResourceException {
-    RegistrationRequest registrationRequest = new RegistrationRequest();
+    RegistrationRequest registrationRequest = new RegistrationRequest(resourceRuleUtil);
     ResourceRule expected = fakeResourceRuleConfig.getRuntimeHttpResourceRule();
     List<ResourceRule> resources = new ArrayList<ResourceRule>();
     resources.add(expected);

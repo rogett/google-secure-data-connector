@@ -30,12 +30,12 @@ public class FakeResourceRuleConfig {
 
   // Resource Values
   public static final String CLIENT_ID = "all";
-  public static final String HTTP_NAME = "1";
+  public static final int HTTP_RULE_NUM = 1;
   public static final String[] ALLOWED_ENTITY = 
       { "rcolline@test.joonix.net", "admin@test.joonix.net" };
   public static final String[] APPID = { "someappid", "someappid2" };
   public static final String HTTP_PATTERN = "http://www.example.com";
-  public static final String SOCKET_NAME = "2";
+  public static final int SOCKET_RULE_NUM = 2;
   public static final String SOCKET_PATTERN = "socket://128.195.131";
   public static final String HTTP_PROXY_PORT = "10000";
   public static final String SOCKS_SERVER_PORT = "1080";
@@ -57,23 +57,23 @@ public class FakeResourceRuleConfig {
     // Configure each resource rule to match XML.
     runtimeHttpResourceRule = getBaseResourceRule();
     runtimeHttpResourceRule.setPattern(HTTP_PATTERN);
-    runtimeHttpResourceRule.setName(HTTP_NAME);
+    runtimeHttpResourceRule.setRuleNum(HTTP_RULE_NUM);
     runtimeHttpResourceRule.setSecretKey(Long.valueOf(SECRET_KEY));
     runtimeHttpResourceRule.setHttpProxyPort(Integer.valueOf(HTTP_PROXY_PORT));
     runtimeHttpResourceRule.setSocksServerPort(Integer.valueOf(SOCKS_SERVER_PORT));
     runtimeHttpResourceRule.setAppIds(APPID);
     runtimeSocketResourceRule = getBaseResourceRule();
     runtimeSocketResourceRule.setPattern(SOCKET_PATTERN);
-    runtimeSocketResourceRule.setName(SOCKET_NAME);
+    runtimeSocketResourceRule.setRuleNum(SOCKET_RULE_NUM);
     runtimeSocketResourceRule.setSecretKey(Long.valueOf(SECRET_KEY));
     runtimeSocketResourceRule.setSocksServerPort(Integer.valueOf(SOCKS_SERVER_PORT));
     configHttpResourceRule = getBaseResourceRule();
     configHttpResourceRule.setPattern(HTTP_PATTERN);
-    configHttpResourceRule.setName(HTTP_NAME);
+    configHttpResourceRule.setRuleNum(HTTP_RULE_NUM);
     configHttpResourceRule.setAppIds(APPID);
     configSocketResourceRule = getBaseResourceRule();
     configSocketResourceRule.setPattern(SOCKET_PATTERN);
-    configSocketResourceRule.setName(SOCKET_NAME);
+    configSocketResourceRule.setRuleNum(SOCKET_RULE_NUM);
     
     // Add to Lists
     configResourceRules = new ArrayList<ResourceRule>();
@@ -126,7 +126,7 @@ public class FakeResourceRuleConfig {
 
   public static final String CONFIG_RESOURCE_RULES_XML = "<feed>\n" +
     "<entity repeatable='true'>\n" +
-    "<name>" + HTTP_NAME + "</name>\n" +
+    "<ruleNum>" + HTTP_RULE_NUM + "</ruleNum>\n" +
     "<clientId>" + CLIENT_ID + "</clientId>\n" +
     "<allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
     "<allowedEntities>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
@@ -135,7 +135,7 @@ public class FakeResourceRuleConfig {
     "<pattern>" + HTTP_PATTERN + "</pattern>\n" +
     "</entity>\n" +
     "<entity>\n" +
-    "<name>" + SOCKET_NAME + "</name>\n" +
+    "<ruleNum>" + SOCKET_RULE_NUM + "</ruleNum>\n" +
     "<clientId>" + CLIENT_ID + "</clientId>\n" +
     "<allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
     "<allowedEntities>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
@@ -145,7 +145,7 @@ public class FakeResourceRuleConfig {
   
   public static final String RUNTIME_RESOURCE_RULES_XML = "<feed>\n" +
     "<entity repeatable='true'>\n" +
-    "<name>" + HTTP_NAME + "</name>\n" +
+    "<ruleNum>" + HTTP_RULE_NUM + "</ruleNum>\n" +
     "<clientId>" + CLIENT_ID + "</clientId>\n" +
     "<allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
     "<allowedEntities>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
@@ -157,7 +157,7 @@ public class FakeResourceRuleConfig {
     "<secretKey>" + SECRET_KEY +"</secretKey>\n" +
     "</entity>\n" +
     "<entity>\n" +
-    "<name>" + SOCKET_NAME + "</name>\n" +
+    "<ruleNum>" + SOCKET_RULE_NUM + "</ruleNum>\n" +
     "<clientId>" + CLIENT_ID + "</clientId>\n" +
     "<allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
     "<allowedEntities>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
@@ -169,7 +169,7 @@ public class FakeResourceRuleConfig {
   
   public static final String RUNTIME_RESOURCE_ENTITY_XML =
     "<entity repeatable='true'>\n" +
-    "<name>" + HTTP_NAME + "</name>\n" +
+    "<ruleNum>" + HTTP_RULE_NUM + "</ruleNum>\n" +
     "<clientId>" + CLIENT_ID + "</clientId>\n" +
     "<allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
     "<allowedEntities>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +

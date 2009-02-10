@@ -32,7 +32,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.security.Principal;
@@ -68,6 +67,7 @@ public class SecureDataConnection {
   private LocalConf localConf;
   private List<ResourceRule> resourceRules;
   private SSLSocketFactory sslSocketFactory;
+  private ClientRegistrationUtil clientRegistrationUtil;
 
   /**
    * Sets up a Secure Data connection to a Secure Link server with the supplied configuration.
@@ -78,10 +78,11 @@ public class SecureDataConnection {
    */
   @Inject
   public SecureDataConnection(LocalConf localConf, List<ResourceRule> resourceRules,
-      SSLSocketFactory sslSocketFactory) {
+      SSLSocketFactory sslSocketFactory, ClientRegistrationUtil clientRegistrationUtil) {
     this.localConf = localConf;
     this.resourceRules = resourceRules;
     this.sslSocketFactory = sslSocketFactory;
+    this.clientRegistrationUtil = clientRegistrationUtil;
   }
 
   /**
@@ -109,8 +110,8 @@ public class SecureDataConnection {
     }
 
     // Attempt to login
-    AuthRequest authRequest = ClientRegistrationUtil.authorize(clientSocket, localConf);
-    ClientRegistrationUtil.register(clientSocket, authRequest,  resourceRules);
+    AuthRequest authRequest = clientRegistrationUtil.authorize(clientSocket, localConf);
+    clientRegistrationUtil.register(clientSocket, authRequest,  resourceRules);
     log.info("Login successful as " + localConf.getUser() + "@" + 
         localConf.getDomain());
 
