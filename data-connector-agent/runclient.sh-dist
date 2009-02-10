@@ -121,7 +121,8 @@ while /bin/true; do
   su ${USER} -c "_JAVABIN_ ${JVM_ARGS} com.google.dataconnector.client.Client \
     ${DEBUG} \
     -localConfigFile \"${CONFIGFILE}\" \
-    -rulesFile \"${RULESFILE}\""
+    -rulesFile \"${RULESFILE}\" \
+    $*"
   sleep 5
   echo "RECONNECTING..."
 done
