@@ -114,28 +114,18 @@ Build File for Secure Data Connector client and reference server.
         compression="gzip"
         excludes="third-party/jsch/com/**,tmp/**, third-party/*/docs/**">
       <tarfileset dir="." prefix="data-connector-agent">
-        <include name="build.xml"/>
+        <include name="*-dist"/>
         <include name="src/**"/>
         <include name="CHANGE_LOG"/>
         <include name="COPYING"/>
-        <include name="config/*"/>
+        <include name="README"/>
+        <include name="config/**"/>
         <include name="third-party/**"/>
       </tarfileset>
-      <tarfileset dir="." mode="600" prefix="data-connector-agent">
-        <include name="third-party/openssh/etc/*"/>
-        <include name="third-party/openssh/home/woodstock/.ssh/*"/>
-      </tarfileset>
       <tarfileset dir="." mode="755" prefix="data-connector-agent">
-      	<include name="third-party/openssh/sbin/*"/>
-	      <include name="third-party/java-service-wrapper/windows/*.bat"/>
-      	<include name="third-party/java-service-wrapper/windows/bin/*.exe"/>
       	<include name="third-party/java-service-wrapper/linux/googlesdc.sh"/>
-	      <include name="third-party/java-service-wrapper/linux/bin/*"/>
-        <include name="runclient.sh"/>
-	      <include name="runclient.bat"/>
-        <include name="setup.sh"/>
-        <include name="start.sh"/>
-        <include name="stop.sh"/>
+	<include name="third-party/java-service-wrapper/linux/bin/*"/>
+        <include name="configure.sh"/>
       </tarfileset>
     </tar>
   </target>
