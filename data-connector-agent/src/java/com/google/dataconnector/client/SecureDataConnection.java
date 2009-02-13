@@ -103,7 +103,9 @@ public class SecureDataConnection {
       clientSocket.connect(new InetSocketAddress(localConf.getSdcServerHost(),
           localConf.getSdcServerPort()), 30 *1000);
       
-      verifySubjectInCertificate(clientSocket);
+      if (!localConf.getAllowUnverifiedCertificates()) {
+        verifySubjectInCertificate(clientSocket);
+      }
       
     } catch (SocketTimeoutException e) {
       throw new ConnectionException(e);

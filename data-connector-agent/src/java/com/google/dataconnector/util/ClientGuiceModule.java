@@ -16,6 +16,7 @@
  */
 package com.google.dataconnector.util;
 
+import com.google.dataconnector.client.testing.TrustAllTrustManager;
 import com.google.dataconnector.registration.v2.ResourceException;
 import com.google.dataconnector.registration.v2.ResourceRule;
 import com.google.dataconnector.registration.v2.ResourceRuleUtil;
@@ -37,6 +38,7 @@ import java.util.List;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
 /**
@@ -177,11 +179,16 @@ public class ClientGuiceModule extends AbstractModule {
         // Get a new "Java Key Store"
         KeyStore keyStore = KeyStore.getInstance("JKS");
         // Load with our trusted certs and setup the trust manager.
-        keyStore.load(new FileInputStream(keystorePath), password);
-        TrustManagerFactory tmf = TrustManagerFactory.getInstance("PKIX");
-        tmf.init(keyStore);
+        if (!localConfiguration.getAllowUnverifiedCertificates()) {
+	      keyStore.load(new FileInputStream(keystorePath), password);
+	      TrustManagerFactory tmf = TrustManagerFactory.getInstance("PKIX");
+	      tmf.init(keyStore);
+          context.init(null, tmf.getTrustManagers(), null);
+        } else {
+          // Use bogus trust all manager
+          context.init(null, new TrustManager[] { new TrustAllTrustManager() }, null);
+        }
         // Create the SSL context with our private store.
-        context.init(null, tmf.getTrustManagers(), null);
       } else {
         // Use the JVM default as trusted store. This would be located somewhere around
         // jdk.../jre/lib/security/cacerts, and will contain widely used CAs.

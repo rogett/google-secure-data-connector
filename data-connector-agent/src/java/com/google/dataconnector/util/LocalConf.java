@@ -75,6 +75,8 @@ public class LocalConf {
   private String apacheConfDir;
   @Flag(help = "Turn on debug logging.")
   private Boolean debug = DEBUG;
+  @Flag(help = "Allow unverified certificates")
+  private Boolean allowUnverifiedCertificates = false;
   
   // Config File Only
   private String logProperties;
@@ -245,5 +247,13 @@ public class LocalConf {
 
   public void setDebug(Boolean debug) {
     this.debug = debug;
+  }
+
+  public void setAllowUnverifiedCertificates(Boolean allowUnverifiedCertificates) {
+    this.allowUnverifiedCertificates = allowUnverifiedCertificates;
+  }
+
+  public Boolean getAllowUnverifiedCertificates() {
+    return allowUnverifiedCertificates;
   }
 }
