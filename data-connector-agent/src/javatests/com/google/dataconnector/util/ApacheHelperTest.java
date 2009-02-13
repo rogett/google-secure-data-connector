@@ -191,6 +191,7 @@ public class ApacheHelperTest extends TestCase {
     
     // We ignore the real conf and only put in the values that ApacheHelper should substitute.
     String testConf = "_PROXYMATCHRULES_\n" +
+        "_PID_FILE_\n" +
         "_LISTENENTRIES_\n";
     
     // Setup test.
@@ -233,6 +234,7 @@ public class ApacheHelperTest extends TestCase {
     
     // We ignore the real conf and only put in the values that ApacheHelper should substitute.
     String testConf = "_PROXYMATCHRULES_\n" +
+        "_PID_FILE_\n" +
         "_LISTENENTRIES_\n";
     
     // Setup test.
@@ -342,6 +344,12 @@ public class ApacheHelperTest extends TestCase {
       }
       
       String httpConf = (String) arg0;  
+      
+      // Check httpd.pid
+      if (!httpConf.contains(localConf.getApacheConfDir() + File.separator +
+          "httpd.pid-" + localConf.getClientId())) {
+        return false;
+      }
       
       // Verify each pattern is in the written httpd conf.
       for (ResourceRule resourceRule : resourceRules) { 

@@ -8,7 +8,7 @@ Group _GROUP_
 ServerAdmin sdc@localhost
 DocumentRoot "_APACHE_ROOT_/htdocs"
 TypesConfig "_APACHE_ROOT_/mime.types"
-PidFile  "_APACHE_LOG_DIR_/httpd.pid"
+PidFile  "_PID_FILE_"
 
 ProxyRequests on
 ProxyVia on

@@ -156,6 +156,8 @@ public class ApacheHelper {
       String httpdConf = fileUtil.readFile(httpConfTemplateFilename);
       
       // Perform Replacement
+      httpdConf = httpdConf.replace("_PID_FILE_", localConf.getApacheConfDir() + File.separator +
+          "httpd.pid-" + localConf.getClientId());
       httpdConf = httpdConf.replace("_PROXYMATCHRULES_", makeProxyMatchConfEntries());
       httpdConf = httpdConf.replace("_LISTENENTRIES_", makeListenEntries());
       
