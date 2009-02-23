@@ -184,7 +184,7 @@ if [ ${NOVERIFY} = "false" ]; then
 
   # verify java binary.
   if [ -x "${JAVABIN}" ]; then
-    ${JAVABIN} -version 2>&1 | grep 'java version' |grep -q '1.6'
+    ${JAVABIN} -version 2>&1 | grep 'version' |grep -q '1.6'
     if [ $? != 0 ]; then
       echo "Java found at ${JAVABIN} not suitable."
       echo "Secure Data Connector requires JDK 1.6"

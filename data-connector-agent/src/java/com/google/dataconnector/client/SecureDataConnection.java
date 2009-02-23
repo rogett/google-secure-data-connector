@@ -24,8 +24,6 @@ import com.google.inject.Inject;
 
 import org.apache.log4j.Logger;
 
-import sun.security.x509.X500Name;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,6 +35,9 @@ import java.net.SocketTimeoutException;
 import java.security.Principal;
 import java.util.List;
 
+import javax.naming.InvalidNameException;
+import javax.naming.ldap.LdapName;
+import javax.naming.ldap.Rdn;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
@@ -57,8 +58,8 @@ public class SecureDataConnection {
   public static final Integer DEFAULT_SOCKS_PORT = 1080;
   private static final String PERMIT_OPEN_OPT = "-o PermitOpen=";
 
+  // TODO(rayc) Add in 256 cipher support if policy jars allow.
   private static final String[] SECURE_CIPHER_SUITE = {
-    "TLS_RSA_WITH_AES_256_CBC_SHA",
     "TLS_RSA_WITH_AES_128_CBC_SHA"
   };
 
@@ -104,7 +105,7 @@ public class SecureDataConnection {
           localConf.getSdcServerPort()), 30 *1000);
       
       if (!localConf.getAllowUnverifiedCertificates()) {
-        verifySubjectInCertificate(clientSocket);
+        verifySubjectInCertificate(clientSocket.getSession());
       }
       
     } catch (SocketTimeoutException e) {
@@ -164,28 +165,54 @@ public class SecureDataConnection {
    * Verifies that the server certificate has the correct Subject DN name.
    * Throws an exception otherwise, since the server may be impersonating a 
    * legitimate Tunnel Server.
+   * 
+   * @throws ConnectionException if server name does not match, DN is un-parseable or the 
+   * SSLSession does not have a peer certificate.
    */
-  private void verifySubjectInCertificate(SSLSocket clientSocket)
-      throws SSLPeerUnverifiedException, ConnectionException, IOException {
-    
-    SSLSession session = clientSocket.getSession();
-    X509Certificate[] certificates = session.getPeerCertificateChain();
+  void verifySubjectInCertificate(SSLSession session)
+      throws ConnectionException {
 
-    X509Certificate certificate = certificates[0];  // The first one is the server.
-    Principal principal = certificate.getSubjectDN();
-    if (!(principal instanceof X500Name)) {
-      log.error("Certificate DN was not a proper X.500 name.");
-      throw new ConnectionException("Certificate DN was not a proper X.500 name.");
+    // Get Principal from session.
+    X509Certificate cert;
+    try {
+      cert = session.getPeerCertificateChain()[0];
+    } catch (SSLPeerUnverifiedException e) {
+      throw new ConnectionException(e);
     }
-    X500Name name = (X500Name) principal;
-    String serverName = name.getCommonName();
-    if (serverName == null || !serverName.equals(localConf.getSdcServerHost())) {
-      String errorMessage = "Wrong server X.500 name. Expected: <"
-        + localConf.getSdcServerHost() + ">. Actual: <" + serverName + ">.";
+    Principal principal = cert.getSubjectDN();
+
+    // Compare CNs between actual host and the one we thought we connected to.
+    Rdn expectedCn;
+    try {
+      expectedCn = new Rdn("CN", localConf.getSdcServerHost());
+
+      // Get actual CN
+      LdapName ldapName = new LdapName(principal.getName());
+      Rdn actualCn = null;
+      for (Rdn rdn : ldapName.getRdns()) {
+        if (rdn.getType().equals("CN")) {
+          actualCn = rdn;
+          break;
+        }
+      }
+      // Reported CN must match expected.
+      if (expectedCn.equals(actualCn)) {
+        return;
+      }
+
+      // No match, FAIL.
+      String errorMessage = "Wrong server X.500 name. Expected: <" +
+        localConf.getSdcServerHost() + ">. Actual: <" + 
+        (actualCn == null ? "null" : actualCn.getValue()) + ">."; 
       log.error(errorMessage);
       throw new ConnectionException(errorMessage);
+
+    } catch (InvalidNameException e) {
+      throw new ConnectionException(e);
     }
   }
+  
+  
 
   /**
    * A thread to take data from the given stream and write it to the logger instance provided.
