@@ -22,8 +22,6 @@ GROUP=daemon
 USE_SUPPLIED_APACHE="false"
 LSB="false"
 NOVERIFY="false"
-APACHE_20_MODULES="access proxy proxy_http mime mime_magic"
-APACHE_22_MODULES="authz_host proxy proxy_http mime mime_magic"
 
 # Save last run config options to config.status
 echo $0 $* > config.status
@@ -96,7 +94,6 @@ fi
 # Check supplied apache and check.
 if [ ${USE_SUPPLIED_APACHE} = "true" ]; then
   APACHECTL=${PREFIX}/lib/apache/bin/apachectl
-  APACHEMODULES=""  # we dont use modules in the supplied apache.
 fi
 
 # Infer java binary location from JAVA_HOME env, JAVAHOME env 
@@ -143,25 +140,24 @@ if [ ${NOVERIFY} = "false" ]; then
   # verify non supplied apache.
   if [ ${USE_SUPPLIED_APACHE} = "false" ]; then
 
-    # Check version
-    echo -n "checking apache version: " 
-    APACHEVERSION=$(${APACHECTL} -v | grep version | awk -F/ '{print $2}' \
-        | cut -c 1-3)
-    if [ ${APACHEVERSION} != "2.2" -a ${APACHEVERSION} != "2.0" ]; then
-      echo Apache version not correct - must be 2.0 or 2.2
-      exit 1
-    else 
-      echo ${APACHEVERSION}
-    fi
-
     if [ -z ${APACHECTL} ]; then
      echo "--apachectl option is missing!"
+     exit 1
+    fi
+ 
+   if [ -z ${MODULESDIR} ]; then
+     echo "--apache_modules_dir option is missing!"
      exit 1
     fi
 
     if [ ! -x "${APACHECTL}" ]; then
       echo "httpd: ${APACHECTL} not found"
       exit 1
+    fi
+ 
+   if [ ! -x ${MODULESDIR} ]; then
+     echo "Apache modules directory ${MODULESDIR} not found!" 
+     exit 1
     fi
 
   fi
@@ -197,59 +193,6 @@ if [ ${NOVERIFY} = "false" ]; then
     exit 1
   fi
 
-fi
-
-#
-### Getting Apache Module list for config files.
-#
-
-if [ ${APACHEVERSION} = "2.2" ]; then
-  APACHE_MODULES=${APACHE_22_MODULES}
-else
-  APACHE_MODULES=${APACHE_20_MODULES}
-fi
-
-#
-# Checks MODULESDIR for both apache 2.0 and 2.2 style module names and
-# echos the results (for use with eval).
-#
-# $1 module name.
-# 
-function getPathToModuleFile {
-
-  module=$1
-  if [ -e "${MODULESDIR}/mod_${module}.so" ]; then
-    echo "${MODULESDIR}/mod_${module}.so"
-  else 
-    echo "NOTFOUND"
-  fi
-
-  return
-}
-
-if [ ${USE_SUPPLIED_APACHE} = "false" ]; then
-
-  FOUND_MODULES=""
-  for module in ${APACHE_MODULES}; do
-
-    echo -n checking for statically compiled module: ${module}:
-    ${APACHECTL} -l |grep -q ${module}
-    if [ $? = 0 ]; then
-      continue
-    fi
-    echo " no"
-
-    echo -n checking dynamically compiled apache for: ${module}:
-    modulepath=$(getPathToModuleFile ${module})
-    if [ $modulepath = "NOTFOUND" ]; then
-      echo " no"
-      echo "Please install module \"${module}\"."
-      exit 1
-    fi
-    echo " yes"
-
-    FOUND_MODULES="${FOUND_MODULES} ${module}"
-  done
 fi
 
 #
@@ -301,20 +244,25 @@ template=config/apache/httpd.conf-template
 cp config/apache/httpd.conf-dist ${template}
 echo Generating ${template}
 
-if [ ! -z "${FOUND_MODULES}" ]; 
-then
-  echo ${FOUND_MODULES}
-  for module in ${FOUND_MODULES}; do  # Add modules to template
-    echo Configuring load for ${module}
-    moduledir=$(getPathToModuleFile ${module})
-    echo "LoadModule ${module}_module ${moduledir}" >> ${template}
-  done
-fi
-
 sed -i ${template} -e 's^_APACHE_ROOT_^'${ETCPREFIX}'/apache^'
 sed -i ${template} -e 's^_APACHE_LOG_DIR_^'${VARPREFIX}'/log^'
 sed -i ${template} -e 's^_USER_^'${USER}'^'
 sed -i ${template} -e 's^_GROUP_^'${GROUP}'^'
+
+# Edit configure_apache.sh
+template=config/apache/configure_apache.sh
+cp config/apache/configure_apache.sh-dist ${template}
+echo Generating ${template}
+sed -i ${template} -e 's^_APACHE_CTL_^'${APACHECTL}'^'
+sed -i ${template} -e 's^_APACHE_MODULESDIR_^'${MODULESDIR}'^'
+sed -i ${template} -e 's^_APACHE_CONF_DIR_^'${ETCPREFIX}'/apache^'
+
+# Edit configure_sshdconf.sh
+template=config/openssh/configure_sshdconf.sh
+cp config/openssh/configure_sshdconf.sh-dist ${template}
+echo Generating ${template}
+sed -i ${template} -e 's^_SSHDCONF_^'${ETCPREFIX}'/openssh/sshd_config^'
+sed -i ${template} -e 's^_SSHD_^'${OPENSSHD}'^'
 
 # Edit localConf.xml-dist
 template=config/localConfig.xml

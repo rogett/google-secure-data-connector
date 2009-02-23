@@ -29,8 +29,9 @@ ClientAliveCountMax 2
 # Delay compression until after the user has authenticated successfully.
 Compression delayed
 
+# Default = No, disabling directive  and using PermitOpen option in authoried_keys file
 # Do not permit device tunnelling.
-PermitTunnel no
+# PermitTunnel no
 
 # Allow forwarding of TCP connections.
 AllowTcpForwarding yes

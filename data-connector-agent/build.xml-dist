@@ -61,6 +61,8 @@ Build File for Secure Data Connector client and reference server.
     <delete file="config/openssh/start_sshd.sh"/>
     <delete file="config/openssh/sshd_config"/>
     <delete file="config/apache/httpd.conf-template"/>
+    <delete file="config/openssh/configure_sshdconf.sh"/>
+    <delete file="config/apache/configure_apache.sh"/>
   </target>
 
   <target name="dist-clean-httpd" depends="clean">

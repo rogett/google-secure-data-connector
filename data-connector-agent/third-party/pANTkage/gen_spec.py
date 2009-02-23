@@ -18,6 +18,8 @@
 #
 
 
+
+
 """Interctive Spec file generator 
 
 A script to aid in the generation of a spec file.  It prompts user for need
@@ -38,6 +40,7 @@ FLAGS.set_string('description', None, 'description of the package')
 FLAGS.set_string('sourceloc', None, 'location of source tar')
 FLAGS.set_string('group', None, 'package group')
 FLAGS.set_string('type', 'bin', 'src or bin package')
+FLAGS.set_string('buildarch', 'noarch', 'build architecture')
 FLAGS.set_string('deps', None, 'rpm dependencies')
 FLAGS.process_flags()
 
@@ -60,6 +63,7 @@ def make_Spec(template):
   saveSpec.write("Group: " + str(FLAGS.flags['group']) + '\n')
   if str(FLAGS.flags['deps']) != 'None':
     saveSpec.write('Requires: ' +str(FLAGS.flags['deps']) + '\n')
+  saveSpec.write("BuildArch: " +str(FLAGS.flags['buildarch']) + '\n')
   saveSpec.write("BuildRoot: %_topdir/BUILD/%{name}-root" + '\n\n')
   saveSpec.write("%description" + '\n' + str(FLAGS.flags['description']) + '\n\n')
   #saveSpec.write("%prep \n")

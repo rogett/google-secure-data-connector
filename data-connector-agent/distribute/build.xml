@@ -46,21 +46,32 @@ Build File for Secure Data Connector client and reference server.
     <mkdir dir="${dist}" />
   </target>
 
-  <target name="clean-distro" description="Deletes all build files.">
+  <target name="clean-distro-all" depends="clean">
+    <delete file="${dist}/${name}-${version}-${release}-bin.tar.gz" />
+    <delete file="${dist}/${name}-${version}-${release}-src.tar.gz" />
+    <delete file="${dist}/${name}_${version}-${release}_i386.deb" />
+    <delete file="${dist}/${name}-${version}-${release}.noarch.rpm" />
+    <delete file="${dist}/${name}-${version}-${release}.src.rpm" />
+  </target>
+
+  <target name="clean-distro" depends="clean">
     <delete file="${dist}/${name}-${version}-${release}-bin.tar.gz" />
     <delete file="${dist}/${name}-${version}-${release}-src.tar.gz" />
   </target>
  
   <target name="clean" description="Deletes all build files.">
     <delete file="${deb}" />
+    <exec dir="." executable="ant">
+      <arg value="dist-clean"/>
+    </exec>
   </target>
  
   <target name="lsb" depends="init">
     <exec dir="." executable="./configure.sh">
       <arg value="--lsb"/>
       <arg value="--openssh=/usr/sbin/sshd"/>
+      <arg value="--noverify"/>
       <arg value="--apachectl=/usr/sbin/apache2ctl"/>
-      <arg value="--htpasswd=/usr/bin/htpasswd"/>
       <arg value="--javahome=/usr"/>
     </exec>
    <ant 
@@ -70,13 +81,12 @@ Build File for Secure Data Connector client and reference server.
    </target>
 
 
-  <target name="cfgdeb" depends="init,clean-distro">
+  <target name="cfgdeb" depends="init,clean">
     <exec dir="." executable="./configure.sh">
       <arg value="--lsb"/>
       <arg value="--noverify"/>
       <arg value="--openssh=/usr/sbin/sshd"/>
       <arg value="--apachectl=/usr/sbin/apache2ctl"/>
-      <arg value="--htpasswd=/usr/bin/htpasswd"/>
       <arg value="--apache_modules_dir=/usr/lib/apache2/modules"/>
       <arg value="--javahome=/usr"/>
     </exec>
@@ -87,14 +97,14 @@ Build File for Secure Data Connector client and reference server.
    </target>
 
 
-  <target name="cfgrpm" depends="init,clean-distro">
+  <target name="cfgrpm" depends="init,clean">
    <mkdir dir="/rpm" /> 
    <exec dir="." executable="./configure.sh">
       <arg value="--lsb"/>
       <arg value="--noverify"/>
       <arg value="--openssh=/usr/sbin/sshd"/>
       <arg value="--apachectl=/usr/sbin/apachectl"/>
-      <arg value="--htpasswd=/usr/bin/htpasswd"/>
+      <arg value="--apache_modules_dir=/usr/lib/httpd/modules"/>
       <arg value="--user=securedataconnector"/>
       <arg value="--group=securedataconnector"/>
       <arg value="--javahome=/usr"/>
@@ -120,6 +130,8 @@ Build File for Secure Data Connector client and reference server.
         <include name="COPYING"/>
         <include name="README"/>
         <include name="config/**"/>
+        <include name="distribute/*"/>
+        <include name="distribute/debian/*"/>
         <include name="third-party/**"/>
       </tarfileset>
       <tarfileset dir="." mode="755" prefix="data-connector-agent">
@@ -140,7 +152,7 @@ Build File for Secure Data Connector client and reference server.
           config/apache/*,
           COPYING,
           CHANGE_LOG,
-          build/agent.jar,
+	  build/agent.jar,
           build/protocol.jar,
           third-party/jsocks/jsocks.jar,
           third-party/jsocks/third-party/**,
@@ -168,6 +180,15 @@ Build File for Secure Data Connector client and reference server.
         <include name="config/openssh/*"/>
       </tarfileset>
       <tarfileset dir="." mode="755">
+        <include name="configure.sh"/>
+      </tarfileset>
+      <tarfileset dir="." mode="755">
+        <include name="config/openssh/configure_sshdconf.sh"/>
+      </tarfileset>
+      <tarfileset dir="." mode="755">
+        <include name="config/apache/configure_apache.sh"/>
+      </tarfileset>
+      <tarfileset dir="." mode="755">
         <include name="third-party/java-service-wrapper/linux/googlesdc.sh"/>
         <include name="third-party/java-service-wrapper/linux/bin/*"/>
         <include name="runclient.sh"/>
@@ -189,7 +210,7 @@ Build File for Secure Data Connector client and reference server.
          package="google-secure-data-connector"
          section="net"
          architecture="i386"
-         depends="sun-java6-jre (>=6), openssh-server (>=4.7), apache2 (>=2.2)"
+         depends="sun-java6-jre (>=6), openssh-server (>=3), apache2 (>=2)"
          postinst="distribute/debian/securedataconnector.postinst"
          prerm="distribute/debian/securedataconnector.prerm"
          postrm="distribute/debian/securedataconnector.postrm">
@@ -245,6 +266,12 @@ http://code.google.com/
         <include name="runclient.sh"/>
       </tarfileset>
       <tarfileset dir="config" prefix="etc/opt/${name}" filemode="750">
+        <include name="openssh/configure_sshdconf.sh"/>
+      </tarfileset>
+      <tarfileset dir="config" prefix="etc/opt/${name}" filemode="750">
+        <include name="apache/configure_apache.sh"/>
+      </tarfileset>
+      <tarfileset dir="config" prefix="etc/opt/${name}" filemode="750">
         <include name="openssh/start_sshd.sh"/>
       </tarfileset>
       <tarfileset dir="config/openssh" prefix="etc/opt/${name}/woodstock-user/.ssh" filemode="640">
@@ -259,7 +286,7 @@ http://code.google.com/
  In the mean time we can run ant deb and ant rpm separately and then all for tarballs.
 --> 
 
-	  <target name="all" depends="clean-distro,source-distro,binary-distro"/>
+	  <target name="all" depends="clean-distro-all,source-distro,binary-distro,rpm,deb"/>
 
 </project>
 

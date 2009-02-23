@@ -40,7 +40,11 @@ if [ "$1" = "configure" ]; then
   chmod 640 /etc/opt/$PKG_NAME/resourceRules.xml 
 
   chown -R root:$CLIENT_GROUP /etc/opt/$PKG_NAME/apache 
+
+  # Configure apache modules
+  /etc/opt/$PKG_NAME/apache/configure_apache.sh
   chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/$PKG_NAME/apache/httpd.conf-template 
+
   chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/$PKG_NAME/apache/mime.types
   chmod 770 /etc/opt/$PKG_NAME/apache 
   chmod 640 /etc/opt/$PKG_NAME/apache/httpd.conf-template
@@ -52,8 +56,11 @@ if [ "$1" = "configure" ]; then
   chmod 600 /etc/opt/$PKG_NAME/openssh/ssh_host_rsa_key
   chmod 600 /etc/opt/$PKG_NAME/openssh/ssh_host_rsa_key.pub
   chmod 750 /etc/opt/$PKG_NAME/openssh/start_sshd.sh
-  chmod 600 /etc/opt/$PKG_NAME/openssh/sshd_config
   chmod 600 /etc/opt/$PKG_NAME/woodstock-user/.ssh/authorized_keys 
+ 
+  # Configure sshd_config
+  /etc/opt/$PKG_NAME/openssh/configure_sshdconf.sh
+  chmod 600 /etc/opt/$PKG_NAME/openssh/sshd_config
 
   chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/$PKG_NAME/openssh/ssh_host_dsa_key
   chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/$PKG_NAME/openssh/ssh_host_dsa_key.pub
@@ -65,32 +72,6 @@ if [ "$1" = "configure" ]; then
  
   # Create htdocs path for apache
   mkdir -p /etc/opt/$PKG_NAME/apache/htdocs
-
-# Test and Configure Apache Modules
-APACHE_MODULES="auth_basic authn_file authz_host authz_user proxy proxy_http mime mime_magic"
-APACHECTL=`which apache2ctl`
-MODULESDIR="/usr/lib/apache2/modules"
-TEMPLATE="/etc/opt/$PKG_NAME/apache/httpd.conf-template"
-FOUND_MODULES=""
-
-  for module in ${APACHE_MODULES}; do
-    if ${APACHECTL} -l |grep -q $module; then
-      continue
-    fi
-    if [ -e "${MODULESDIR}/mod_${module}.so" ]; then
-      FOUND_MODULES="${FOUND_MODULES} ${module}"
-    else
-       echo Apache ${MODULESDIR}/mod_${module}.so not found in $MODULESDIR.
-       echo "You will need to update $TEMPLATE manually to use the correct apache modules $APACHE_MODULES"
-    fi
-  done
-
-# Edit httpd.conf-dist
-template=/etc/opt/$PKG_NAME/apache/httpd.conf-template
-for module in ${FOUND_MODULES}; do  # Add modules to template
-  echo Configuring Apache LoadModule for ${module}
-  echo "LoadModule ${module}_module ${MODULESDIR}/mod_${module}.so" >> ${template}
-done
 
 fi
 

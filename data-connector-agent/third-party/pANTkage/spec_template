@@ -6,9 +6,29 @@
 
 %prep 
 #%setup -c -n %{name}-%{version} 
+rm -rf $RPM_BUILD_ROOT
+mkdir -p $RPM_BUILD_ROOT
+mkdir -p $RPM_BUILD_ROOT/source
+tar -xzf $RPM_SOURCE_DIR/%{name}-%{version}-%{release}-src.tar.gz -C $RPM_BUILD_ROOT/source
 
 %build
-#ant binary-distro 
+cd $RPM_BUILD_ROOT/source/data-connector-agent
+
+./configure.sh \
+  --lsb \
+  --noverify \
+  --openssh=/usr/sbin/sshd \
+  --apachectl=/usr/sbin/apachectl \
+  --apache_modules_dir=/usr/lib/httpd/modules \
+  --user=securedataconnector \
+  --group=securedataconnector \
+  --javahome=/usr
+
+ant 
+
+cd distribute
+ant binary-distro
+cp dist/%{name}-%{version}-%{release}-bin.tar.gz $RPM_SOURCE_DIR/%{name}-%{version}-%{release}-bin.tar.gz
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -22,8 +42,22 @@ mkdir -p $RPM_BUILD_ROOT/etc/opt/%{name}/openssh
 # mkdir -p $RPM_BUILD_ROOT/etc/opt/%{name}/jsw
 tar -xzf $RPM_SOURCE_DIR/%{name}-%{version}-%{release}-bin.tar.gz -C $RPM_BUILD_ROOT/opt/%{name}
 
+# Cleanup files not needed for RPM
+if [ -z $RPM_BUILD_ROOT/opt/%{name}/config/apache/configure_apache.sh-dist ]; then
+  rm $RPM_BUILD_ROOT/opt/%{name}/config/apache/configure_apache.sh-dist
+fi
+
+if [ -z $RPM_BUILD_ROOT/opt/%{name}/config/apache/httpd-conf-dist ]; then
+  rm $RPM_BUILD_ROOT/opt/%{name}/config/apache/httpd-conf-dist
+fi
+
+if [ -z $RPM_BUILD_ROOT/opt/%{name}/config/openssh/configure_sshdconf.sh-dist ]; then
+  rm $RPM_BUILD_ROOT/opt/%{name}/config/openssh/configure_sshdconf.sh-dist
+fi
+
 # Moving config files for ssh
 mv $RPM_BUILD_ROOT/opt/%{name}/config/openssh/sshd_config $RPM_BUILD_ROOT/etc/opt/%{name}/openssh/sshd_config
+mv $RPM_BUILD_ROOT/opt/%{name}/config/openssh/configure_sshdconf.sh $RPM_BUILD_ROOT/etc/opt/%{name}/openssh
 mv $RPM_BUILD_ROOT/opt/%{name}/config/openssh/start_sshd.sh $RPM_BUILD_ROOT/etc/opt/%{name}/openssh/start_sshd.sh
 mv $RPM_BUILD_ROOT/opt/%{name}/config/openssh/ssh_host_rsa_key $RPM_BUILD_ROOT/etc/opt/%{name}/openssh
 mv $RPM_BUILD_ROOT/opt/%{name}/config/openssh/ssh_host_dsa_key $RPM_BUILD_ROOT/etc/opt/%{name}/openssh
@@ -65,8 +99,8 @@ WOODSTOCK_HOME="$CONF_DIR/woodstock-user"
 mkdir -p $CONF_DIR/apache/htdocs
 
 # Set up the user to access the client
-adduser -s /bin/false -U -d $WOODSTOCK_HOME -M woodstock
-adduser -s /bin/bash -U -M $CLIENT_USER
+adduser -s /bin/false -d $WOODSTOCK_HOME -M woodstock
+adduser -s /bin/bash  -M $CLIENT_USER
 
 dd if=/dev/urandom bs=1024 count=1 |passwd --stdin woodstock
 dd if=/dev/urandom bs=1024 count=1 |passwd --stdin $CLIENT_USER
@@ -103,8 +137,11 @@ dd if=/dev/urandom bs=1024 count=1 |passwd --stdin $CLIENT_USER
 
 
   chmod 770 /etc/opt/%{name}/apache
-
+  # Configure apache and modules
+  chmod 750 /etc/opt/%{name}/apache/configure_apache.sh
+  /etc/opt/%{name}/apache/configure_apache.sh
   chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/%{name}/apache/httpd.conf-template
+
   chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/%{name}/apache/mime.types
   chmod 640 /etc/opt/%{name}/apache/httpd.conf-template
   chmod 640 /etc/opt/%{name}/apache/mime.types
@@ -117,8 +154,12 @@ dd if=/dev/urandom bs=1024 count=1 |passwd --stdin $CLIENT_USER
   chmod 600 /etc/opt/%{name}/openssh/ssh_host_rsa_key
   chmod 600 /etc/opt/%{name}/openssh/ssh_host_rsa_key.pub
   chmod 750 /etc/opt/%{name}/openssh/start_sshd.sh
-  chmod 600 /etc/opt/%{name}/openssh/sshd_config
   chmod 600 /etc/opt/%{name}/woodstock-user/.ssh/authorized_keys
+
+  # Configure sshd_config
+  chmod 750 /etc/opt/%{name}/openssh/configure_sshdconf.sh
+  /etc/opt/%{name}/openssh/configure_sshdconf.sh || :
+  chmod 600 /etc/opt/%{name}/openssh/sshd_config
 
   chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/%{name}/openssh/ssh_host_dsa_key
   chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/%{name}/openssh/ssh_host_dsa_key.pub
@@ -131,31 +172,6 @@ dd if=/dev/urandom bs=1024 count=1 |passwd --stdin $CLIENT_USER
   # Create htdocs path for apache
   mkdir -p /etc/opt/%{name}/apache/htdocs
 
-# Test and Configure Apache Modules
-APACHE_MODULES="auth_basic authn_file authz_host authz_user proxy proxy_http mime mime_magic"
-APACHECTL=`which apachectl`
-MODULESDIR="/usr/lib/httpd/modules"
-TEMPLATE="/etc/opt/%{name}/apache/httpd.conf-template"
-FOUND_MODULES=""
-
-  for module in ${APACHE_MODULES}; do
-    if ${APACHECTL} -l |grep -q $module; then
-      continue
-    fi 
-    if [ -e "${MODULESDIR}/mod_${module}.so" ]; then
-      FOUND_MODULES="${FOUND_MODULES} ${module}"
-    else
-       echo Apache ${MODULESDIR}/mod_${module}.so not found in $MODULESDIR.
-       echo "You will need to update $TEMPLATE manually to use the correct apache modules $APACHE_MODULES"
-    fi
-  done
-
-# Edit httpd.conf-dist
-template=/etc/opt/%{name}/apache/httpd.conf-template
-for module in ${FOUND_MODULES}; do  # Add modules to template
-  echo Configuring Apache LoadModule for ${module}
-  echo "LoadModule ${module}_module ${MODULESDIR}/mod_${module}.so" >> ${template}
-done      
 
 %postun
 echo "Removing User Accounts.."

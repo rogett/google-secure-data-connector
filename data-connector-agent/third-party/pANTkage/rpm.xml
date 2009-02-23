@@ -1,5 +1,5 @@
 <project name="pANTkage">
-  <target name="rpm" depends="source-distro,cfgrpm,binary-distro">
+  <target name="rpm" depends="source-distro">
     <property file="third-party/pANTkage/rpm.properties"/>
     <exec executable="third-party/pANTkage/rpm_env.py"/>
     <exec executable="third-party/pANTkage/gen_spec.py">
@@ -10,9 +10,6 @@
     </exec>
     <exec executable="mv">
       <arg line="${name}.spec rpm/SPECS/"/>
-    </exec>
-    <exec executable="cp">
-      <arg line="${sourcedir}${name}-${version}-${release}-bin.tar.gz rpm/SOURCES/"/>
     </exec>
     <exec executable="cp">
       <arg line="${sourcedir}${name}-${version}-${release}-src.tar.gz rpm/SOURCES/"/>
@@ -33,7 +30,7 @@
       <arg line="rpm/SRPMS/${name}-${version}-${release}.src.rpm distribute/dist/"/>
     </exec>
     <exec executable="mv">
-      <arg line="rpm/RPMS/i386/${name}-${version}-${release}.i386.rpm distribute/dist/"/>
+      <arg line="rpm/RPMS/noarch/${name}-${version}-${release}.noarch.rpm distribute/dist/"/>
     </exec>
     <exec executable="rm">
       <arg line="-rf rpm/SPECS"/>

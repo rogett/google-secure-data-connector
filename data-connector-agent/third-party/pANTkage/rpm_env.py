@@ -43,6 +43,7 @@ def setup_env():
   os.makedirs('./rpm/SOURCES')
   os.makedirs('./rpm/SPECS')
   os.makedirs('./rpm/SRPMS')
+  os.makedirs('./rpm/noarch')
 
 def delete_env():
   os.removedirs('./rpm/BUILD')
@@ -53,6 +54,7 @@ def delete_env():
   os.removedirs('./rpm/RPMS/i686')
   os.removedirs('./rpm/RPMS/noarch')
   os.removedirs('./rpm/SRPMS')
+  os.removedirs('./rpm/noarch')
 
 
 def main():

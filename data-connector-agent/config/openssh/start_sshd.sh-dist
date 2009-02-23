@@ -26,4 +26,4 @@ if [ $1 = "debug" ]; then
   shift 1
 fi
 
-_SSHD_ ${DEBUG} -i -f _OPENSSHCONF_/sshd_config $*
+_SSHD_ ${DEBUG} -i -f _OPENSSHCONF_/sshd_config 
