@@ -58,3 +58,4 @@ if [ $sshd_ver -lt $sshd_CompressionDelayed ]; then
   sed -i ${sshd_config} -e 's^Compression delayed^Compression yes^'
 fi
 
+echo "Complete..."

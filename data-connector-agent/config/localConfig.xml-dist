@@ -4,7 +4,7 @@
   <domain>example.com</domain>
   <user>AnyValidDomainUsername</user>
   <password>ValidDomainUserPassword</password>
-  <clientId>test_example.com</clientId>
+  <clientId>client1_example-com</clientId>
   <sshd>_START_SSHD_</sshd>
   <!-- NOTE: If you customize the socksServerPort you must also change 
        the permit port # in the woodstock-user/.ssh/authorized_keys --> 

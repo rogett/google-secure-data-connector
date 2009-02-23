@@ -122,6 +122,12 @@ echo installing ${file}
 install -g ${GROUP} -o ${USER} -m 750 \
     "./config/openssh/start_sshd.sh" ${file}
 
+# configure_sshdconf.sh 
+file="${SSH_CONF_DIR}/configure_sshdconf.sh"
+echo installing ${file}
+install -g ${GROUP}  -m 750 \
+    "./config/openssh/configure_sshdconf.sh" ${file}
+
 # allow user to write out apache config files 
 echo setting permissions on ${APACHE_CONF}
 chgrp ${GROUP} ${APACHE_CONF}
@@ -131,3 +137,13 @@ chmod 770 "${APACHE_CONF}"
 echo setting permissions on ${VARPREFIX}/log
 chgrp ${GROUP} "${VARPREFIX}/log"
 chmod 770 "${VARPREFIX}/log"
+
+# configure_apache.sh 
+file="${APACHE_CONF}/configure_apache.sh"
+echo installing ${file}
+install -g ${GROUP} -m 750 \
+"./config/apache/configure_apache.sh" ${file}
+
+echo "Running Post Install Scripts...."
+${ETCPREFIX}/openssh/configure_sshdconf.sh 
+${ETCPREFIX}/apache/configure_apache.sh 

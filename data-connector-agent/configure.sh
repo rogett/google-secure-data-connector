@@ -256,6 +256,7 @@ echo Generating ${template}
 sed -i ${template} -e 's^_APACHE_CTL_^'${APACHECTL}'^'
 sed -i ${template} -e 's^_APACHE_MODULESDIR_^'${MODULESDIR}'^'
 sed -i ${template} -e 's^_APACHE_CONF_DIR_^'${ETCPREFIX}'/apache^'
+sed -i ${template} -e 's^_ETCPREFIX_^'${ETCPREFIX}'^'
 
 # Edit configure_sshdconf.sh
 template=config/openssh/configure_sshdconf.sh
