@@ -113,6 +113,12 @@ fi
 
 if [ ${NOVERIFY} = "false" ]; then
 
+  if [ -z ${OPENSSHD} ]; then
+     echo "--openssh option is missing!"
+     exit 1
+    fi
+
+
   # verify opensshd
   if [ ! -x "${OPENSSHD}" ]; then
     echo "opensshd: ${OPENSSHD} not found"
@@ -135,6 +141,20 @@ if [ ${NOVERIFY} = "false" ]; then
       echo "group $GROUP does not exist"
       exit 1
     fi
+
+    # verify user account is enabled
+    getent passwd $USER | grep bin/false
+    if [ $? = 0 ]; then
+      echo "User ${USER} is not enabled. Either enable the user or specify a different user account."
+      exit 1
+    fi 
+  
+    getent passwd ${USER} |grep ${USER} | grep bin/nologin
+    if [ $? = 0 ]; then
+      echo "User ${USER} is not enabled. Either enable the user or specify a different user account."
+      exit 1
+    fi
+
   fi
 
   # verify non supplied apache.
@@ -170,7 +190,9 @@ if [ ${NOVERIFY} = "false" ]; then
     echo "Create woodstock user with homedir as ${ETCPREFIX}/woodstock-user"
     echo "To create on most linux systems run:"
     echo "useradd --home-dir=${ETCPREFIX}/woodstock-user" \
-        "--comment='Woodstock User' --shell=/bin/false" 
+        "--comment='Woodstock User' --shell=/bin/false woodstock"
+    echo
+    echo "Once you create the user re-run configure.sh again!" 
     exit 1
   elif [ ${HOMEDIR} != ${ETCPREFIX}/woodstock-user ]; then
     echo "'woodstock' home directory is incorrect."
@@ -214,6 +236,7 @@ template="install-sdc.sh"
 cp "install-sdc.sh-dist" ${template}
 echo Generating ${template}
 sed -i ${template} -e 's^__PREFIX__^'${PREFIX}'^'
+sed -i ${template} -e 's^__USE_SUPPLIED_APACHE__^'${USE_SUPPLIED_APACHE}'^'
 sed -i ${template} -e 's^__ETCPREFIX__^'${ETCPREFIX}'^'
 sed -i ${template} -e 's^__VARPREFIX__^'${VARPREFIX}'^'
 sed -i ${template} -e 's^__USER__^'${USER}'^'
@@ -229,6 +252,7 @@ if [ ${USE_SUPPLIED_APACHE} = "true" ]; then
   sed -i ${template} -e 's^__INSTALLHTTPD__^,install-httpd^'
   sed -i ${template} -e 's^__CLEANHTTPD__^clean-httpd^'
   sed -i ${template} -e 's^__DISTCLEANHTTPD__^,dist-clean-httpd^'
+  sed -i ${template} -e 's^__ETCPREFIX__^'${ETCPREFIX}'^'
 else 
   sed -i ${template} -e 's^__BUILDHTTPD__^^'
   sed -i ${template} -e 's^__INSTALLHTTPD__^^'

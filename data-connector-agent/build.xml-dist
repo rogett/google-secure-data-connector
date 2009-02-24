@@ -168,7 +168,9 @@ Build File for Secure Data Connector client and reference server.
         dir="third-party/apache-httpd"
         inheritAll="false"
         target="install_httpd" />
-  </target>
+        <exec executable="__ETCPREFIX__/apache/configure_apache.sh" failonerror="true"/>
+
+</target>
 
   <!-- install sdc files -->
   <target name="install-sdc" depends="compile">

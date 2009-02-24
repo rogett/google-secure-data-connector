@@ -11,7 +11,7 @@ ETCPREFIX=__ETCPREFIX__
 VARPREFIX=__VARPREFIX__
 BINPREFIX=${PREFIX}/bin
 LIBPREFIX=${PREFIX}/lib
-
+USE_SUPPLIED_APACHE=__USE_SUPPLIED_APACHE__
 APACHE_CONF=${ETCPREFIX}/apache
 SSH_CONF_DIR=${ETCPREFIX}/openssh
 SSH_USER_DIR=${ETCPREFIX}/woodstock-user/.ssh
@@ -145,5 +145,10 @@ install -g ${GROUP} -m 750 \
 "./config/apache/configure_apache.sh" ${file}
 
 echo "Running Post Install Scripts...."
-${ETCPREFIX}/openssh/configure_sshdconf.sh 
+
+# if using supplied apache configure_apache.sh will get called as part of the build and install apache
+if [ ${USE_SUPPLIED_APACHE} = "false" ]; then
 ${ETCPREFIX}/apache/configure_apache.sh 
+fi
+
+${ETCPREFIX}/openssh/configure_sshdconf.sh 
