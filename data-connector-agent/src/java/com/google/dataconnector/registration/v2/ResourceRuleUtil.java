@@ -293,7 +293,8 @@ public class ResourceRuleUtil {
    * creates the following system resource rules
    * 
    * 1. healthz rule:  http://localhost:portnum/<clientId>/__SDCINTERNAL__/healthz
-   * 2. rules to allow access to healthcheck feeds
+   * 2. rules to allow access to healthcheck feeds (TODO - after enabling routing options to be
+   * declared for each resource rule)
    * 
    * @param user the userid who should be allowed to access this resource
    * @param domain the domain the above user belongs to
@@ -325,15 +326,15 @@ public class ResourceRuleUtil {
     healthzRule.setPattern(ResourceRule.HTTPID + "localhost:" + 
         port + "/" + clientId + "/__SDCINTERNAL__/healthz" + ".*");
     systemRules.add(healthzRule);
-    
-    // create rule to let users access healthcheck feeds
-    ResourceRule feedAccessRule = new ResourceRule();
-    feedAccessRule.setAllowedEntities(allowedEntities);
-    feedAccessRule.setClientId("all");
-    feedAccessRule.setRuleNum(nextRuleNum--);
-    feedAccessRule.setPattern("http://www.google.com/a/feeds/server/g/domain/" + domain 
-        + "/HealthCheck.*");
-    systemRules.add(feedAccessRule);
+//    
+//    // create rule to let users access healthcheck feeds
+//    ResourceRule feedAccessRule = new ResourceRule();
+//    feedAccessRule.setAllowedEntities(allowedEntities);
+//    feedAccessRule.setClientId("all");
+//    feedAccessRule.setRuleNum(nextRuleNum--);
+//    feedAccessRule.setPattern("http://www.google.com/a/feeds/server/g/domain/" + domain 
+//        + "/HealthCheck.*");
+//    systemRules.add(feedAccessRule);
     
     return systemRules;
   }
