@@ -58,8 +58,6 @@ public class Client {
 
   /* Dependencies */
   private LocalConf localConfiguration;
-  private JsocksStarter jsocksStarter;
-  private ApacheStarter apacheStarter;
   private SecureDataConnection secureDataConnection;
   
   /**
@@ -68,17 +66,12 @@ public class Client {
    * @param localConfiguration the local configuration object.
    * @param resourceRules runtime configured resource rules.
    * @param sslSocketFactory 
-   * @param apacheStarter 
-   * @param jsocksStarter 
    * @param secureDataConnection
    */
   @Inject
   public Client(LocalConf localConfiguration, List<ResourceRule> resourceRules, 
-      SSLSocketFactory sslSocketFactory, ApacheStarter apacheStarter, 
-      JsocksStarter jsocksStarter, SecureDataConnection secureDataConnection) {
+      SSLSocketFactory sslSocketFactory, SecureDataConnection secureDataConnection) {
     this.localConfiguration = localConfiguration;
-    this.apacheStarter = apacheStarter;
-    this.jsocksStarter = jsocksStarter;
     this.secureDataConnection = secureDataConnection;
   }
   
@@ -100,8 +93,6 @@ public class Client {
 	  Logger.getRootLogger().setLevel(Level.DEBUG);
     }
     
-    apacheStarter.startApacheHttpd();
-    jsocksStarter.startJsocksProxy();
     secureDataConnection.connect();
   }
   

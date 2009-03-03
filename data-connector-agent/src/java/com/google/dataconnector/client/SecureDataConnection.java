@@ -18,6 +18,7 @@ package com.google.dataconnector.client;
 
 import com.google.dataconnector.registration.v2.AuthRequest;
 import com.google.dataconnector.registration.v2.ResourceRule;
+import com.google.dataconnector.util.ApacheSetupException;
 import com.google.dataconnector.util.ConnectionException;
 import com.google.dataconnector.util.LocalConf;
 import com.google.inject.Inject;
@@ -69,6 +70,8 @@ public class SecureDataConnection {
   private List<ResourceRule> resourceRules;
   private SSLSocketFactory sslSocketFactory;
   private ClientRegistrationUtil clientRegistrationUtil;
+  private JsocksStarter jsocksStarter;
+  private ApacheStarter apacheStarter;
 
   /**
    * Sets up a Secure Data connection to a Secure Link server with the supplied configuration.
@@ -79,11 +82,14 @@ public class SecureDataConnection {
    */
   @Inject
   public SecureDataConnection(LocalConf localConf, List<ResourceRule> resourceRules,
-      SSLSocketFactory sslSocketFactory, ClientRegistrationUtil clientRegistrationUtil) {
+      SSLSocketFactory sslSocketFactory, ClientRegistrationUtil clientRegistrationUtil,
+      ApacheStarter apacheStarter, JsocksStarter jsocksStarter) {
     this.localConf = localConf;
     this.resourceRules = resourceRules;
     this.sslSocketFactory = sslSocketFactory;
     this.clientRegistrationUtil = clientRegistrationUtil;
+    this.apacheStarter = apacheStarter;
+    this.jsocksStarter = jsocksStarter;
   }
 
   /**
@@ -93,8 +99,9 @@ public class SecureDataConnection {
    *
    * @throws ConnectionException if and error occurs with authorization or registration.
    * @throws IOException if any socket communication errors occur with the Secure Link server.
+   * @throws ApacheSetupException if apache has any errors starting up.
    */
-  public void connect() throws IOException, ConnectionException {
+  public void connect() throws IOException, ConnectionException, ApacheSetupException {
     log.info("Connecting to server");
 
     SSLSocket clientSocket = (SSLSocket) sslSocketFactory.createSocket();
@@ -112,14 +119,18 @@ public class SecureDataConnection {
       throw new ConnectionException(e);
     }
 
-    // Attempt to login
+    // login to SDC server
     AuthRequest authRequest = clientRegistrationUtil.authorize(clientSocket, localConf);
+    
+    // register the resource rules
     clientRegistrationUtil.register(clientSocket, authRequest,  resourceRules);
-    log.info("Login successful as " + localConf.getUser() + "@" + 
-        localConf.getDomain());
+
+    // start apache and jsocks
+    apacheStarter.startApacheHttpd();
+    jsocksStarter.startJsocksProxy();
 
     /*
-     * Auth was successful lets start the port forwarding using SSH.
+     * startup is successful. lets start the port forwarding using SSH.
      *
      * SSHD is run in inetd mode which results in the SSH protocol being
      * transmitted on its stdin and stdout.

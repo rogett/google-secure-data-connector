@@ -172,6 +172,7 @@ public class ClientRegistrationUtil {
       if (regResponse.getStatus() != RegistrationResponse.Status.OK) {
         throw new RegistrationException("Registration Failed: " + regResponse.getStatus());
       }
+      LOG.info("Registration successful");
     } catch (JSONException e) {
       throw new RegistrationException("Mangled JSON response during registration", e);
     } catch (ResourceException e) {

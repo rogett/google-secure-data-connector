@@ -42,7 +42,7 @@ import java.util.Properties;
  *
  * @author rayc@google.com (Ray Colline)
  */
-public final class JsocksStarter extends Thread {
+public class JsocksStarter extends Thread {
 
   // Logging instance
   private static final Logger LOG = Logger.getLogger(JsocksStarter.class);
