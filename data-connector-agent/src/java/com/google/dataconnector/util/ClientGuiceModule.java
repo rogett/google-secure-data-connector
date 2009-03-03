@@ -127,9 +127,13 @@ public class ClientGuiceModule extends AbstractModule {
           new FileUtil().readFile(localConf.getRulesFile()));
       
       // Add System resource rules to the list
-      LOG.info("Adding healthz service rule");
-      resourceRules.add(resourceRuleUtil.createHealthzRule(localConf.getUser(),
-          localConf.getDomain(), localConf.getClientId(), healthzRequestHandler.getPort()));
+      LOG.info("Adding system resource ruless");
+      List<ResourceRule> systemRules = resourceRuleUtil.createSystemRules(localConf.getUser(),
+          localConf.getDomain(), localConf.getClientId(), healthzRequestHandler.getPort(),
+          localConf.getHealthzGadgetUsers());
+      for (ResourceRule r: systemRules) {
+        resourceRules.add(r);
+      }
       
       // Validate Resource Rules
       ResourceRuleValidator resourceRuleValidator = new ResourceRuleValidator();

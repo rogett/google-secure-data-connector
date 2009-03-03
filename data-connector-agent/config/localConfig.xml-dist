@@ -11,6 +11,12 @@
   <socksServerPort>1080</socksServerPort>
   <apacheCtl>_APACHE_CTL_</apacheCtl>
   <apacheConfDir>_APACHE_CONF_DIR_</apacheConfDir>
+  
+  <!-- The following element is optional. It defines comma-separated list 
+       of users who, in addition to the <user> defined above, can access 
+       the healthz gadget and the associated feeds. --> 
+  <healthzGadgetUsers> foo@example.com, bar@example.com </healthzGadgetUsers>
+  
   <logProperties>
     # ***** Set root logger level to DEBUG and its only appender to A.
     log4j.rootLogger=info, A

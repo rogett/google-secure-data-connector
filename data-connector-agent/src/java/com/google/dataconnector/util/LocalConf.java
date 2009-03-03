@@ -77,7 +77,9 @@ public class LocalConf {
   private Boolean debug = DEBUG;
   @Flag(help = "Allow unverified certificates")
   private Boolean allowUnverifiedCertificates = false;
-  
+  @Flag(help = "the users who can access the healthz gadget")
+  private String healthzGadgetUsers;
+ 
   // Config File Only
   private String logProperties;
   private String socksProperties = 
@@ -255,5 +257,13 @@ public class LocalConf {
 
   public Boolean getAllowUnverifiedCertificates() {
     return allowUnverifiedCertificates;
+  }
+    
+  public String getHealthzGadgetUsers() {
+    return healthzGadgetUsers;
+  }
+
+  public void setHealthzGadgetUsers(String healthzGadgetUsers) {
+    this.healthzGadgetUsers = healthzGadgetUsers;
   }
 }

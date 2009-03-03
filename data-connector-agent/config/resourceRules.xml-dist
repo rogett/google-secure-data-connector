@@ -6,14 +6,14 @@
     <allowedEntities>admin@example.com</allowedEntities>
     <pattern>http://internal.corp.example.com/.*</pattern>
   </entity>
-  <entity>
+  <entity repeatable="true">
     <ruleNum>2</ruleNum>
     <clientId>all</clientId>
     <allowedEntities repeatable="true">testuser@example.com</allowedEntities>
     <allowedEntities>admin@example.com</allowedEntities>
     <pattern>http://feed.example.com/userlookup?user=.*/$</pattern>
   </entity>
-  <entity>
+  <entity repeatable="true">
     <ruleNum>3</ruleNum>
     <clientId>all</clientId>
     <allowedEntities repeatable="true">testuser@example.com</allowedEntities>
