@@ -1,22 +1,83 @@
 <entity>
+
+  <!-- The element <sdcServerHost> is required. This value defines the
+       Google server host IPv4 IP address or fully-qualified domain name 
+       for use by Secure Data Connector. This value should not be changed 
+       unless instructed by Google. -->   
+
   <sdcServerHost>apps-secure-data-connector.google.com</sdcServerHost>
+
+  <!-- The element <sdcServerPort> is required. This value defines the
+       TCP port for the Google host that listens for Secure Data Connector 
+       service requests. This value should not be changed unless instructed 
+       by Google. -->  
+
   <sdcServerPort>443</sdcServerPort>
+
+  <!-- The element <domain> is required. This value defines the
+       Google Apps domain name that your are connecting the Secure Data 
+       Connector to. -->
+
   <domain>example.com</domain>
-  <user>AnyValidDomainUsername</user>
+
+  <!-- The element <user> is required. This value defines the Google 
+       Apps user account the Secure Data Connector uses to authenticate 
+       to the Google Apps domain. -->
+
+  <user>secure-data-connector-user</user>
+
+  <!-- The element <password> is required. This value defines the
+       password for the account defined by the <user>               
+       element. --> 
+
   <password>ValidDomainUserPassword</password>
+
+  <!-- The element <clientId> is required. This value defines the client ID 
+       which is a unique name that repsents this Secure Data Connector
+       Client. Valid characters are a-z,A-Z,0-9,-_       
+       -->
+
   <clientId>client1_example-com</clientId>
+
+  <!-- The element <sshd> is required. This value defines the Secure shell
+      (SSH) network protocol startup script path and file name. This value
+      is predefined based on the installation path. This value should not 
+      require modification. -->
+
   <sshd>_START_SSHD_</sshd>
-  <!-- NOTE: If you customize the socksServerPort you must also change 
-       the permit port # in the woodstock-user/.ssh/authorized_keys --> 
+
+  <!-- The element <socksServerPort> is required. This value defines the Socket 
+       server listner port. If this port conflicts with another service on the 
+       machine, you can change the port to another value. If you customize 
+       <socksServerPort> you must also change the permit port details in the 
+       woodstock-user/.ssh/authorized_keys file --> 
+
   <socksServerPort>1080</socksServerPort>
+
+  <!-- The element <apacheCtl> is required. This value defines the path to the 
+       Apache HTTP server control interface. This value is predefined based on
+       the installation path of Apache. This value should not require 
+       modification. -->
+
   <apacheCtl>_APACHE_CTL_</apacheCtl>
+
+  <!-- The element <apacheConfDir> is required. This value defines the path to the 
+       Apache HTTP server config directory for the Secure Data Connector.  This value 
+       is predefined based on the installation. This value should not require 
+       modification. -->
+
   <apacheConfDir>_APACHE_CONF_DIR_</apacheConfDir>
-  
+
+
   <!-- The following element is optional. It defines comma-separated list 
        of users who, in addition to the <user> defined above, can access 
        the healthz gadget and the associated feeds. --> 
+
   <healthzGadgetUsers> foo@example.com, bar@example.com </healthzGadgetUsers>
-  
+
+  <!-- The element <logProperties> is required. This value defines log4j logging 
+       properties. These values can be changed based on logging needs. -->
+
   <logProperties>
     # ***** Set root logger level to DEBUG and its only appender to A.
     log4j.rootLogger=info, A
