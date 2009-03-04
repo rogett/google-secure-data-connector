@@ -179,14 +179,6 @@ echo "Removing User Accounts.."
 userdel -r woodstock || true
 userdel -r securedataconnector || true
 
-if [ -e /opt/${name} ] ; then
- rm -rf /opt/${name} 
-fi
-
-# if [ -e /etc/init.d/securedataconnector ] ; then
-# rm -f /etc/init.d/securedataconnector
-# fi
-
 %clean                               
 rm -rf $RPM_BUILD_ROOT
 
