@@ -31,6 +31,7 @@ public class ResourceRuleValidatorTest extends TestCase {
   private ResourceRule configHttpResourceRule;
   private ResourceRule runtimeSocketResourceRule;
   private ResourceRule configSocketResourceRule;
+  private ResourceRule runtimeUrlExactResourceRule;
   private ResourceRuleValidator resourceRuleValidator;
   
   @Override
@@ -41,6 +42,7 @@ public class ResourceRuleValidatorTest extends TestCase {
     runtimeHttpResourceRule = fakeResourceRuleConfig.getFakeRuntimeResourceRules().get(0); 
     configSocketResourceRule = fakeResourceRuleConfig.getFakeConfigResourceRules().get(1); 
     runtimeSocketResourceRule = fakeResourceRuleConfig.getFakeRuntimeResourceRules().get(1); 
+    runtimeUrlExactResourceRule = fakeResourceRuleConfig.getFakeRuntimeResourceRules().get(2); 
     resourceRuleValidator = new ResourceRuleValidator();
   }
   
@@ -77,10 +79,10 @@ public class ResourceRuleValidatorTest extends TestCase {
   }
   
   public void testMissingHttpProxyPort() {
-    runtimeHttpResourceRule.setHttpProxyPort(null);
+    runtimeUrlExactResourceRule.setHttpProxyPort(null);
     
     try {
-      resourceRuleValidator.validateRuntime(runtimeHttpResourceRule);
+      resourceRuleValidator.validateRuntime(runtimeUrlExactResourceRule);
     } catch (ResourceException e) {
       assertTrue(e.getMessage().contains("required for each"));
       return;
@@ -178,7 +180,7 @@ public class ResourceRuleValidatorTest extends TestCase {
     }
     
     // Reset test.
-    runtimeHttpResourceRule.setName(null);
+    runtimeHttpResourceRule.setRuleNum(1);
     String[] allowedEntitiesSpace = { "has a space" };   
     runtimeHttpResourceRule.setAllowedEntities(allowedEntitiesSpace);
     try {
@@ -216,9 +218,15 @@ public class ResourceRuleValidatorTest extends TestCase {
     fail("did not get ResourceException");
   }
   
-  public void testMissingAppIds() throws ResourceException {
+  public void testMissingAppIds() {
     runtimeHttpResourceRule.setAppIds(null);
-    resourceRuleValidator.validateRuntime(runtimeHttpResourceRule);
+    try {
+      resourceRuleValidator.validateRuntime(runtimeHttpResourceRule);
+    } catch (ResourceException e) {
+      assertTrue(e.getMessage().contains("field must be present"));
+      return;
+    }
+    fail("did not get ResourceException");
   }
   
   public void testBadPatternIdentifier() {
@@ -255,5 +263,36 @@ public class ResourceRuleValidatorTest extends TestCase {
       return;
     }
     fail("did not get ResourceException");
+  }
+  
+  public void testUrlPathInHostPortPattern() {
+    runtimeHttpResourceRule.setPattern("http://foo.com/has/path");
+    try {
+      resourceRuleValidator.validateRuntime(runtimeHttpResourceRule);
+    } catch (ResourceException e) {
+      assertTrue(e.getMessage().contains("cannot contain any path"));
+      return;
+    }
+  }
+  
+  public void testUrlExactTypeCannotBeUsedWithHttpsPattern() {
+    runtimeHttpResourceRule.setPatternType(ResourceRule.URLEXACT);
+    runtimeHttpResourceRule.setPattern("https://somehttpssite.com");
+    try {
+      resourceRuleValidator.validateRuntime(runtimeHttpResourceRule);
+    } catch (ResourceException e) {
+      assertTrue(e.getMessage().contains("URLEXACT works only"));
+      return;
+    }
+  }
+  
+  public void testUrlExactTypeCannotBeUsedWithSocketPattern() {
+    runtimeSocketResourceRule.setPatternType(ResourceRule.URLEXACT);
+    try {
+      resourceRuleValidator.validateRuntime(runtimeSocketResourceRule);
+    } catch (ResourceException e) {
+      assertTrue(e.getMessage().contains("URLEXACT works only"));
+      return;
+    }
   }
 }

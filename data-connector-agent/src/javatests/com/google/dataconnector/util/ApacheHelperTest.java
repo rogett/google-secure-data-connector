@@ -198,11 +198,13 @@ public class ApacheHelperTest extends TestCase {
     ByteArrayInputStream bis = new ByteArrayInputStream(APACHE_22_VERSION_OUTPUT.getBytes());
     Process mockProcess = EasyMock.createMock(Process.class);
     EasyMock.expect(mockProcess.getInputStream()).andReturn(bis);
+    ByteArrayInputStream bis2 = new ByteArrayInputStream(APACHE_22_VERSION_OUTPUT.getBytes());
+    EasyMock.expect(mockProcess.getInputStream()).andReturn(bis2);
     mockProcess.destroy();
-    EasyMock.expectLastCall();
+    EasyMock.expectLastCall().times(2);
     EasyMock.replay(mockProcess);
     Runtime mockRuntime = EasyMock.createMock(Runtime.class);
-    EasyMock.expect(mockRuntime.exec(EasyMock.isA(String[].class))).andReturn(mockProcess);
+    EasyMock.expect(mockRuntime.exec(EasyMock.isA(String[].class))).andReturn(mockProcess).times(2);
     EasyMock.replay(mockRuntime);
     
     FileUtil mockFileUtil = EasyMock.createMock(FileUtil.class);
@@ -241,11 +243,13 @@ public class ApacheHelperTest extends TestCase {
     ByteArrayInputStream bis = new ByteArrayInputStream(APACHE_20_VERSION_OUTPUT.getBytes());
     Process mockProcess = EasyMock.createMock(Process.class);
     EasyMock.expect(mockProcess.getInputStream()).andReturn(bis);
+    ByteArrayInputStream bis2 = new ByteArrayInputStream(APACHE_20_VERSION_OUTPUT.getBytes());
+    EasyMock.expect(mockProcess.getInputStream()).andReturn(bis2);
     mockProcess.destroy();
-    EasyMock.expectLastCall();
+    EasyMock.expectLastCall().times(2);
     EasyMock.replay(mockProcess);
     Runtime mockRuntime = EasyMock.createMock(Runtime.class);
-    EasyMock.expect(mockRuntime.exec(EasyMock.isA(String[].class))).andReturn(mockProcess);
+    EasyMock.expect(mockRuntime.exec(EasyMock.isA(String[].class))).andReturn(mockProcess).times(2);
     EasyMock.replay(mockRuntime);
     
     FileUtil mockFileUtil = EasyMock.createMock(FileUtil.class);
@@ -275,17 +279,19 @@ public class ApacheHelperTest extends TestCase {
     ByteArrayInputStream bis = new ByteArrayInputStream(APACHE_20_VERSION_OUTPUT.getBytes());
     Process mockProcess = EasyMock.createMock(Process.class);
     EasyMock.expect(mockProcess.getInputStream()).andReturn(bis);
+    ByteArrayInputStream bis2 = new ByteArrayInputStream(APACHE_20_VERSION_OUTPUT.getBytes());
+    EasyMock.expect(mockProcess.getInputStream()).andReturn(bis2);
     mockProcess.destroy();
-    EasyMock.expectLastCall();
+    EasyMock.expectLastCall().times(2);
     EasyMock.replay(mockProcess);
     Runtime mockRuntime = EasyMock.createMock(Runtime.class);
-    EasyMock.expect(mockRuntime.exec(EasyMock.isA(String[].class))).andReturn(mockProcess);
+    EasyMock.expect(mockRuntime.exec(EasyMock.isA(String[].class))).andReturn(mockProcess).times(2);
     EasyMock.replay(mockRuntime);
     
     ApacheHelper apacheHelper = new ApacheHelper(localConf, resourceRules, mockRuntime, null);
     String proxyMatchEntries = apacheHelper.makeProxyMatchConfEntries();
     for (ResourceRule resourceRule : resourceRules) {
-      if (!resourceRule.getPattern().startsWith(ResourceRule.HTTPID)) {
+      if (!resourceRule.getPatternType().equals(ResourceRule.URLEXACT)) {
         continue;
       }
       assertTrue(proxyMatchEntries.contains(resourceRule.getPattern()));

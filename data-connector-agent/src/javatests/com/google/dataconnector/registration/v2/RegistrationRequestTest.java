@@ -72,7 +72,7 @@ public class RegistrationRequestTest extends TestCase {
   
   private void verify(ResourceRule expected, ResourceRule actual) {
     // Check resource rule 
-    assertEquals(expected.getName(), actual.getName());
+    assertEquals(expected.getRuleNum(), actual.getRuleNum());
     assertEquals(expected.getClientId(), actual.getClientId());
     for (int index=0 ; index < expected.getAllowedEntities().length; index++) {
       assertEquals(expected.getAllowedEntities()[index], actual.getAllowedEntities()[index]);

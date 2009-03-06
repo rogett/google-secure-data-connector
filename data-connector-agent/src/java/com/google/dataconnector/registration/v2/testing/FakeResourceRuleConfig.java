@@ -40,14 +40,22 @@ public class FakeResourceRuleConfig {
   public static final String HTTP_PROXY_PORT = "10000";
   public static final String SOCKS_SERVER_PORT = "1080";
   public static final String SECRET_KEY = "23423432432";
+  public static final int URL_EXACT_RULE_NUM = 3;
+  public static final String URL_EXACT_PATTERN = "http://www.example.com/exact/path";
+  public static final int HTTPS_RULE_NUM = 4;
+  public static final String HTTPS_PATTERN = "https://www.example.com";
 
   /** The fake properties file we generate the config from */
   private List<ResourceRule> configResourceRules;
   private List<ResourceRule> runtimeResourceRules;
   private ResourceRule runtimeHttpResourceRule;
   private ResourceRule runtimeSocketResourceRule;
+  private ResourceRule runtimeUrlExactResourceRule;
+  private ResourceRule runtimeHttpsResourceRule;
   private ResourceRule configHttpResourceRule;
   private ResourceRule configSocketResourceRule;
+  private ResourceRule configUrlExactResourceRule;
+  private ResourceRule configHttpsResourceRule;
 
   /**
    * Creates a configuration beans from the fake hardcoded XML files.  
@@ -57,31 +65,69 @@ public class FakeResourceRuleConfig {
     // Configure each resource rule to match XML.
     runtimeHttpResourceRule = getBaseResourceRule();
     runtimeHttpResourceRule.setPattern(HTTP_PATTERN);
+    runtimeHttpResourceRule.setPatternType(ResourceRule.HOSTPORT);
     runtimeHttpResourceRule.setRuleNum(HTTP_RULE_NUM);
     runtimeHttpResourceRule.setSecretKey(Long.valueOf(SECRET_KEY));
-    runtimeHttpResourceRule.setHttpProxyPort(Integer.valueOf(HTTP_PROXY_PORT));
     runtimeHttpResourceRule.setSocksServerPort(Integer.valueOf(SOCKS_SERVER_PORT));
+    runtimeHttpResourceRule.setHttpProxyPort(Integer.valueOf(HTTP_PROXY_PORT));
     runtimeHttpResourceRule.setAppIds(APPID);
+    
     runtimeSocketResourceRule = getBaseResourceRule();
     runtimeSocketResourceRule.setPattern(SOCKET_PATTERN);
+    runtimeSocketResourceRule.setPatternType(ResourceRule.HOSTPORT);
     runtimeSocketResourceRule.setRuleNum(SOCKET_RULE_NUM);
     runtimeSocketResourceRule.setSecretKey(Long.valueOf(SECRET_KEY));
     runtimeSocketResourceRule.setSocksServerPort(Integer.valueOf(SOCKS_SERVER_PORT));
+    
+    runtimeUrlExactResourceRule = getBaseResourceRule();
+    runtimeUrlExactResourceRule.setPattern(URL_EXACT_PATTERN);
+    runtimeUrlExactResourceRule.setPatternType(ResourceRule.URLEXACT);
+    runtimeUrlExactResourceRule.setRuleNum(URL_EXACT_RULE_NUM);
+    runtimeUrlExactResourceRule.setSecretKey(Long.valueOf(SECRET_KEY));
+    runtimeUrlExactResourceRule.setSocksServerPort(Integer.valueOf(SOCKS_SERVER_PORT));
+    runtimeUrlExactResourceRule.setHttpProxyPort(Integer.valueOf(HTTP_PROXY_PORT));
+    
+    runtimeHttpsResourceRule = getBaseResourceRule();
+    runtimeHttpsResourceRule.setPattern(HTTPS_PATTERN);
+    runtimeHttpsResourceRule.setPatternType(ResourceRule.HOSTPORT);
+    runtimeHttpsResourceRule.setRuleNum(HTTPS_RULE_NUM);
+    runtimeHttpsResourceRule.setSecretKey(Long.valueOf(SECRET_KEY));
+    runtimeHttpsResourceRule.setSocksServerPort(Integer.valueOf(SOCKS_SERVER_PORT));
+    
+    configHttpResourceRule = getBaseResourceRule();
     configHttpResourceRule = getBaseResourceRule();
     configHttpResourceRule.setPattern(HTTP_PATTERN);
+    configHttpResourceRule.setPatternType(ResourceRule.HOSTPORT);
     configHttpResourceRule.setRuleNum(HTTP_RULE_NUM);
     configHttpResourceRule.setAppIds(APPID);
+    configHttpResourceRule.setAppIds(APPID);
+    
     configSocketResourceRule = getBaseResourceRule();
     configSocketResourceRule.setPattern(SOCKET_PATTERN);
+    configSocketResourceRule.setPatternType(ResourceRule.HOSTPORT);
     configSocketResourceRule.setRuleNum(SOCKET_RULE_NUM);
+    
+    configUrlExactResourceRule = getBaseResourceRule();
+    configUrlExactResourceRule.setPattern(URL_EXACT_PATTERN);
+    configUrlExactResourceRule.setPatternType(ResourceRule.URLEXACT);
+    configUrlExactResourceRule.setRuleNum(URL_EXACT_RULE_NUM);
+    
+    configHttpsResourceRule = getBaseResourceRule();
+    configHttpsResourceRule.setPattern(HTTPS_PATTERN);
+    configHttpsResourceRule.setPatternType(ResourceRule.HOSTPORT);
+    configHttpsResourceRule.setRuleNum(HTTPS_RULE_NUM);
     
     // Add to Lists
     configResourceRules = new ArrayList<ResourceRule>();
     configResourceRules.add(configHttpResourceRule);
     configResourceRules.add(configSocketResourceRule);
+    configResourceRules.add(configUrlExactResourceRule);
+    configResourceRules.add(configHttpsResourceRule);
     runtimeResourceRules = new ArrayList<ResourceRule>();
     runtimeResourceRules.add(runtimeHttpResourceRule);
     runtimeResourceRules.add(runtimeSocketResourceRule);
+    runtimeResourceRules.add(runtimeUrlExactResourceRule);
+    runtimeResourceRules.add(runtimeHttpsResourceRule);
   }
 
   /**
@@ -116,68 +162,130 @@ public class FakeResourceRuleConfig {
     return configSocketResourceRule;
   }
   
+  public ResourceRule getConfigUrlExactResourceRule() {
+    return configUrlExactResourceRule;
+  }
+
+  public ResourceRule getRuntimeUrlExactResourceRule() {
+    return runtimeUrlExactResourceRule;
+  }
+  
   private ResourceRule getBaseResourceRule() {
     ResourceRule resourceRule = new ResourceRule();
     resourceRule.setClientId(CLIENT_ID);
     resourceRule.setAllowedEntities(ALLOWED_ENTITY);
+    resourceRule.setAppIds(APPID);
     return resourceRule;
   }
   
-
   public static final String CONFIG_RESOURCE_RULES_XML = "<feed>\n" +
     "<entity repeatable='true'>\n" +
-    "<ruleNum>" + HTTP_RULE_NUM + "</ruleNum>\n" +
-    "<clientId>" + CLIENT_ID + "</clientId>\n" +
-    "<allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
-    "<allowedEntities>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
-    "<appIds repeatable='true'>" + APPID[0] + "</appIds>\n" +
-    "<appIds>" + APPID[1] + "</appIds>\n" +
-    "<pattern>" + HTTP_PATTERN + "</pattern>\n" +
+    "  <ruleNum>" + HTTP_RULE_NUM + "</ruleNum>\n" +
+    "  <clientId>" + CLIENT_ID + "</clientId>\n" +
+    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
+    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
+    "  <appIds repeatable='true'>" + APPID[0] + "</appIds>\n" +
+    "  <appIds repeatable='true'>" + APPID[1] + "</appIds>\n" +
+    "  <pattern>" + HTTP_PATTERN + "</pattern>\n" +
+    "  <patternType>" + ResourceRule.HOSTPORT + "</patternType>\n" +
     "</entity>\n" +
     "<entity>\n" +
-    "<ruleNum>" + SOCKET_RULE_NUM + "</ruleNum>\n" +
-    "<clientId>" + CLIENT_ID + "</clientId>\n" +
-    "<allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
-    "<allowedEntities>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
-    "<pattern>" + SOCKET_PATTERN + "</pattern>\n" +
+    "  <ruleNum>" + SOCKET_RULE_NUM + "</ruleNum>\n" +
+    "  <clientId>" + CLIENT_ID + "</clientId>\n" +
+    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
+    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
+    "  <appIds repeatable='true'>" + APPID[0] + "</appIds>\n" +
+    "  <appIds repeatable='true'>" + APPID[1] + "</appIds>\n" +
+    "  <pattern>" + SOCKET_PATTERN + "</pattern>\n" +
+    "  <patternType>" + ResourceRule.HOSTPORT + "</patternType>\n" +
+    "</entity>\n" +
+    "<entity>\n" +
+    "  <ruleNum>" + URL_EXACT_RULE_NUM + "</ruleNum>\n" +
+    "  <clientId>" + CLIENT_ID + "</clientId>\n" +
+    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
+    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
+    "  <appIds repeatable='true'>" + APPID[0] + "</appIds>\n" +
+    "  <appIds repeatable='true'>" + APPID[1] + "</appIds>\n" +
+    "  <pattern>" + URL_EXACT_PATTERN + "</pattern>\n" +
+    "  <patternType>" + ResourceRule.URLEXACT + "</patternType>\n" +
+    "  </entity>\n" +
+    "<entity>\n" +
+    "  <ruleNum>" + HTTPS_RULE_NUM + "</ruleNum>\n" +
+    "  <clientId>" + CLIENT_ID + "</clientId>\n" +
+    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
+    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
+    "  <appIds repeatable='true'>" + APPID[0] + "</appIds>\n" +
+    "  <appIds repeatable='true'>" + APPID[1] + "</appIds>\n" +
+    "  <pattern>" + HTTPS_PATTERN + "</pattern>\n" +
+    "  <patternType>" + ResourceRule.HOSTPORT + "</patternType>\n" +
     "</entity>\n" +
     "</feed>\n" ;
   
   public static final String RUNTIME_RESOURCE_RULES_XML = "<feed>\n" +
     "<entity repeatable='true'>\n" +
-    "<ruleNum>" + HTTP_RULE_NUM + "</ruleNum>\n" +
-    "<clientId>" + CLIENT_ID + "</clientId>\n" +
-    "<allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
-    "<allowedEntities>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
-    "<appIds repeatable='true'>" + APPID[0] + "</appIds>\n" +
-    "<appIds>" + APPID[1] + "</appIds>\n" +
-    "<pattern>" + HTTP_PATTERN + "</pattern>\n" +
-    "<httpProxyPort>" + HTTP_PROXY_PORT + "</httpProxyPort>\n" +
-    "<socksServerPort>" + SOCKS_SERVER_PORT + "</socksServerPort>\n" +
-    "<secretKey>" + SECRET_KEY +"</secretKey>\n" +
+    "  <ruleNum>" + HTTP_RULE_NUM + "</ruleNum>\n" +
+    "  <clientId>" + CLIENT_ID + "</clientId>\n" +
+    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
+    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
+    "  <appIds repeatable='true'>" + APPID[0] + "</appIds>\n" +
+    "  <appIds repeatable='true'>" + APPID[1] + "</appIds>\n" +
+    "  <pattern>" + HTTP_PATTERN + "</pattern>\n" +
+    "  <patternType>" + ResourceRule.HOSTPORT + "</patternType>\n" +
+    "  <httpProxyPort>" + HTTP_PROXY_PORT + "</httpProxyPort>\n" +
+    "  <socksServerPort>" + SOCKS_SERVER_PORT + "</socksServerPort>\n" +
+    "  <secretKey>" + SECRET_KEY +"</secretKey>\n" +
     "</entity>\n" +
     "<entity>\n" +
-    "<ruleNum>" + SOCKET_RULE_NUM + "</ruleNum>\n" +
-    "<clientId>" + CLIENT_ID + "</clientId>\n" +
-    "<allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
-    "<allowedEntities>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
-    "<pattern>" + SOCKET_PATTERN + "</pattern>\n" +
-    "<socksServerPort>" + SOCKS_SERVER_PORT + "</socksServerPort>\n" +
-    "<secretKey>" + SECRET_KEY +"</secretKey>\n" +
+    "  <ruleNum>" + SOCKET_RULE_NUM + "</ruleNum>\n" +
+    "  <clientId>" + CLIENT_ID + "</clientId>\n" +
+    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
+    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
+    "  <appIds repeatable='true'>" + APPID[0] + "</appIds>\n" +
+    "  <appIds repeatable='true'>" + APPID[1] + "</appIds>\n" +
+    "  <pattern>" + SOCKET_PATTERN + "</pattern>\n" +
+    "  <patternType>" + ResourceRule.HOSTPORT + "</patternType>\n" +
+    "  <socksServerPort>" + SOCKS_SERVER_PORT + "</socksServerPort>\n" +
+    "  <secretKey>" + SECRET_KEY +"</secretKey>\n" +
+    "</entity>\n" +
+    "<entity>\n" +
+    "  <ruleNum>" + URL_EXACT_RULE_NUM + "</ruleNum>\n" +
+    "  <clientId>" + CLIENT_ID + "</clientId>\n" +
+    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
+    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
+    "  <appIds repeatable='true'>" + APPID[0] + "</appIds>\n" +
+    "  <appIds repeatable='true'>" + APPID[1] + "</appIds>\n" +
+    "  <pattern>" + URL_EXACT_PATTERN + "</pattern>\n" +
+    "  <patternType>" + ResourceRule.URLEXACT + "</patternType>\n" +
+    "  <httpProxyPort>" + HTTP_PROXY_PORT + "</httpProxyPort>\n" +
+    "  <socksServerPort>" + SOCKS_SERVER_PORT + "</socksServerPort>\n" +
+    "  <secretKey>" + SECRET_KEY +"</secretKey>\n" +
+    "</entity>\n" +
+    "<entity>\n" +
+    "  <ruleNum>" + HTTPS_RULE_NUM + "</ruleNum>\n" +
+    "  <clientId>" + CLIENT_ID + "</clientId>\n" +
+    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
+    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
+    "  <appIds repeatable='true'>" + APPID[0] + "</appIds>\n" +
+    "  <appIds repeatable='true'>" + APPID[1] + "</appIds>\n" +
+    "  <pattern>" + HTTPS_PATTERN + "</pattern>\n" +
+    "  <patternType>" + ResourceRule.HOSTPORT + "</patternType>\n" +
+    "  <httpProxyPort>" + HTTP_PROXY_PORT + "</httpProxyPort>\n" +
+    "  <socksServerPort>" + SOCKS_SERVER_PORT + "</socksServerPort>\n" +
+    "  <secretKey>" + SECRET_KEY +"</secretKey>\n" +
     "</entity>\n" +
     "</feed>\n" ;
   
   public static final String RUNTIME_RESOURCE_ENTITY_XML =
     "<entity repeatable='true'>\n" +
-    "<ruleNum>" + HTTP_RULE_NUM + "</ruleNum>\n" +
-    "<clientId>" + CLIENT_ID + "</clientId>\n" +
-    "<allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
-    "<allowedEntities>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
-    "<appIds repeatable='true'>" + APPID[0] + "</appIds>\n" +
-    "<appIds>" + APPID[1] + "</appIds>\n" +
-    "<pattern>" + HTTP_PATTERN + "</pattern>\n" +
-    "<httpProxyPort>" + HTTP_PROXY_PORT + "</httpProxyPort>\n" +
-    "<socksServerPort>" + SOCKS_SERVER_PORT + "</socksServerPort>\n" +
-    "<secretKey>" + SECRET_KEY +"</secretKey>\n" +
+    "  <ruleNum>" + HTTP_RULE_NUM + "</ruleNum>\n" +
+    "  <clientId>" + CLIENT_ID + "</clientId>\n" +
+    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
+    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
+    "  <appIds repeatable='true'>" + APPID[0] + "</appIds>\n" +
+    "  <appIds repeatable='true'>" + APPID[1] + "</appIds>\n" +
+    "  <pattern>" + HTTP_PATTERN + "</pattern>\n" +
+    "  <httpProxyPort>" + HTTP_PROXY_PORT + "</httpProxyPort>\n" +
+    "  <socksServerPort>" + SOCKS_SERVER_PORT + "</socksServerPort>\n" +
+    "  <secretKey>" + SECRET_KEY +"</secretKey>\n" +
     "</entity>\n";
 }

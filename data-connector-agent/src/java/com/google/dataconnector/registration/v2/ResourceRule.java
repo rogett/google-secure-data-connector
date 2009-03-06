@@ -29,6 +29,10 @@ public class ResourceRule implements Comparable<ResourceRule> {
   public static final String HTTPSID = "https://";
   public static final String SOCKETID = "socket://";
   
+  public static final String HOSTPORT = "HOSTPORT";
+  public static final String URLEXACT = "URLEXACT";
+  public static final String REGEX = "REGEX";
+  
   private int ruleNum;
   // this exists for backward compatibility. clients with ruleNum field will not have this field
   private String name; 
@@ -37,6 +41,7 @@ public class ResourceRule implements Comparable<ResourceRule> {
   private String[] allowedEntities;
   private String[] appIds;
   private String pattern;
+  private String patternType;
   private Integer httpProxyPort;
   private Integer socksServerPort;
   private Long secretKey;
@@ -88,6 +93,14 @@ public class ResourceRule implements Comparable<ResourceRule> {
 
   public void setPattern(String pattern) {
     this.pattern = pattern;
+  }
+
+  public String getPatternType() {
+    return patternType;
+  }
+  
+  public void setPatternType(String patternType) {
+    this.patternType = patternType;
   }
 
   public Integer getHttpProxyPort() {

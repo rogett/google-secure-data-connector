@@ -51,21 +51,21 @@ public class ApacheHelper {
   static final String HTPASSWD_FILE_PREFIX = "htpasswd.resource.";
   static final String HTTP_CONF_FILE_NAME = "sdc.httpd.conf";
   
-  static final String PROXY_MATCH_RULE_TEMPLATE_20 = "" +
+  static final String PROXY_RULE_TEMPLATE_20 = "" +
   	  "<VirtualHost __BIND_HOST__:__PORT__ >\n" +
   	  "DocumentRoot __DOCUMENT_ROOT__\n" +
   	  "ProxyRequests on\n" +
   	  "ProxyVia on\n" +
-  	  "<ProxyMatch __PATTERN__>\n" +
+  	  "<Proxy __PATTERN__>\n" +
       "  order allow,deny\n" +
       "  allow from all\n" +
       "  deny from none\n" +
-      "</ProxyMatch>\n" +
+      "</Proxy>\n" +
       "</VirtualHost>\n";
   
   // For now the templates are the same between versions, however, this certainly isn't guaranteed
   // going forward.
-  static final String PROXY_MATCH_RULE_TEMPLATE_22 = PROXY_MATCH_RULE_TEMPLATE_20;
+  static final String PROXY_RULE_TEMPLATE_22 = PROXY_RULE_TEMPLATE_20;
   
   /**
    * Valid apache versions.
@@ -179,8 +179,8 @@ public class ApacheHelper {
   String makeListenEntries() {
     StringBuilder listenConfigEntries = new StringBuilder();
     for (ResourceRule resourceRule : resourceRules) {
-      // We only create entries for HTTP patterns.
-      if (resourceRule.getPattern().startsWith(ResourceRule.HTTPID)) { 
+      // We only create entries for URLEXACT type patterns.
+      if (resourceRule.getPattern().startsWith(ResourceRule.HTTPID)) {
         listenConfigEntries.append("Listen " + localConf.getHttpProxyBindHost() + ":" + 
             resourceRule.getHttpProxyPort() +"\n");
       }
@@ -190,7 +190,7 @@ public class ApacheHelper {
   
   
   /**
-   * For each http resource rule, we take the template {@link #PROXY_MATCH_RULE_TEMPLATE_20}
+   * For each http resource rule, we take the template {@link #PROXY_RULE_TEMPLATE_20}
    * substitute the correct value based on the resource configuration.  We build up the entire
    * &lt;ProxyMatch&gt; section and return it.
    * 
@@ -206,22 +206,22 @@ public class ApacheHelper {
     // see http://httpd.apache.org/docs/2.0/sections.html for how precedence in Apache works.
     Collections.reverse(resourceRules);
     
-    // Create ProxyMatch entries for each rule.
+    // Create Proxy entries for each rule.
     for (ResourceRule resourceRule : resourceRules) {
-      // Skip non http rules
-      if (!resourceRule.getPattern().startsWith(ResourceRule.HTTPID)) { 
+      // Skip non HTTP rules
+      if (!resourceRule.getPattern().startsWith(ResourceRule.HTTPID)) {
         continue;
       }
       
-      LOG.info("Creating <ProxyMatch> section for resource " + resourceRule.getRuleNum());
+      LOG.info("Creating <Proxy> section for resource " + resourceRule.getRuleNum());
       // Get apache version from apache binary then select appropriate template.
       String proxyMatchRule = "";
       switch(getApacheVersion()) {
         case TWOTWO:
-          proxyMatchRule = PROXY_MATCH_RULE_TEMPLATE_22;
+          proxyMatchRule = PROXY_RULE_TEMPLATE_22;
           break;
         case TWOZERO:
-          proxyMatchRule = PROXY_MATCH_RULE_TEMPLATE_20;
+          proxyMatchRule = PROXY_RULE_TEMPLATE_20;
           break;
         default:
           throw new ApacheSetupException("Unsupported apache version");
@@ -231,7 +231,14 @@ public class ApacheHelper {
       proxyMatchRule = "# Sequence Number " + resourceRule.getRuleNum() + "\n" + proxyMatchRule;
       proxyMatchRule = proxyMatchRule.replace("__DOCUMENT_ROOT__", localConf.getApacheConfDir() + 
           "/htdocs");
-      proxyMatchRule = proxyMatchRule.replace("__PATTERN__", resourceRule.getPattern());
+      if (resourceRule.getPatternType().equals(ResourceRule.HOSTPORT)) { 
+        // For HOSTPORT type, we allow any URL path.
+        proxyMatchRule = proxyMatchRule.replace("__PATTERN__", resourceRule.getPattern() + "*");
+      } else { 
+        // For URLEXACT we only allow what is explicitly listed.  
+        // TODO(rayc) determine behavior of trailing slashes.
+        proxyMatchRule = proxyMatchRule.replace("__PATTERN__", resourceRule.getPattern());
+      }
       proxyMatchRule = proxyMatchRule.replace("__SEQNUM__", Integer.toString(
           resourceRule.getRuleNum())); 
       proxyMatchRule = proxyMatchRule.replace("__BIND_HOST__", localConf.getHttpProxyBindHost());

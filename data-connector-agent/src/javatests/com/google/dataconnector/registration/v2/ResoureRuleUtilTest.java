@@ -39,8 +39,6 @@ import javax.net.SocketFactory;
  */
 public class ResoureRuleUtilTest extends TestCase {
 
-  private static final int STARTING_HTTP_PROXY_PORT = 10000;
-  
   private FakeResourceRuleConfig fakeResourceRuleConfig;
   ResourceRuleUtil resourceRuleUtil;
   
@@ -67,21 +65,6 @@ public class ResoureRuleUtilTest extends TestCase {
     }
   }
   
-  public void testSetHttpProxyPorts() {
-    List<ResourceRule> resourceRules = fakeResourceRuleConfig.getFakeConfigResourceRules();
-    resourceRuleUtil.setHttpProxyPorts(resourceRules, STARTING_HTTP_PROXY_PORT);
-    int httpResourceCount = 0;
-    for (ResourceRule resourceRule : resourceRules) {
-      if (resourceRule.getPattern().startsWith(ResourceRule.HTTPID)) {
-        assertEquals(STARTING_HTTP_PROXY_PORT + httpResourceCount, 
-            resourceRule.getHttpProxyPort().intValue());
-        httpResourceCount++;
-      } else {
-        assertNull(resourceRule.getHttpProxyPort());
-      }
-    }
-  }
-  
   public void testGetResourceRules() throws ResourceException {
     List<ResourceRule> resourceRules = resourceRuleUtil.getResourceRules(
         FakeResourceRuleConfig.RUNTIME_RESOURCE_RULES_XML);
@@ -89,7 +72,7 @@ public class ResoureRuleUtilTest extends TestCase {
     // Check Http Runtime - rule 0
     ResourceRule expected = fakeResourceRuleConfig.getRuntimeHttpResourceRule();
     ResourceRule actual = resourceRules.get(0);
-    assertEquals(expected.getName(), actual.getName());
+    assertEquals(expected.getRuleNum(), actual.getRuleNum());
     assertEquals(expected.getPattern(), actual.getPattern());
     assertEquals(expected.getHttpProxyPort(), actual.getHttpProxyPort());
     verifyCommonResourceParams(expected, actual);
@@ -97,8 +80,17 @@ public class ResoureRuleUtilTest extends TestCase {
     // Socket Runtime - rule 1
     expected = fakeResourceRuleConfig.getRuntimeSocketResourceRule();
     actual = resourceRules.get(1);
-    assertEquals(expected.getName(), actual.getName());
+    assertEquals(expected.getRuleNum(), actual.getRuleNum());
     assertEquals(expected.getPattern(), actual.getPattern());
+    assertNull(expected.getHttpProxyPort());
+    verifyCommonResourceParams(expected, actual);
+    
+    // URLEXACT Runtime - rule 2
+    expected = fakeResourceRuleConfig.getRuntimeUrlExactResourceRule();
+    actual = resourceRules.get(2);
+    assertEquals(expected.getRuleNum(), actual.getRuleNum());
+    assertEquals(expected.getPattern(), actual.getPattern());
+    assertEquals(expected.getHttpProxyPort(), actual.getHttpProxyPort());
     verifyCommonResourceParams(expected, actual);
   }
   
@@ -106,7 +98,7 @@ public class ResoureRuleUtilTest extends TestCase {
     ResourceRule actual = resourceRuleUtil.getResourceRuleFromEntityXml(
         FakeResourceRuleConfig.RUNTIME_RESOURCE_ENTITY_XML);
     ResourceRule expected = fakeResourceRuleConfig.getRuntimeHttpResourceRule();
-    assertEquals(expected.getName(), actual.getName());
+    assertEquals(expected.getRuleNum(), actual.getRuleNum());
     assertEquals(expected.getPattern(), actual.getPattern());
     assertEquals(expected.getHttpProxyPort(), actual.getHttpProxyPort());
     verifyCommonResourceParams(expected, actual);
@@ -120,7 +112,7 @@ public class ResoureRuleUtilTest extends TestCase {
         resourceRuleUtil.getEntityXmlFromResourceRule(
             fakeResourceRuleConfig.getRuntimeHttpResourceRule()));
     ResourceRule expected = fakeResourceRuleConfig.getRuntimeHttpResourceRule();
-    assertEquals(expected.getName(), actual.getName());
+    assertEquals(expected.getRuleNum(), actual.getRuleNum());
     assertEquals(expected.getPattern(), actual.getPattern());
     assertEquals(expected.getHttpProxyPort(), actual.getHttpProxyPort());
     verifyCommonResourceParams(expected, actual);
@@ -135,9 +127,9 @@ public class ResoureRuleUtilTest extends TestCase {
     Socket mockSocket = EasyMock.createMock(Socket.class);
     mockSocket.bind(EasyMock.isA(SocketAddress.class));
     EasyMock.expectLastCall().anyTimes();
-    EasyMock.expect(mockSocket.getLocalPort()).andReturn(new Random().nextInt());
+    EasyMock.expect(mockSocket.getLocalPort()).andReturn(new Random().nextInt()).times(2);
     mockSocket.close();
-    EasyMock.expectLastCall();
+    EasyMock.expectLastCall().times(2);
     EasyMock.replay(mockSocket);
     
     SocketFactory mockSocketFactory = EasyMock.createMock(SocketFactory.class);

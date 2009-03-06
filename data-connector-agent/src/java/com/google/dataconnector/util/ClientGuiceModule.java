@@ -127,7 +127,7 @@ public class ClientGuiceModule extends AbstractModule {
           new FileUtil().readFile(localConf.getRulesFile()));
       
       // Add System resource rules to the list
-      LOG.info("Adding system resource ruless");
+      LOG.info("Adding system resource rules");
       List<ResourceRule> systemRules = resourceRuleUtil.createSystemRules(localConf.getUser(),
           localConf.getDomain(), localConf.getClientId(), healthzRequestHandler.getPort(),
           localConf.getHealthzGadgetUsers());
@@ -150,7 +150,7 @@ public class ClientGuiceModule extends AbstractModule {
       resourceRuleUtil.setSecretKeys(resourceRules);
       return resourceRules;
     } catch (ResourceException e) {
-      LOG.fatal("Configuration Error.", e);
+      LOG.fatal("Configuration Error:" + e.getMessage());
       // Guice produces SUPER VERBOSE errors that make system admins cry.  we
       // instead exit early so the message is clear.  I hate this.
       System.exit(-1); 

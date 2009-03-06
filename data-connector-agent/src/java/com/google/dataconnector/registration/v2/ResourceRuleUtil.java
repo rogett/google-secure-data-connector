@@ -49,7 +49,6 @@ public class ResourceRuleUtil {
 
   private static final String TOP_LEVEL_ELEMENT = "feed";
   private static final String ENTITY = "entity";
-  private static final String HTTP = "http";
   private static final String ALL = "all";
 
   // Dependencies
@@ -95,8 +94,8 @@ public class ResourceRuleUtil {
   public void getVirtualHostBindPortsAndSetHttpProxyPorts(List<ResourceRule> resourceRules) 
       throws ResourceException {
     for (ResourceRule resourceRule : resourceRules) {
-      // We only get ports for HTTP rules as others do not transverse the HTTP Proxy (apache)
-      if (!resourceRule.getPattern().startsWith(HTTP)) {
+      // We only get ports for HTTP type rules as these traverse the apache proxy.
+      if (!resourceRule.getPattern().startsWith(ResourceRule.HTTPID)) {
         continue;
       }
       try {
@@ -134,20 +133,6 @@ public class ResourceRuleUtil {
     }
     // Delete out the entries not for this client.
     resourceRules.removeAll(removalList);
-  }
-
-  /**
-   * Sets the httpProxyPort to the apache httpd server for each rule.
-   * 
-   * @param resourceRules a list of resourceRules.
-   * @param httpProxyPort the port number to use for each http rule.
-   */
-  public void setHttpProxyPorts(List<ResourceRule> resourceRules, int httpProxyPort) {
-    for (ResourceRule resourceRule : resourceRules) {
-      if (resourceRule.getPattern().startsWith(HTTP)) {
-        resourceRule.setHttpProxyPort(httpProxyPort);
-      }
-    }
   }
 
   /**
@@ -321,21 +306,30 @@ public class ResourceRuleUtil {
     ResourceRule healthzRule = new ResourceRule();
     healthzRule.setAllowedEntities(allowedEntities);
     healthzRule.setClientId(clientId);
+    healthzRule.setAppIds(new String[] { ".*" });
     // assign name of Integer.MAX_VALUE
     healthzRule.setRuleNum(nextRuleNum--);
-    healthzRule.setPattern(ResourceRule.HTTPID + "localhost:" + 
-        port + "/" + clientId + "/__SDCINTERNAL__/healthz" + ".*");
+    healthzRule.setPattern(ResourceRule.HTTPID + "localhost:" + port + "/" + clientId + 
+	  "/__SDCINTERNAL__/healthz" + ".*");
+    healthzRule.setPatternType(ResourceRule.URLEXACT);
     systemRules.add(healthzRule);
-//    
-//    // create rule to let users access healthcheck feeds
-//    ResourceRule feedAccessRule = new ResourceRule();
-//    feedAccessRule.setAllowedEntities(allowedEntities);
-//    feedAccessRule.setClientId("all");
-//    feedAccessRule.setRuleNum(nextRuleNum--);
-//    feedAccessRule.setPattern("http://www.google.com/a/feeds/server/g/domain/" + domain 
-//        + "/HealthCheck.*");
-//    systemRules.add(feedAccessRule);
-    
     return systemRules;
+  }
+  
+  /**
+   * For legacy clients, sets rule number from deprecated name. 
+   * TODO(rayc) remove when we deprecate TT2 and older clients.
+   */
+  @Deprecated
+  public void setRuleNumFromName(List<ResourceRule> resourceRules) throws ResourceException {
+    for (ResourceRule resourceRule : resourceRules) {
+      if (resourceRule.getName() != null) {
+        try {
+          resourceRule.setRuleNum(Integer.valueOf(resourceRule.getName()));
+        } catch (NumberFormatException e) {
+          throw new ResourceException(e);
+        }
+      }
+    }
   }
 }
