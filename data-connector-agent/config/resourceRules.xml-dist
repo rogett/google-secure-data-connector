@@ -18,6 +18,6 @@
     <clientId>all</clientId>
     <allowedEntities repeatable="true">testuser@example.com</allowedEntities>
     <allowedEntities>admin@example.com</allowedEntities>
-    <pattern>socket://128.195.131.4:22</pattern>
+    <pattern>socket://0.0.0.0:22</pattern>
   </entity>
 </feed>
