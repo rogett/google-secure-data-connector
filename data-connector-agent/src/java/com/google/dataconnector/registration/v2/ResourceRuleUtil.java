@@ -307,7 +307,7 @@ public class ResourceRuleUtil {
     // assign name of Integer.MAX_VALUE
     healthzRule.setRuleNum(nextRuleNum--);
     healthzRule.setPattern(ResourceRule.HTTPID + "localhost:" + port + "/" + clientId + 
-	  "/__SDCINTERNAL__/healthz" + ".*");
+	  "/__SDCINTERNAL__/healthz");
     healthzRule.setPatternType(ResourceRule.URLEXACT);
     systemRules.add(healthzRule);
     return systemRules;
