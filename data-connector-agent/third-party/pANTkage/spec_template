@@ -18,8 +18,6 @@ cd $RPM_BUILD_ROOT/source/data-connector-agent
   --lsb \
   --noverify \
   --openssh=/usr/sbin/sshd \
-  --apachectl=/usr/sbin/apachectl \
-  --apache_modules_dir=/usr/lib/httpd/modules \
   --user=securedataconnector \
   --group=securedataconnector \
   --javahome=/usr
@@ -47,13 +45,6 @@ if [ -e $RPM_BUILD_ROOT/opt/%{name}/configure.sh ]; then
   rm -f $RPM_BUILD_ROOT/opt/%{name}/configure.sh
 fi
 
-if [ -e $RPM_BUILD_ROOT/opt/%{name}/config/apache/configure_apache.sh-dist ]; then
-  rm -f $RPM_BUILD_ROOT/opt/%{name}/config/apache/configure_apache.sh-dist
-fi
-
-if [ -e $RPM_BUILD_ROOT/opt/%{name}/config/apache/httpd-conf-dist ]; then
-  rm -f $RPM_BUILD_ROOT/opt/%{name}/config/apache/httpd-conf-dist
-fi
 
 if [ -e $RPM_BUILD_ROOT/opt/%{name}/config/openssh/configure_sshdconf.sh-dist ]; then
   rm -f $RPM_BUILD_ROOT/opt/%{name}/config/openssh/configure_sshdconf.sh-dist
@@ -71,7 +62,6 @@ mv $RPM_BUILD_ROOT/opt/%{name}/config/openssh/ssh_host_dsa_key.pub $RPM_BUILD_RO
 # Moving config files for /etc/opt/${name}
 mv $RPM_BUILD_ROOT/opt/%{name}/config/localConfig.xml $RPM_BUILD_ROOT/etc/opt/%{name}/localConfig.xml
 mv $RPM_BUILD_ROOT/opt/%{name}/config/resourceRules.xml $RPM_BUILD_ROOT/etc/opt/%{name}/resourceRules.xml
-mv $RPM_BUILD_ROOT/opt/%{name}/config/apache $RPM_BUILD_ROOT/etc/opt/%{name}
 
 # Relocate runclient.sh
 mv $RPM_BUILD_ROOT/opt/%{name}/runclient.sh $RPM_BUILD_ROOT/opt/%{name}/bin
@@ -99,9 +89,6 @@ CLIENT_HOME="/opt/%{name}"
 LOGDIR="/var/opt/%{name}/log"
 WOODSTOCK_HOME="$CONF_DIR/woodstock-user"
 
-# Create default apache log and htdocs directories
-mkdir -p $CONF_DIR/apache/htdocs
-
 # Set up the user to access the client
 adduser -s /bin/false -d $WOODSTOCK_HOME -M woodstock
 adduser -s /bin/bash  -M $CLIENT_USER
@@ -127,28 +114,16 @@ dd if=/dev/urandom bs=1024 count=1 |passwd --stdin $CLIENT_USER
   chmod 750 /etc/opt/%{name}
   chown -R root:$CLIENT_USER /etc/opt/%{name}
   chown -R root:$CLIENT_USER /opt/%{name}
-  chmod g+w /etc/opt/%{name}/apache
 
   chown -R root:$CLIENT_GROUP /etc/opt/%{name}
   chown -R root:$CLIENT_GROUP /etc/opt/%{name}/localConfig.xml
   chown -R root:$CLIENT_GROUP /etc/opt/%{name}/resourceRules.xml
-  chown -R root:$CLIENT_GROUP /etc/opt/%{name}/apache
 
   chmod 640 /etc/opt/%{name}/localConfig.xml
   chmod 640 /etc/opt/%{name}/resourceRules.xml
 
   chown -R root:$CLIENT_GROUP /etc/opt/%{name}/resourceRules.xml
 
-
-  chmod 770 /etc/opt/%{name}/apache
-  # Configure apache and modules
-  chmod 750 /etc/opt/%{name}/apache/configure_apache.sh
-  /etc/opt/%{name}/apache/configure_apache.sh
-  chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/%{name}/apache/httpd.conf-template
-
-  chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/%{name}/apache/mime.types
-  chmod 640 /etc/opt/%{name}/apache/httpd.conf-template
-  chmod 640 /etc/opt/%{name}/apache/mime.types
 
   chown -R root:root /etc/opt/%{name}/openssh
   chmod 755 etc/opt/%{name}/openssh
@@ -173,9 +148,6 @@ dd if=/dev/urandom bs=1024 count=1 |passwd --stdin $CLIENT_USER
   chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/%{name}/openssh/sshd_config
   chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/%{name}/woodstock-user/.ssh/authorized_keys
 
-  # Create htdocs path for apache
-  mkdir -p /etc/opt/%{name}/apache/htdocs
-
 
 %postun
 echo "Removing User Accounts.."
@@ -188,7 +160,6 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root) 
-%config /etc/opt/%{name}/apache/httpd.conf-template
 %config /etc/opt/%{name}/resourceRules.xml
 %config /etc/opt/%{name}/localConfig.xml
 /etc/opt/%{name}/*
