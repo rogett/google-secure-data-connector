@@ -20,15 +20,7 @@ import com.google.feedserver.util.XmlUtil;
 
 import junit.framework.TestCase;
 
-import org.easymock.classextension.EasyMock;
-
-import java.io.IOException;
-import java.net.Socket;
-import java.net.SocketAddress;
 import java.util.List;
-import java.util.Random;
-
-import javax.net.SocketFactory;
 
 /**
  * Tests for the {@link ResourceRuleUtil} class.
@@ -44,7 +36,7 @@ public class ResoureRuleUtilTest extends TestCase {
   protected void setUp() throws Exception {
     super.setUp();
     
-    resourceRuleUtil = new ResourceRuleUtil(new XmlUtil(), new BeanUtil(), null, null);
+    resourceRuleUtil = new ResourceRuleUtil(new XmlUtil(), new BeanUtil());
     fakeResourceRuleConfig = new FakeResourceRuleConfig();
   }
   
@@ -114,49 +106,6 @@ public class ResoureRuleUtilTest extends TestCase {
     assertEquals(expected.getPattern(), actual.getPattern());
     assertEquals(expected.getHttpProxyPort(), actual.getHttpProxyPort());
     verifyCommonResourceParams(expected, actual);
-  }
-  
-  public void testGetVirtualHostBindPorts() throws ResourceException, IOException {
-    
-    // Setup
-    SocketAddress mockSocketAddress = EasyMock.createMock(SocketAddress.class);
-    EasyMock.replay(mockSocketAddress);
-    
-    Socket mockSocket = EasyMock.createMock(Socket.class);
-    mockSocket.bind(EasyMock.isA(SocketAddress.class));
-    EasyMock.expectLastCall().anyTimes();
-    EasyMock.expect(mockSocket.getLocalPort()).andReturn(new Random().nextInt()).times(2);
-    mockSocket.close();
-    EasyMock.expectLastCall().times(2);
-    EasyMock.replay(mockSocket);
-    
-    SocketFactory mockSocketFactory = EasyMock.createMock(SocketFactory.class);
-    EasyMock.expect(mockSocketFactory.createSocket()).andReturn(mockSocket).anyTimes();
-    EasyMock.replay(mockSocketFactory);
-    
-    ResourceRuleUtil resourceRuleUtil = new ResourceRuleUtil(new XmlUtil(), new BeanUtil(),
-        mockSocketFactory, mockSocketAddress);
-    
-    // Set each rule's httpProxyPort port to null.
-    for (ResourceRule resourceRule : fakeResourceRuleConfig.getFakeRuntimeResourceRules()) {
-      resourceRule.setHttpProxyPort(null);
-    }
-    
-    // Test
-    resourceRuleUtil.getVirtualHostBindPortsAndSetHttpProxyPorts(
-        fakeResourceRuleConfig.getFakeRuntimeResourceRules());
-    
-    // Verify.  
-    for (ResourceRule resourceRule : fakeResourceRuleConfig.getFakeRuntimeResourceRules()) {
-      // HTTP should have an integer, others should still have null.
-      if (resourceRule.getPattern().startsWith(ResourceRule.HTTPID)) {
-        assertNotNull(resourceRule.getHttpProxyPort());
-      } else {
-        assertNull(resourceRule.getHttpProxyPort()); 
-      }
-    }
-    EasyMock.verify(mockSocket);
-    EasyMock.verify(mockSocketFactory);
   }
   
   /**

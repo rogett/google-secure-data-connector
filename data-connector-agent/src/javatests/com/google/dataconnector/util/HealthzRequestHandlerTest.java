@@ -63,7 +63,12 @@ public class HealthzRequestHandlerTest extends TestCase {
     try {
       testHealthzRequestHandler.run();
       String strOut = ((ByteArrayOutputStream) os).toString("utf8");
-      assertTrue(strOut.startsWith("ok"));
+      assertTrue(strOut.contains("ok"));
+      assertTrue(strOut.contains("HTTP/1.1 200 OK"));
+      assertTrue(strOut.contains("Server: SDC_agent"));
+      assertTrue(strOut.contains("Cache-Control: no-cache"));
+      assertTrue(strOut.contains("Pragma: no-cache"));
+      assertTrue(strOut.contains("Content-Length: 2"));
     } catch (IOException e) {
       if (!e.getMessage().contains("test done")) {
         fail(e.getMessage());

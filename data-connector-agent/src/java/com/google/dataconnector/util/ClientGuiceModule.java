@@ -144,7 +144,6 @@ public class ClientGuiceModule extends AbstractModule {
       resourceRuleUtil.setSocksServerPort(resourceRules,
           localConf.getSocksServerPort());
       // We get local bind ports for each rule that can be used to configure apache virtual hosts.
-      resourceRuleUtil.getVirtualHostBindPortsAndSetHttpProxyPorts(resourceRules);
       resourceRuleUtil.setSecretKeys(resourceRules);
       return resourceRules;
     } catch (ResourceException e) {

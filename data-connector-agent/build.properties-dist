@@ -31,7 +31,6 @@ classes=${build}/classes
 install.prefix=__PREFIX__
 install.etc.prefix=__ETCPREFIX__
 install.var.prefix=__VARPREFIX__
-install.apache.conf=${install.etc.prefix}/apache
 install.lib.prefix=${install.prefix}/lib
 install.bin.prefix=${install.prefix}/bin
 install.ssh.conf.dir=${install.etc.prefix}/openssh

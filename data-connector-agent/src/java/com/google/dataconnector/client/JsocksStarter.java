@@ -92,17 +92,12 @@ public class JsocksStarter extends Thread {
         }
         authenticator.add(resourceRule.getSecretKey().toString(), socketInfo.getHostAddress(),
             socketInfo.getPort());
-      } else if (resourceRule.getPattern().startsWith(ResourceRule.HTTPID)) {
-        /* We setup a proxy rule for every URI resource as we use SOCKS authentication to
-         * password protect each of the URL patterns.
-         */
-        authenticator.add(resourceRule.getSecretKey().toString(), LOCALHOST, 
-            resourceRule.getHttpProxyPort());
-      } else if (resourceRule.getPattern().startsWith(ResourceRule.HTTPSID)) {
+      } else if (resourceRule.getPattern().startsWith(ResourceRule.HTTPID) || 
+          (resourceRule.getPattern().startsWith(ResourceRule.HTTPSID))) {
         authenticator.add(resourceRule.getSecretKey().toString(), 
             resourceRuleUtil.getHostnameFromRule(resourceRule), 
             resourceRuleUtil.getPortFromRule(resourceRule));
-        LOG.info("Added https rule " + resourceRule.getPattern() + " host: " + 
+        LOG.debug("Added rule " + resourceRule.getPattern() + " host: " + 
             resourceRuleUtil.getHostnameFromRule(resourceRule) + " port: " + 
             resourceRuleUtil.getPortFromRule(resourceRule));
       }

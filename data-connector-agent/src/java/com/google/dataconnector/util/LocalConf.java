@@ -62,14 +62,8 @@ public class LocalConf {
   private String clientId;
   @Flag(help = "Location of sshd binary to use for SDC protocol multiplexor")
   private String sshd;
-  @Flag(help = "Default bind host is localhost, One should not have to change this.")
-  private String httpProxyBindHost = DEFAULT_BIND_HOST;
   @Flag(help = "Port to bind socks firewall port to.")
   private Integer socksServerPort;
-  @Flag(help = "System apache2 apachectl location")
-  private String apacheCtl = "third-party/apache-httpd/root/bin/apachectl";
-  @Flag(help = "Apache configuration files.  Must be writable by user agent runs as.")
-  private String apacheConfDir;
   @Flag(help = "Turn on debug logging.")
   private Boolean debug = DEBUG;
   @Flag(help = "Allow unverified certificates")
@@ -184,14 +178,6 @@ public class LocalConf {
     this.sshd = sshd;
   }
 
-  public String getHttpProxyBindHost() {
-    return httpProxyBindHost;
-  }
-
-  public void setHttpProxyBindHost(String httpProxyBindHost) {
-    this.httpProxyBindHost = httpProxyBindHost;
-  }
-
   public Integer getSocksServerPort() {
     return socksServerPort;
   }
@@ -214,22 +200,6 @@ public class LocalConf {
 
   public void setSocksProperties(String socksProperties) {
     this.socksProperties = socksProperties;
-  }
-  
-  public String getApacheCtl() {
-    return apacheCtl;
-  }
-
-  public void setApacheCtl(String apacheCtl) {
-    this.apacheCtl = apacheCtl;
-  }
-
-  public String getApacheConfDir() {
-    return apacheConfDir;
-  }
-
-  public void setApacheConfDir(String apacheConfDir) {
-    this.apacheConfDir = apacheConfDir;
   }
   
   public AuthRequest.AuthType getAuthType() {

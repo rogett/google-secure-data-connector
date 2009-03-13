@@ -61,8 +61,7 @@ public class ClientRegistrationUtilTest extends TestCase {
     fakeLocalConfGenerator = new FakeLocalConfGenerator();
     fakeResourceRuleConfig = new FakeResourceRuleConfig();
     authRequest = new AuthRequest();
-    ResourceRuleUtil resourceRuleUtil = new ResourceRuleUtil(new XmlUtil(), new BeanUtil(), null, 
-        null);
+    ResourceRuleUtil resourceRuleUtil = new ResourceRuleUtil(new XmlUtil(), new BeanUtil());
     regRequest = new RegistrationRequest(resourceRuleUtil);
     clientRegistrationUtil = new ClientRegistrationUtil(authRequest, regRequest);
   }

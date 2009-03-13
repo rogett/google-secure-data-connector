@@ -15,7 +15,6 @@
 package com.google.dataconnector.client;
 
 import com.google.dataconnector.client.testing.FakeLocalConfGenerator;
-import com.google.dataconnector.util.ApacheSetupException;
 import com.google.dataconnector.util.ConnectionException;
 import com.google.dataconnector.util.LocalConf;
 
@@ -44,7 +43,6 @@ public class SecureDataConnectionTest extends TestCase {
   private SSLSession mockSession;
   private LocalConf fakeLocalConf;
   private JsocksStarter mockJsocksStarter;
-  private ApacheStarter mockApacheStarter;
   
   @Override
   protected void setUp() throws Exception {
@@ -63,10 +61,8 @@ public class SecureDataConnectionTest extends TestCase {
   /**
    * Configures mocks to return the supplied RFC2253 formatted DN.
    * @throws SSLPeerUnverifiedException 
-   * @throws ApacheSetupException 
    */
-  private void createMockSession(LdapName expectedLdapName) throws SSLPeerUnverifiedException, 
-      ApacheSetupException {
+  private void createMockSession(LdapName expectedLdapName) throws SSLPeerUnverifiedException {
     mockPrincipal = EasyMock.createMock(Principal.class);
     mockPrincipal.getName();
     EasyMock.expectLastCall().andReturn(expectedLdapName.toString());
@@ -85,23 +81,18 @@ public class SecureDataConnectionTest extends TestCase {
     mockJsocksStarter = EasyMock.createMock(JsocksStarter.class);
     mockJsocksStarter.startJsocksProxy();
     EasyMock.expectLastCall();
-    EasyMock.replay(mockJsocksStarter);
-    
-    mockApacheStarter = EasyMock.createMock(ApacheStarter.class);
-    mockApacheStarter.startApacheHttpd();
-    EasyMock.expectLastCall();
-    EasyMock.replay(mockApacheStarter);
+    EasyMock.replay(mockJsocksStarter);    
   }
   
   public void testVerifySubjectInCertificateGoodCn() throws InvalidNameException, 
-      SSLPeerUnverifiedException, ConnectionException, ApacheSetupException {
+      SSLPeerUnverifiedException, ConnectionException {
     
     // Setup
     createMockSession(new LdapName("CN=\"" + EXPECTED_CN + "\",OU=\"foobar\",C=\"bar\""));
     
     // Execute
     SecureDataConnection sdc = new SecureDataConnection(fakeLocalConf, null, null, null,
-        mockApacheStarter, mockJsocksStarter); 
+        mockJsocksStarter); 
     sdc.verifySubjectInCertificate(mockSession);
     
     // Verify
@@ -110,14 +101,14 @@ public class SecureDataConnectionTest extends TestCase {
   }
   
   public void testVerifySubjectInCertificateBadCn() throws InvalidNameException, 
-      SSLPeerUnverifiedException, ApacheSetupException {
+      SSLPeerUnverifiedException {
     
     // Setup
     createMockSession(new LdapName("CN=\"" + "BADNESS" + "\",OU=\"foobar\",C=\"bar\""));
     
     // Execute
     SecureDataConnection sdc = new SecureDataConnection(fakeLocalConf, null, null, null,
-        mockApacheStarter, mockJsocksStarter); 
+        mockJsocksStarter); 
     try {
       sdc.verifySubjectInCertificate(mockSession);
     } catch (ConnectionException e) {
@@ -136,7 +127,7 @@ public class SecureDataConnectionTest extends TestCase {
     EasyMock.replay(mockSession);
     
     SecureDataConnection sdc = new SecureDataConnection(null, null, null, null,
-        mockApacheStarter, mockJsocksStarter); 
+        mockJsocksStarter); 
     try {
       sdc.verifySubjectInCertificate(mockSession);
     } catch (ConnectionException e) {

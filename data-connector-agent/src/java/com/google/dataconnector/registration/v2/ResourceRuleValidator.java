@@ -92,18 +92,7 @@ public class ResourceRuleValidator {
     
     // All Config time validation and ...
     validate(resourceRule);
-    
-    // httpProxyPort - required for all URLEXACT resources
-    Integer httpProxyPort = resourceRule.getHttpProxyPort();
-    if (httpProxyPort != null) {
-      if (httpProxyPort > MAX_PORT || httpProxyPort < 0) {
-        throw new ResourceException("HttpProxyPort " + httpProxyPort + " out of range.");
-      }
-    } else if (resourceRule.getPatternType().trim().equals(ResourceRule.URLEXACT)) {
-      throw new ResourceException("'httpProxyPort' required for each " + ResourceRule.HTTPID +
-          "resource");
-    }
-    
+
     // socksServerPort 
     Integer socksServerPort = resourceRule.getSocksServerPort();
     if (socksServerPort != null) {
@@ -204,7 +193,6 @@ public class ResourceRuleValidator {
     }
     
     //  pattern type
-    
     String patternType = resourceRule.getPatternType();
     if (patternType == null) {
       throwResourceException(ruleNum, " 'patternType' missing for " + pattern);

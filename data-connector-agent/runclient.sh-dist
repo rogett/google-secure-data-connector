@@ -102,9 +102,6 @@ if [ ${NOVERIFY} = "false" ]; then
   checkfile ${RULESFILE} root ${GROUP} 640
   checkfile ${ETCPREFIX}/localConfig.xml root ${GROUP} 640
   checkfile ${ETCPREFIX}/resourceRules.xml root ${GROUP} 640
-  checkfile ${ETCPREFIX}/apache root ${GROUP} 770
-  checkfile ${ETCPREFIX}/apache/httpd.conf-template ${USER} ${GROUP} 640
-  checkfile ${ETCPREFIX}/apache/mime.types ${USER} ${GROUP} 640
   checkfile ${ETCPREFIX}/openssh root root 755
   checkfile ${ETCPREFIX}/openssh/ssh_host_dsa_key ${USER} ${GROUP} 600
   checkfile ${ETCPREFIX}/openssh/ssh_host_dsa_key.pub ${USER} ${GROUP} 600

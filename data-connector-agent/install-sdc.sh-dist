@@ -25,8 +25,6 @@ ETCPREFIX=__ETCPREFIX__
 VARPREFIX=__VARPREFIX__
 BINPREFIX=${PREFIX}/bin
 LIBPREFIX=${PREFIX}/lib
-USE_SUPPLIED_APACHE=__USE_SUPPLIED_APACHE__
-APACHE_CONF=${ETCPREFIX}/apache
 SSH_CONF_DIR=${ETCPREFIX}/openssh
 SSH_USER_DIR=${ETCPREFIX}/woodstock-user/.ssh
 USER=__USER__
@@ -50,9 +48,7 @@ for dir in \
     "${VARPREFIX}" \
     "${VARPREFIX}/log" \
     "${SSH_CONF_DIR}" \
-    "${SSH_USER_DIR}" \
-    "${APACHE_CONF}" \
-    "${APACHE_CONF}/htdocs"; do
+    "${SSH_USER_DIR}" ; do
   echo making dir ${dir}
   mkdir -p $dir
 done
@@ -67,7 +63,7 @@ for jar in "agent.jar" "protocol.jar"; do
   install -m 644 build/${jar} ${LIBPREFIX}/${jar}
 done
 
-THIRD_PARTY_FILES=$(find third-party/ -type f | grep -v apache-httpd |grep -v .svn)
+THIRD_PARTY_FILES=$(find third-party/ -type f | grep -v .svn)
 for file in ${THIRD_PARTY_FILES}; do
   echo installing ${file}
   install -m 644 -D ${file} ${LIBPREFIX}/${file}
@@ -96,18 +92,6 @@ install -g ${GROUP} -o root -m 640 ./config/localConfig.xml ${file}
 file="${ETCPREFIX}/resourceRules.xml"
 echo installing ${file}
 install -g ${GROUP} -o root -m 640 ./config/resourceRules.xml-dist ${file}
-
-# httpd.conf-template
-file="${APACHE_CONF}/httpd.conf-template"
-echo installing ${file}
-install -g ${GROUP} -o ${USER} -m 640 \
-    ./config/apache/httpd.conf-template ${file}
-
-# mime.types 
-file="${APACHE_CONF}/mime.types"
-echo installing ${file}
-install -g ${GROUP} -o ${USER} -m 640 ./config/apache/mime.types ${file}
-
 
 ### openssh  ###
 
@@ -142,27 +126,6 @@ echo installing ${file}
 install -g ${GROUP}  -m 750 \
     "./config/openssh/configure_sshdconf.sh" ${file}
 
-# allow user to write out apache config files 
-echo setting permissions on ${APACHE_CONF}
-chgrp ${GROUP} ${APACHE_CONF}
-chmod 770 "${APACHE_CONF}" 
-
-# allow user to write out apache log files
-echo setting permissions on ${VARPREFIX}/log
-chgrp ${GROUP} "${VARPREFIX}/log"
-chmod 770 "${VARPREFIX}/log"
-
-# configure_apache.sh 
-file="${APACHE_CONF}/configure_apache.sh"
-echo installing ${file}
-install -g ${GROUP} -m 750 \
-"./config/apache/configure_apache.sh" ${file}
-
 echo "Running Post Install Scripts...."
-
-# if using supplied apache configure_apache.sh will get called as part of the build and install apache
-if [ ${USE_SUPPLIED_APACHE} = "false" ]; then
-${ETCPREFIX}/apache/configure_apache.sh 
-fi
 
 ${ETCPREFIX}/openssh/configure_sshdconf.sh 

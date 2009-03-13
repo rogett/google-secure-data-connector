@@ -63,31 +63,6 @@ public class ResourceRuleValidatorTest extends TestCase {
     resourceRuleValidator.validate(configSocketResourceRule);
   }
   
-  // Http Proxy Port
-  public void testBadHttpProxyPort() {
-    runtimeHttpResourceRule.setHttpProxyPort(3242343);
-    
-    try {
-      resourceRuleValidator.validateRuntime(runtimeHttpResourceRule);
-    } catch (ResourceException e) {
-      assertTrue(e.getMessage().contains("out of range"));
-      return;
-    }
-    fail("did not get ResourceException");
-  }
-  
-  public void testMissingHttpProxyPort() {
-    runtimeUrlExactResourceRule.setHttpProxyPort(null);
-    
-    try {
-      resourceRuleValidator.validateRuntime(runtimeUrlExactResourceRule);
-    } catch (ResourceException e) {
-      assertTrue(e.getMessage().contains("required for each"));
-      return;
-    }
-    fail("did not get ResourceException");
-  }
-  
   // Socks Server Port
   public void testBadSocksServerPort() {
     runtimeHttpResourceRule.setSocksServerPort(3242343);

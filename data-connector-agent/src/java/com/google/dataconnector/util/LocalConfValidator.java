@@ -161,15 +161,6 @@ public class LocalConfValidator {
       errors.append("'sshd' required\n");
     }
     
-    // httpProxyBindHost
-    if (localConf.getHttpProxyBindHost() != null) {
-      if (localConf.getHttpProxyBindHost().matches("\\s")) {
-        errors.append("'httpProxyBindHost' contains spaces\n");
-      }
-    } else {
-      errors.append("'httpProxyBindHost' required\n");
-    }
-    
     // socksServerPort 
     Integer socksServerPort = localConf.getSocksServerPort();
     if (socksServerPort != null) {
@@ -188,21 +179,6 @@ public class LocalConfValidator {
     // socksProperties 
     if (localConf.getSocksProperties() == null) {
       errors.append("'socksProperties' required\n");
-    }
-    
-    // apachectl
-    if (localConf.getApacheCtl() != null) {
-      errors.append(canReadFile("apacheCtl", localConf.getApacheCtl()));
-    } else {
-      errors.append("'apacheCtl' required.");
-    }
-    
-    // apache conf dir
-    if (localConf.getApacheConfDir() != null) {
-      errors.append(canReadFile("apacheConfDir", localConf.getApacheConfDir() + File.separator +
-          LocalConf.HTTPD_CONF_TEMPLATE_FILE));
-    } else {
-      errors.append("'apacheConfDir' required.");
     }
     
     // Check for errors and throw

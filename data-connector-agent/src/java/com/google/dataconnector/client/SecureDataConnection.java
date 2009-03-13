@@ -16,7 +16,6 @@ package com.google.dataconnector.client;
 
 import com.google.dataconnector.registration.v2.AuthRequest;
 import com.google.dataconnector.registration.v2.ResourceRule;
-import com.google.dataconnector.util.ApacheSetupException;
 import com.google.dataconnector.util.ConnectionException;
 import com.google.dataconnector.util.LocalConf;
 import com.google.inject.Inject;
@@ -69,7 +68,6 @@ public class SecureDataConnection {
   private SSLSocketFactory sslSocketFactory;
   private ClientRegistrationUtil clientRegistrationUtil;
   private JsocksStarter jsocksStarter;
-  private ApacheStarter apacheStarter;
 
   /**
    * Sets up a Secure Data connection to a Secure Link server with the supplied configuration.
@@ -81,12 +79,11 @@ public class SecureDataConnection {
   @Inject
   public SecureDataConnection(LocalConf localConf, List<ResourceRule> resourceRules,
       SSLSocketFactory sslSocketFactory, ClientRegistrationUtil clientRegistrationUtil,
-      ApacheStarter apacheStarter, JsocksStarter jsocksStarter) {
+      JsocksStarter jsocksStarter) {
     this.localConf = localConf;
     this.resourceRules = resourceRules;
     this.sslSocketFactory = sslSocketFactory;
     this.clientRegistrationUtil = clientRegistrationUtil;
-    this.apacheStarter = apacheStarter;
     this.jsocksStarter = jsocksStarter;
   }
 
@@ -97,9 +94,8 @@ public class SecureDataConnection {
    *
    * @throws ConnectionException if and error occurs with authorization or registration.
    * @throws IOException if any socket communication errors occur with the Secure Link server.
-   * @throws ApacheSetupException if apache has any errors starting up.
    */
-  public void connect() throws IOException, ConnectionException, ApacheSetupException {
+  public void connect() throws IOException, ConnectionException {
     log.info("Connecting to server");
 
     SSLSocket clientSocket = (SSLSocket) sslSocketFactory.createSocket();
@@ -123,8 +119,7 @@ public class SecureDataConnection {
     // register the resource rules
     clientRegistrationUtil.register(clientSocket, authRequest,  resourceRules);
 
-    // start apache and jsocks
-    apacheStarter.startApacheHttpd();
+    // start jsocks
     jsocksStarter.startJsocksProxy();
 
     /*

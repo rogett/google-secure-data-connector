@@ -90,7 +90,17 @@ public class HealthzRequestHandler extends Thread {
             break;
           }
         }
-        out.println("ok");
+        
+        // send http response
+        out.print("HTTP/1.1 200 OK\r\n");
+        out.print("Server: SDC_agent\r\n"); // TODO: include version# etc details
+        out.print("Cache-Control: no-cache\r\n");
+        out.print("Pragma: no-cache\r\n");
+        out.print("Content-Type: text/plain\r\n");
+        out.print("Content-Length: 2\r\n");
+        out.print("\r\n");
+        out.print("ok\r\n");
+        out.flush();
         out.close();
         LOG.debug("processed healthz request");
       }

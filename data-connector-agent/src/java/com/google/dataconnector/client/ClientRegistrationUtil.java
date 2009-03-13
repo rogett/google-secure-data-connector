@@ -63,7 +63,7 @@ public class ClientRegistrationUtil {
     this.registrationRequest = registrationRequest;
   }
       
-  public static final String INITIAL_HANDSHAKE_MSG = "connect v2.0";
+  public static final String INITIAL_HANDSHAKE_MSG = "v2.1";
  
   /**
    * Authorizes this Secure Link connection from the info specified in the Client Configuration

@@ -54,21 +54,6 @@
 
   <socksServerPort>1080</socksServerPort>
 
-  <!-- The element <apacheCtl> is required. This value defines the path to the 
-       Apache HTTP server control interface. This value is predefined based on
-       the installation path of Apache. This value should not require 
-       modification. -->
-
-  <apacheCtl>_APACHE_CTL_</apacheCtl>
-
-  <!-- The element <apacheConfDir> is required. This value defines the path to the 
-       Apache HTTP server config directory for the Secure Data Connector.  This value 
-       is predefined based on the installation. This value should not require 
-       modification. -->
-
-  <apacheConfDir>_APACHE_CONF_DIR_</apacheConfDir>
-
-
   <!-- The following element is optional. It defines comma-separated list 
        of users who, in addition to the <user> defined above, can access 
        the healthz gadget and the associated feeds. --> 

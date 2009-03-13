@@ -83,7 +83,6 @@ Build File for Secure Data Connector client and reference server.
       <arg value="--lsb"/>
       <arg value="--openssh=/usr/sbin/sshd"/>
       <arg value="--noverify"/>
-      <arg value="--apachectl=/usr/sbin/apache2ctl"/>
       <arg value="--javahome=/usr"/>
     </exec>
    <ant 
@@ -98,8 +97,6 @@ Build File for Secure Data Connector client and reference server.
       <arg value="--lsb"/>
       <arg value="--noverify"/>
       <arg value="--openssh=/usr/sbin/sshd"/>
-      <arg value="--apachectl=/usr/sbin/apache2ctl"/>
-      <arg value="--apache_modules_dir=/usr/lib/apache2/modules"/>
       <arg value="--javahome=/usr"/>
     </exec>
    <ant 
@@ -115,8 +112,6 @@ Build File for Secure Data Connector client and reference server.
       <arg value="--lsb"/>
       <arg value="--noverify"/>
       <arg value="--openssh=/usr/sbin/sshd"/>
-      <arg value="--apachectl=/usr/sbin/apachectl"/>
-      <arg value="--apache_modules_dir=/usr/lib/httpd/modules"/>
       <arg value="--user=securedataconnector"/>
       <arg value="--group=securedataconnector"/>
       <arg value="--javahome=/usr"/>
@@ -161,7 +156,6 @@ Build File for Secure Data Connector client and reference server.
         basedir="."
         includes="config/*,
           config/openssh/*,
-          config/apache/*,
           COPYING,
           CHANGE_LOG,
 	  build/agent.jar,
@@ -198,9 +192,6 @@ Build File for Secure Data Connector client and reference server.
         <include name="config/openssh/configure_sshdconf.sh"/>
       </tarfileset>
       <tarfileset dir="." mode="755">
-        <include name="config/apache/configure_apache.sh"/>
-      </tarfileset>
-      <tarfileset dir="." mode="755">
         <include name="third-party/java-service-wrapper/linux/googlesdc.sh"/>
         <include name="third-party/java-service-wrapper/linux/bin/*"/>
         <include name="runclient.sh"/>
@@ -222,7 +213,7 @@ Build File for Secure Data Connector client and reference server.
          package="google-secure-data-connector"
          section="net"
          architecture="i386"
-         depends="sun-java6-jre (>=6), openssh-server (>=3), apache2 (>=2)"
+         depends="sun-java6-jre (>=6), openssh-server (>=3)"
          postinst="distribute/debian/securedataconnector.postinst"
          prerm="distribute/debian/securedataconnector.prerm"
          postrm="distribute/debian/securedataconnector.postrm">
@@ -246,8 +237,6 @@ http://code.google.com/
 	<include name="localConfig.xml"/>
         <include name="openssh/sshd_config"/>
         <include name="openssh/ssh_host*"/>
-        <include name="apache/mime.types"/>
-        <include name="apache/httpd.conf-template"/>
       </conffiles>
       <conffiles dir="third-party/java-service-wrapper/linux/conf" prefix="etc/opt/${name}/jsw"
         filemode="640" dirmode="750">
@@ -260,7 +249,7 @@ http://code.google.com/
       </tarfileset>
       <tarfileset dir="third-party" prefix="opt/${name}/lib/third-party"
 	filemode="640" dirmode="750"
-        excludes="**/dist/, **/src/, **/build.xml, **/apache-httpd/**, **/java-service-wrapper/**, **/pANTakge/**">
+        excludes="**/dist/, **/src/, **/build.xml, **/java-service-wrapper/**, **/pANTakge/**">
 	<include name="**"/>
       </tarfileset>
       <tarfileset dir="third-party/java-service-wrapper/linux" filemode="640" dirmode="750"
@@ -281,7 +270,6 @@ http://code.google.com/
         <include name="openssh/configure_sshdconf.sh"/>
       </tarfileset>
       <tarfileset dir="config" prefix="etc/opt/${name}" filemode="750">
-        <include name="apache/configure_apache.sh"/>
       </tarfileset>
       <tarfileset dir="config" prefix="etc/opt/${name}" filemode="750">
         <include name="openssh/start_sshd.sh"/>

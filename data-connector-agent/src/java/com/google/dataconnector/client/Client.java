@@ -14,11 +14,8 @@
  */ 
 package com.google.dataconnector.client;
 
-import com.google.dataconnector.registration.v2.RegistrationV2GuiceModule;
 import com.google.dataconnector.registration.v2.ResourceRule;
-import com.google.dataconnector.util.ApacheSetupException;
 import com.google.dataconnector.util.ClientGuiceModule;
-import com.google.dataconnector.util.AgentConfigurationException;
 import com.google.dataconnector.util.ConnectionException;
 import com.google.dataconnector.util.HealthzRequestHandler;
 import com.google.dataconnector.util.LocalConf;
@@ -74,13 +71,12 @@ public class Client {
   }
   
   /**
-   * Starts three components in separate threads.
+   * Starts 2 components in separate threads.
    * 
    * @throws IOException if any socket communication issues occur.
    * @throws ConnectionException if login is incorrect or other Woodstock connection errors.
-   * @throws ApacheSetupException if apache has any errors.
    */
-  public void startUp() throws IOException, ConnectionException, ApacheSetupException {
+  public void startUp() throws IOException, ConnectionException {
     
     // Set client logging properties.
     Properties properties = new Properties();
@@ -103,8 +99,7 @@ public class Client {
   public static void main(String[] args) {
     // Bootstrap logging system
     PropertyConfigurator.configure(getBootstrapLoggingProperties());
-    final Injector injector = Guice.createInjector(new ClientGuiceModule(args), 
-        new RegistrationV2GuiceModule());
+    final Injector injector = Guice.createInjector(new ClientGuiceModule(args));
     
     try {
       // start the healthz service before we do anything else.
@@ -115,8 +110,6 @@ public class Client {
       log.fatal("Connection error.", e);
     } catch (ConnectionException e) {
       log.fatal("Client connection failure.", e);
-    } catch (AgentConfigurationException e) {
-      log.fatal("Client configuration error.", e);
     }
   }
   
