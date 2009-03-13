@@ -4,6 +4,14 @@
     <clientId>all</clientId>
     <allowedEntities repeatable="true">testuser@example.com</allowedEntities>
     <allowedEntities>admin@example.com</allowedEntities>
+    <apps repeatable="true">
+      <container>Gadgets</container>
+      <appId>123</appId>
+    </apps>
+    <apps>
+      <container>Spreadsheets</container>
+      <appId>.*</appId>
+    </apps>
     <pattern>http://internal.corp.example.com/.*</pattern>
   </entity>
   <entity repeatable="true">
@@ -11,6 +19,14 @@
     <clientId>all</clientId>
     <allowedEntities repeatable="true">testuser@example.com</allowedEntities>
     <allowedEntities>admin@example.com</allowedEntities>
+    <apps repeatable="true">
+      <container>Gadgets</container>
+      <appId>123</appId>
+    </apps>
+    <apps>
+      <container>Spreadsheets</container>
+      <appId>.*</appId>
+    </apps>
     <pattern>http://feed.example.com/userlookup?user=.*/$</pattern>
   </entity>
   <entity repeatable="true">
@@ -18,6 +34,14 @@
     <clientId>all</clientId>
     <allowedEntities repeatable="true">testuser@example.com</allowedEntities>
     <allowedEntities>admin@example.com</allowedEntities>
+    <apps repeatable="true">
+      <container>Gadgets</container>
+      <appId>123</appId>
+    </apps>
+    <apps>
+      <container>Spreadsheets</container>
+      <appId>.*</appId>
+    </apps>
     <pattern>socket://0.0.0.0:22</pattern>
   </entity>
 </feed>

@@ -37,7 +37,7 @@ public class ResourceRule implements Comparable<ResourceRule> {
   
   private String clientId;
   private String[] allowedEntities;
-  private String[] appIds;
+  private AppTag[] apps;
   private String pattern;
   private String patternType;
   private Integer httpProxyPort;
@@ -77,12 +77,12 @@ public class ResourceRule implements Comparable<ResourceRule> {
     this.allowedEntities = allowedEntities;
   }
 
-  public String[] getAppIds() {
-    return appIds;
+  public AppTag[] getApps() {
+    return apps;
   }
 
-  public void setAppIds(String[] appIds) {
-    this.appIds = appIds;
+  public void setApps(AppTag[] apps) {
+    this.apps = apps;
   }
 
   public String getPattern() {
@@ -135,6 +135,37 @@ public class ResourceRule implements Comparable<ResourceRule> {
       return 1;
     } else {
       return 0;
+    }
+  }
+  
+
+  /**
+   * Models an App identification field. 
+   */
+  public static class AppTag implements Comparable<AppTag>{
+    private String container;
+    private String appId;
+    
+    public void setContainer(String container) {
+      this.container = container;
+    }
+    public void setAppId(String appId) {
+      this.appId = appId;
+    }
+    public String getContainer() {
+      return container;
+    }
+    public String getAppId() {
+      return appId;
+    }
+    
+    @Override
+    public int compareTo(AppTag o) {
+      int compare = container.compareTo(o.container);
+      if (compare != 0) {
+        return compare;
+      }
+      return appId.compareTo(o.appId);
     }
   }
 }

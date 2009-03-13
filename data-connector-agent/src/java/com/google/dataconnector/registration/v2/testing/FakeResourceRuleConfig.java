@@ -15,6 +15,7 @@
 package com.google.dataconnector.registration.v2.testing;
 
 import com.google.dataconnector.registration.v2.ResourceRule;
+import com.google.dataconnector.registration.v2.ResourceRule.AppTag;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +32,7 @@ public class FakeResourceRuleConfig {
   public static final int HTTP_RULE_NUM = 1;
   public static final String[] ALLOWED_ENTITY = 
       { "rcolline@test.joonix.net", "admin@test.joonix.net" };
-  public static final String[] APPID = { "someappid", "someappid2" };
+  public static final AppTag[] APPID;
   public static final String HTTP_PATTERN = "http://www.example.com";
   public static final int SOCKET_RULE_NUM = 2;
   public static final String SOCKET_PATTERN = "socket://128.195.131";
@@ -43,6 +44,16 @@ public class FakeResourceRuleConfig {
   public static final int HTTPS_RULE_NUM = 4;
   public static final String HTTPS_PATTERN = "https://www.example.com";
 
+  static {
+    APPID = new AppTag[2];
+    APPID[0] = new AppTag();
+    APPID[0].setContainer("somecontainer");
+    APPID[0].setAppId("someappid");
+    APPID[1] = new AppTag();
+    APPID[1].setContainer("somecontainer2");
+    APPID[1].setAppId("someappid2");
+  }
+  
   /** The fake properties file we generate the config from */
   private List<ResourceRule> configResourceRules;
   private List<ResourceRule> runtimeResourceRules;
@@ -68,7 +79,7 @@ public class FakeResourceRuleConfig {
     runtimeHttpResourceRule.setSecretKey(Long.valueOf(SECRET_KEY));
     runtimeHttpResourceRule.setSocksServerPort(Integer.valueOf(SOCKS_SERVER_PORT));
     runtimeHttpResourceRule.setHttpProxyPort(Integer.valueOf(HTTP_PROXY_PORT));
-    runtimeHttpResourceRule.setAppIds(APPID);
+    runtimeHttpResourceRule.setApps(APPID);
     
     runtimeSocketResourceRule = getBaseResourceRule();
     runtimeSocketResourceRule.setPattern(SOCKET_PATTERN);
@@ -97,8 +108,7 @@ public class FakeResourceRuleConfig {
     configHttpResourceRule.setPattern(HTTP_PATTERN);
     configHttpResourceRule.setPatternType(ResourceRule.HOSTPORT);
     configHttpResourceRule.setRuleNum(HTTP_RULE_NUM);
-    configHttpResourceRule.setAppIds(APPID);
-    configHttpResourceRule.setAppIds(APPID);
+    configHttpResourceRule.setApps(APPID);
     
     configSocketResourceRule = getBaseResourceRule();
     configSocketResourceRule.setPattern(SOCKET_PATTERN);
@@ -172,7 +182,7 @@ public class FakeResourceRuleConfig {
     ResourceRule resourceRule = new ResourceRule();
     resourceRule.setClientId(CLIENT_ID);
     resourceRule.setAllowedEntities(ALLOWED_ENTITY);
-    resourceRule.setAppIds(APPID);
+    resourceRule.setApps(APPID);
     return resourceRule;
   }
   

@@ -14,6 +14,8 @@
  */ 
 package com.google.dataconnector.registration.v2;
 
+import com.google.dataconnector.registration.v2.ResourceRule.AppTag;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashSet;
@@ -170,14 +172,16 @@ public class ResourceRuleValidator {
     
     // appids 
     
-    if (resourceRule.getAppIds() == null) {
-      throwResourceException(ruleNum, " at least one 'appId' field must be present");
+    if (resourceRule.getApps() == null) {
+      throwResourceException(ruleNum, " at least one 'app' field must be present");
     }
     
-    for (String appId : resourceRule.getAppIds()) {
-      if (appId.trim().contains(" ")) {
-        throwResourceException(ruleNum, " 'appIds' field " + appId + 
-            " must not contain any white space.");
+    for (AppTag app : resourceRule.getApps()) {
+      String container = app.getContainer();
+      String appId = app.getAppId();
+      if (container.trim().contains(" ") || appId.trim().contains(" ")) {
+        throwResourceException(ruleNum, " 'appIds' field <" + container + ":" + appId + 
+            "> must not contain any white space.");
       }
     }
     
