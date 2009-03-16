@@ -14,6 +14,7 @@
  */ 
 package com.google.dataconnector.registration.v2;
 
+import com.google.dataconnector.registration.v2.ResourceRule.AppTag;
 import com.google.dataconnector.registration.v2.testing.FakeResourceRuleConfig;
 
 import junit.framework.TestCase;
@@ -180,8 +181,8 @@ public class ResourceRuleValidatorTest extends TestCase {
   // AppIds
   public void testBadAppId() {
     
-    String[] appIds = { "has a space" };   
-    runtimeHttpResourceRule.setAppIds(appIds);
+    AppTag[] appIds = { createApp("has a space", ".*") };   
+    runtimeHttpResourceRule.setApps(appIds);
     try {
       resourceRuleValidator.validateRuntime(runtimeHttpResourceRule);
     } catch (ResourceException e) {
@@ -192,7 +193,7 @@ public class ResourceRuleValidatorTest extends TestCase {
   }
   
   public void testMissingAppIds() {
-    runtimeHttpResourceRule.setAppIds(null);
+    runtimeHttpResourceRule.setApps(null);
     try {
       resourceRuleValidator.validateRuntime(runtimeHttpResourceRule);
     } catch (ResourceException e) {
@@ -267,5 +268,12 @@ public class ResourceRuleValidatorTest extends TestCase {
       assertTrue(e.getMessage().contains("URLEXACT works only"));
       return;
     }
+  }
+
+  private AppTag createApp(String container, String appId) {
+    AppTag app = new AppTag();
+    app.setContainer(container);
+    app.setAppId(appId);
+    return app;
   }
 }

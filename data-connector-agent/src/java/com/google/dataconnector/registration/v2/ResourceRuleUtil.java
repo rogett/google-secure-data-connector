@@ -267,7 +267,8 @@ public class ResourceRuleUtil {
     healthzRule.setAllowedEntities(allowedEntities);
     healthzRule.setClientId(clientId);
     AppTag app = new AppTag();
-    app.setContainer("System");  // Google internal.
+    // TODO(josecasillas): Add a more restrictive rule for implicit rules.
+    app.setContainer(".*");
     app.setAppId(".*");
     AppTag[] array = new AppTag[1];
     array[0] = app;

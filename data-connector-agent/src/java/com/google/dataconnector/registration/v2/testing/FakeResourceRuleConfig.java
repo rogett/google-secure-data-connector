@@ -189,8 +189,8 @@ public class FakeResourceRuleConfig {
     "  <clientId>" + CLIENT_ID + "</clientId>\n" +
     "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
     "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
-    "  <appIds repeatable='true'>" + APPID[0] + "</appIds>\n" +
-    "  <appIds repeatable='true'>" + APPID[1] + "</appIds>\n" +
+    "  <apps repeatable='true'><container>" + APPID[0].getContainer() + "</container><appId>" + APPID[0].getAppId() + "</appId></apps>\n" +
+    "  <apps repeatable='true'><container>" + APPID[1].getContainer() + "</container><appId>" + APPID[1].getAppId() + "</appId></apps>\n" +
     "  <pattern>" + HTTP_PATTERN + "</pattern>\n" +
     "  <patternType>" + ResourceRule.HOSTPORT + "</patternType>\n" +
     "</entity>\n" +
@@ -199,8 +199,8 @@ public class FakeResourceRuleConfig {
     "  <clientId>" + CLIENT_ID + "</clientId>\n" +
     "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
     "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
-    "  <appIds repeatable='true'>" + APPID[0] + "</appIds>\n" +
-    "  <appIds repeatable='true'>" + APPID[1] + "</appIds>\n" +
+    "  <apps repeatable='true'><container>" + APPID[0].getContainer() + "</container><appId>" + APPID[0].getAppId() + "</appId></apps>\n" +
+    "  <apps repeatable='true'><container>" + APPID[1].getContainer() + "</container><appId>" + APPID[1].getAppId() + "</appId></apps>\n" +
     "  <pattern>" + SOCKET_PATTERN + "</pattern>\n" +
     "  <patternType>" + ResourceRule.HOSTPORT + "</patternType>\n" +
     "</entity>\n" +
@@ -209,8 +209,8 @@ public class FakeResourceRuleConfig {
     "  <clientId>" + CLIENT_ID + "</clientId>\n" +
     "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
     "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
-    "  <appIds repeatable='true'>" + APPID[0] + "</appIds>\n" +
-    "  <appIds repeatable='true'>" + APPID[1] + "</appIds>\n" +
+    "  <apps repeatable='true'><container>" + APPID[0].getContainer() + "</container><appId>" + APPID[0].getAppId() + "</appId></apps>\n" +
+    "  <apps repeatable='true'><container>" + APPID[1].getContainer() + "</container><appId>" + APPID[1].getAppId() + "</appId></apps>\n" +
     "  <pattern>" + URL_EXACT_PATTERN + "</pattern>\n" +
     "  <patternType>" + ResourceRule.URLEXACT + "</patternType>\n" +
     "  </entity>\n" +
@@ -219,8 +219,8 @@ public class FakeResourceRuleConfig {
     "  <clientId>" + CLIENT_ID + "</clientId>\n" +
     "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
     "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
-    "  <appIds repeatable='true'>" + APPID[0] + "</appIds>\n" +
-    "  <appIds repeatable='true'>" + APPID[1] + "</appIds>\n" +
+    "  <apps repeatable='true'><container>" + APPID[0].getContainer() + "</container><appId>" + APPID[0].getAppId() + "</appId></apps>\n" +
+    "  <apps repeatable='true'><container>" + APPID[1].getContainer() + "</container><appId>" + APPID[1].getAppId() + "</appId></apps>\n" +
     "  <pattern>" + HTTPS_PATTERN + "</pattern>\n" +
     "  <patternType>" + ResourceRule.HOSTPORT + "</patternType>\n" +
     "</entity>\n" +
@@ -232,8 +232,8 @@ public class FakeResourceRuleConfig {
     "  <clientId>" + CLIENT_ID + "</clientId>\n" +
     "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
     "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
-    "  <appIds repeatable='true'>" + APPID[0] + "</appIds>\n" +
-    "  <appIds repeatable='true'>" + APPID[1] + "</appIds>\n" +
+    "  <apps repeatable='true'><container>" + APPID[0].getContainer() + "</container><appId>" + APPID[0].getAppId() + "</appId></apps>\n" +
+    "  <apps repeatable='true'><container>" + APPID[1].getContainer() + "</container><appId>" + APPID[1].getAppId() + "</appId></apps>\n" +
     "  <pattern>" + HTTP_PATTERN + "</pattern>\n" +
     "  <patternType>" + ResourceRule.HOSTPORT + "</patternType>\n" +
     "  <socksServerPort>" + SOCKS_SERVER_PORT + "</socksServerPort>\n" +
@@ -244,8 +244,8 @@ public class FakeResourceRuleConfig {
     "  <clientId>" + CLIENT_ID + "</clientId>\n" +
     "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
     "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
-    "  <appIds repeatable='true'>" + APPID[0] + "</appIds>\n" +
-    "  <appIds repeatable='true'>" + APPID[1] + "</appIds>\n" +
+    "  <apps repeatable='true'><container>" + APPID[0].getContainer() + "</container><appId>" + APPID[0].getAppId() + "</appId></apps>\n" +
+    "  <apps repeatable='true'><container>" + APPID[1].getContainer() + "</container><appId>" + APPID[1].getAppId() + "</appId></apps>\n" +
     "  <pattern>" + SOCKET_PATTERN + "</pattern>\n" +
     "  <patternType>" + ResourceRule.HOSTPORT + "</patternType>\n" +
     "  <socksServerPort>" + SOCKS_SERVER_PORT + "</socksServerPort>\n" +
@@ -256,8 +256,8 @@ public class FakeResourceRuleConfig {
     "  <clientId>" + CLIENT_ID + "</clientId>\n" +
     "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
     "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
-    "  <appIds repeatable='true'>" + APPID[0] + "</appIds>\n" +
-    "  <appIds repeatable='true'>" + APPID[1] + "</appIds>\n" +
+    "  <apps repeatable='true'><container>" + APPID[0].getContainer() + "</container><appId>" + APPID[0].getAppId() + "</appId></apps>\n" +
+    "  <apps repeatable='true'><container>" + APPID[1].getContainer() + "</container><appId>" + APPID[1].getAppId() + "</appId></apps>\n" +
     "  <pattern>" + URL_EXACT_PATTERN + "</pattern>\n" +
     "  <patternType>" + ResourceRule.URLEXACT + "</patternType>\n" +
     "  <socksServerPort>" + SOCKS_SERVER_PORT + "</socksServerPort>\n" +
@@ -268,8 +268,8 @@ public class FakeResourceRuleConfig {
     "  <clientId>" + CLIENT_ID + "</clientId>\n" +
     "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
     "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
-    "  <appIds repeatable='true'>" + APPID[0] + "</appIds>\n" +
-    "  <appIds repeatable='true'>" + APPID[1] + "</appIds>\n" +
+    "  <apps repeatable='true'><container>" + APPID[0].getContainer() + "</container><appId>" + APPID[0].getAppId() + "</appId></apps>\n" +
+    "  <apps repeatable='true'><container>" + APPID[1].getContainer() + "</container><appId>" + APPID[1].getAppId() + "</appId></apps>\n" +
     "  <pattern>" + HTTPS_PATTERN + "</pattern>\n" +
     "  <patternType>" + ResourceRule.HOSTPORT + "</patternType>\n" +
     "  <socksServerPort>" + SOCKS_SERVER_PORT + "</socksServerPort>\n" +
@@ -283,8 +283,8 @@ public class FakeResourceRuleConfig {
     "  <clientId>" + CLIENT_ID + "</clientId>\n" +
     "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
     "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
-    "  <appIds repeatable='true'>" + APPID[0] + "</appIds>\n" +
-    "  <appIds repeatable='true'>" + APPID[1] + "</appIds>\n" +
+    "  <apps repeatable='true'><container>" + APPID[0].getContainer() + "</container><appId>" + APPID[0].getAppId() + "</appId></apps>\n" +
+    "  <apps repeatable='true'><container>" + APPID[1].getContainer() + "</container><appId>" + APPID[1].getAppId() + "</appId></apps>\n" +
     "  <pattern>" + HTTP_PATTERN + "</pattern>\n" +
     "  <socksServerPort>" + SOCKS_SERVER_PORT + "</socksServerPort>\n" +
     "  <secretKey>" + SECRET_KEY +"</secretKey>\n" +

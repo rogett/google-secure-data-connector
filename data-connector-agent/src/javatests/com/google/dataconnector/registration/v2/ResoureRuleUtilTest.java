@@ -14,6 +14,7 @@
  */ 
 package com.google.dataconnector.registration.v2;
 
+import com.google.dataconnector.registration.v2.ResourceRule.AppTag;
 import com.google.dataconnector.registration.v2.testing.FakeResourceRuleConfig;
 import com.google.feedserver.util.BeanUtil;
 import com.google.feedserver.util.XmlUtil;
@@ -120,12 +121,19 @@ public class ResoureRuleUtilTest extends TestCase {
     for (int index=0 ; index < expected.getAllowedEntities().length; index++) {
 	  assertEquals(expected.getAllowedEntities()[index], actual.getAllowedEntities()[index]);
     }
-    if (expected.getAppIds() != null) {
-	  for (int index=0 ; index < expected.getAppIds().length; index++) {
-		assertEquals(expected.getAppIds()[index], actual.getAppIds()[index]);
+    if (expected.getApps() != null) {
+	  for (int index=0 ; index < expected.getApps().length; index++) {
+	    assertNotNullAndEqual(expected.getApps()[index], actual.getApps()[index]);
 	  }
     }
     assertEquals(expected.getSocksServerPort(), actual.getSocksServerPort());
     assertEquals(expected.getSecretKey(), actual.getSecretKey());
+  }
+  
+  private void assertNotNullAndEqual(AppTag app1, AppTag app2) {
+    assertNotNull(app1);
+    assertNotNull(app2);
+    assertEquals(app1.getContainer(), app2.getContainer());
+    assertEquals(app1.getAppId(), app2.getAppId());
   }
 }
