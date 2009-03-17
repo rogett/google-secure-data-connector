@@ -21,6 +21,7 @@ WOODSTOCK_LIB=${WOODSTOCK_HOME}/lib
 ETCPREFIX=_ETCPREFIX_
 CONFIGFILE=${ETCPREFIX}/localConfig.xml
 RULESFILE=${ETCPREFIX}/resourceRules.xml
+LOG4JPROPERTIESFILE=${ETCPREFIX}/log4j.properties
 JVM_ARGS="-Djava.net.preferIPv4Stack=true"
 GROUP=_GROUP_
 USER=_USER_
@@ -55,6 +56,7 @@ while true; do
     -f|--localConfigFile) CONFIGFILE=$2; shift 2 ;;
     -r|--rulesFile) RULESFILE=$2; shift 2 ;;
     -j|--jvm-args) JVM_ARGS=$2; shift 2 ;;
+    -l|--log4jPropertiesFile) LOG4JPROPERTIESFILE=$2; shift 2 ;;
     --) shift ; break ;;
     *) echo "Error!" ; exit 1 ;;
   esac
@@ -117,6 +119,7 @@ while /bin/true; do
     ${DEBUG} \
     -localConfigFile \"${CONFIGFILE}\" \
     -rulesFile \"${RULESFILE}\" \
+    -log4jPropertiesFile \"${LOG4JPROPERTIESFILE}\" \
     $*"
   sleep 5
   echo "RECONNECTING..."

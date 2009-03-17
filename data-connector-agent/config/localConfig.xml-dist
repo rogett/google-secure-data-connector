@@ -59,18 +59,4 @@
        the healthz gadget and the associated feeds. --> 
 
   <healthzGadgetUsers> foo@example.com, bar@example.com </healthzGadgetUsers>
-
-  <!-- The element <logProperties> is required. This value defines log4j logging 
-       properties. These values can be changed based on logging needs. -->
-
-  <logProperties>
-    # ***** Set root logger level to DEBUG and its only appender to A.
-    log4j.rootLogger=info, A
-
-    # ***** A is set to be a ConsoleAppender.
-    log4j.appender.A=org.apache.log4j.ConsoleAppender
-    # ***** A uses PatternLayout.
-    log4j.appender.A.layout=org.apache.log4j.PatternLayout
-    log4j.appender.A.layout.ConversionPattern=%-4r [%t] %-5p %c %x - %m%n
-  </logProperties>
 </entity>

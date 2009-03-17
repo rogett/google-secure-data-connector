@@ -93,6 +93,11 @@ file="${ETCPREFIX}/resourceRules.xml"
 echo installing ${file}
 install -g ${GROUP} -o root -m 640 ./config/resourceRules.xml-dist ${file}
 
+# log4j.properties
+file="${ETCPREFIX}/log4j.properties"
+echo installing ${file}
+install -g ${GROUP} -o root -m 640 ./config/log4j.properties ${file}
+
 ### openssh  ###
 
 # authorized_keys 

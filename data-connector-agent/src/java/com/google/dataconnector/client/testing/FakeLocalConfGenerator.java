@@ -112,15 +112,5 @@ public class FakeLocalConfGenerator {
     "udpTimeout      = 600000   # 10 minutes\n" +
     "log = -\n" +
     "</socksProperties>\n" +
-    "<logProperties>\n" +
-    "# ***** Set root logger level to DEBUG and its only appender to A.\n" +
-    "log4j.rootLogger=debug, A\n" +
-    "\n" +
-    "# ***** A is set to be a ConsoleAppender.\n" +
-    "log4j.appender.A=org.apache.log4j.ConsoleAppender\n" +
-    "# ***** A uses PatternLayout.\n" +
-    "log4j.appender.A.layout=org.apache.log4j.PatternLayout\n" +
-    "log4j.appender.A.layout.ConversionPattern=%-4r [%t] %-5p %c %x - %m%n\n" +
-    "</logProperties>\n" +
     "</entity>\n";
 }

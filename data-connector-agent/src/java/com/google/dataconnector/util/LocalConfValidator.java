@@ -16,6 +16,8 @@ package com.google.dataconnector.util;
 
 import com.google.dataconnector.registration.v2.AuthRequest;
 
+import org.apache.log4j.Logger;
+
 import java.io.File;
 
 /**
@@ -24,6 +26,7 @@ import java.io.File;
  * @author rayc@google.com (Ray Colline)
  */
 public class LocalConfValidator {
+  private static final Logger log = Logger.getLogger(LocalConfValidator.class);
   
   private FileFactory fileFactory;
   
@@ -79,7 +82,7 @@ public class LocalConfValidator {
     } else {
       errors.append("'rulesFile' required\n");
     }
-    
+
     // sdcServerHost
     if (localConf.getSdcServerHost() == null) {
       errors.append("'sdcServerHost' required\n");
@@ -171,9 +174,11 @@ public class LocalConfValidator {
       errors.append("'socksServerPort' required\n");
     }
     
-    // logProperties 
-    if (localConf.getLogProperties() == null) {
-      errors.append("'logProperties' required\n");
+    // log4j Properties 
+    if (localConf.getLog4jPropertiesFile() == null) {
+      log.info("log4j.properties file not specfied - using defaults for logging\n");
+    } else {
+      errors.append(canReadFile("log4j.properties", localConf.getLog4jPropertiesFile()));
     }
     
     // socksProperties 

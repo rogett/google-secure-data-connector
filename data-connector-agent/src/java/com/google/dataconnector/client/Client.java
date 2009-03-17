@@ -78,11 +78,8 @@ public class Client {
    */
   public void startUp() throws IOException, ConnectionException {
     
-    // Set client logging properties.
-    Properties properties = new Properties();
-    properties.load(new ByteArrayInputStream(
-        localConfiguration.getLogProperties().trim().getBytes()));
-    PropertyConfigurator.configure(properties);
+    // Set log4j properties and watch for changes every min (default)
+    PropertyConfigurator.configureAndWatch(localConfiguration.getLog4jPropertiesFile());
     if (localConfiguration.getDebug()) {
 	  Logger.getRootLogger().setLevel(Level.DEBUG);
     }

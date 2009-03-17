@@ -3,12 +3,12 @@
     <ruleNum>1</ruleNum>
     <clientId>all</clientId>
     <allowedEntities repeatable="true">testuser@example.com</allowedEntities>
-    <allowedEntities>admin@example.com</allowedEntities>
+    <allowedEntities repeatable="true">admin@example.com</allowedEntities>
     <apps repeatable="true">
       <container>Gadgets</container>
       <appId>123</appId>
     </apps>
-    <apps>
+    <apps repeatable="true">
       <container>Spreadsheets</container>
       <appId>.*</appId>
     </apps>
@@ -18,12 +18,12 @@
     <ruleNum>2</ruleNum>
     <clientId>all</clientId>
     <allowedEntities repeatable="true">testuser@example.com</allowedEntities>
-    <allowedEntities>admin@example.com</allowedEntities>
+    <allowedEntities repeatable="true">admin@example.com</allowedEntities>
     <apps repeatable="true">
       <container>Gadgets</container>
       <appId>123</appId>
     </apps>
-    <apps>
+    <apps repeatable="true">
       <container>Spreadsheets</container>
       <appId>.*</appId>
     </apps>
@@ -33,12 +33,12 @@
     <ruleNum>3</ruleNum>
     <clientId>all</clientId>
     <allowedEntities repeatable="true">testuser@example.com</allowedEntities>
-    <allowedEntities>admin@example.com</allowedEntities>
+    <allowedEntities repeatable="true">admin@example.com</allowedEntities>
     <apps repeatable="true">
       <container>Gadgets</container>
       <appId>123</appId>
     </apps>
-    <apps>
+    <apps repeatable="true">
       <container>Spreadsheets</container>
       <appId>.*</appId>
     </apps>
