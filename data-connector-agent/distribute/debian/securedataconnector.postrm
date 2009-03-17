@@ -27,4 +27,5 @@ echo $PKG_NAME --- package name
 
 if [ "$1" = "purge" ]; then
   deluser --system --quiet woodstock || true
+  deluser --system --quiet securedataconnector || true
 fi

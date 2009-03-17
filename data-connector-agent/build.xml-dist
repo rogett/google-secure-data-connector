@@ -56,12 +56,15 @@ Build File for Secure Data Connector client and reference server.
       description="Deletes all files to pre configured state.">
     <delete file="build.xml"/>
     <delete file="build.properties"/>
+    <delete file="config.status"/>
     <delete file="runclient.sh"/>
     <delete file="install-sdc.sh"/>
     <delete file="config/localConfig.xml"/>
+    <delete file="config/resourceRules.xml"/>
     <delete file="config/openssh/start_sshd.sh"/>
     <delete file="config/openssh/sshd_config"/>
     <delete file="config/openssh/configure_sshdconf.sh"/>
+    <delete dir="${build}"/>
   </target>
 
   <target name="compile" depends="init" >

@@ -62,6 +62,7 @@ mv $RPM_BUILD_ROOT/opt/%{name}/config/openssh/ssh_host_dsa_key.pub $RPM_BUILD_RO
 # Moving config files for /etc/opt/${name}
 mv $RPM_BUILD_ROOT/opt/%{name}/config/localConfig.xml $RPM_BUILD_ROOT/etc/opt/%{name}/localConfig.xml
 mv $RPM_BUILD_ROOT/opt/%{name}/config/resourceRules.xml $RPM_BUILD_ROOT/etc/opt/%{name}/resourceRules.xml
+mv $RPM_BUILD_ROOT/opt/%{name}/config/log4j.properties $RPM_BUILD_ROOT/etc/opt/%{name}/log4j.properties
 
 # Relocate runclient.sh
 mv $RPM_BUILD_ROOT/opt/%{name}/runclient.sh $RPM_BUILD_ROOT/opt/%{name}/bin
@@ -73,6 +74,7 @@ rm -rf $RPM_BUILD_ROOT/opt/%{name}/build
 
 # Relocate third-party path
 mv $RPM_BUILD_ROOT/opt/%{name}/third-party $RPM_BUILD_ROOT/opt/%{name}/lib
+
 
 # Moving woodstock-user ssh authorized_keys file
 mv $RPM_BUILD_ROOT/opt/%{name}/config/openssh/authorized_keys $RPM_BUILD_ROOT/etc/opt/%{name}/woodstock-user/.ssh/authorized_keys

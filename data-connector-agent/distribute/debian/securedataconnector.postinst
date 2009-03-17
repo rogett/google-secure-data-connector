@@ -21,13 +21,15 @@ PKG_NAME="google-secure-data-connector"
 WOODSTOCK_HOME="/etc/opt/$PKG_NAME/woodstock-user"
 LOGDIR="/var/opt/$PKG_NAME/log"
 RULES_DIR="/var/opt/$PKG_NAME"
-CLIENT_USER=daemon
-CLIENT_GROUP=daemon
+CLIENT_USER=securedataconnector
+CLIENT_GROUP=securedataconnector
 
 if [ "$1" = "configure" ]; then
   # Set up the user to access the client
   adduser --system --quiet --group --home $WOODSTOCK_HOME --no-create-home \
     woodstock || :
+  adduser --system --quiet --group --home /home/$CLIENT_USER --no-create-home \
+   --shell /bin/bash $CLIENT_USER || :
 
   # Set up the logfile for $PKG_NAME
   if [ ! -d $LOGDIR ]; then

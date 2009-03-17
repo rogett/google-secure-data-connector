@@ -97,6 +97,8 @@ Build File for Secure Data Connector client and reference server.
       <arg value="--lsb"/>
       <arg value="--noverify"/>
       <arg value="--openssh=/usr/sbin/sshd"/>
+      <arg value="--user=securedataconnector"/>
+      <arg value="--group=securedataconnector"/>
       <arg value="--javahome=/usr"/>
     </exec>
    <ant 
@@ -121,7 +123,6 @@ Build File for Secure Data Connector client and reference server.
         dir="."
         inheritAll="false"/>
    </target>
-
 
   <target name="source-distro" depends="clean,timestamp">
     <mkdir dir="${dist}" />
@@ -148,12 +149,13 @@ Build File for Secure Data Connector client and reference server.
       </tarfileset>
     </tar>
   </target>
-    
+  
   <target name="binary-distro" depends="init">
     <tar 
         destfile="${dist}/${name}-${version}-${release}-bin.tar.gz"
         longfile="gnu"
         basedir="."
+        excludes="**/test_server/**, **/pANTakge/**, **/java-service-wrapper/**, third-party/ant-deb/**, jsch/com/**,tmp/**, third-party/*/docs/**"
         includes="config/*,
           config/openssh/*,
           COPYING,
@@ -178,10 +180,8 @@ Build File for Secure Data Connector client and reference server.
           third-party/aopalliance/**,
           third-party/google-feedserver/**,
           third-party/oauth/**,
-          third-party/guice-snapshot20081016/**,
-          third-party/java-service-wrapper/*,
-	  third-party/java-service-wrapper/linux/**"
-        compression="gzip">
+          third-party/guice-snapshot20081016/**"
+          compression="gzip">
       <tarfileset dir="." mode="600">
         <include name="config/openssh/*"/>
       </tarfileset>
@@ -192,13 +192,10 @@ Build File for Secure Data Connector client and reference server.
         <include name="config/openssh/configure_sshdconf.sh"/>
       </tarfileset>
       <tarfileset dir="." mode="755">
-        <include name="third-party/java-service-wrapper/linux/googlesdc.sh"/>
-        <include name="third-party/java-service-wrapper/linux/bin/*"/>
         <include name="runclient.sh"/>
       </tarfileset>
     </tar>
   </target>
-
 
   <path id="deb-classpath">
     <fileset dir="third-party/ant-deb" includes="ant-deb-0.0.1.jar"/>
@@ -235,12 +232,9 @@ http://code.google.com/
         filemode="640" dirmode="750">
         <include name="resourceRules.xml"/>
 	<include name="localConfig.xml"/>
+	<include name="log4j.properties"/>
         <include name="openssh/sshd_config"/>
         <include name="openssh/ssh_host*"/>
-      </conffiles>
-      <conffiles dir="third-party/java-service-wrapper/linux/conf" prefix="etc/opt/${name}/jsw"
-        filemode="640" dirmode="750">
-        <include name="*.conf"/>
       </conffiles>
       <tarfileset dir="build" prefix="opt/${name}/lib"
         filemode="640" dirmode="750">
@@ -249,27 +243,15 @@ http://code.google.com/
       </tarfileset>
       <tarfileset dir="third-party" prefix="opt/${name}/lib/third-party"
 	filemode="640" dirmode="750"
-        excludes="**/dist/, **/src/, **/build.xml, **/java-service-wrapper/**, **/pANTakge/**">
+        excludes="**/dist/, **/src/, **/build.xml, **ant-deb/**, 
+                  **/java-service-wrapper/**, **/pANTkage/** ">
 	<include name="**"/>
-      </tarfileset>
-      <tarfileset dir="third-party/java-service-wrapper/linux" filemode="640" dirmode="750"
-                  prefix="opt/${name}/lib/third-party/java-service-wrapper/linux">
-         <include name="lib/*.jar"/>
-      </tarfileset>
-      <tarfileset dir="third-party/java-service-wrapper/linux" filemode="750" dirmode="750"
-                  prefix="opt/${name}/lib/third-party/java-service-wrapper/linux">
-         <include name="*.sh"/>
-         <include name="bin/*"/>
-         <include name="lib/*.so"/>
-         <include name="lib/*.jnilib"/>
       </tarfileset>
       <tarfileset dir="." prefix="opt/${name}/bin" filemode="755">
         <include name="runclient.sh"/>
       </tarfileset>
       <tarfileset dir="config" prefix="etc/opt/${name}" filemode="750">
         <include name="openssh/configure_sshdconf.sh"/>
-      </tarfileset>
-      <tarfileset dir="config" prefix="etc/opt/${name}" filemode="750">
       </tarfileset>
       <tarfileset dir="config" prefix="etc/opt/${name}" filemode="750">
         <include name="openssh/start_sshd.sh"/>
