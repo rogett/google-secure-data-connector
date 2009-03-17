@@ -178,6 +178,12 @@ public class ResourceRuleValidatorTest extends TestCase {
     fail("did not get ResourceException");
   }
   
+  public void testAllowDomainFlag() throws ResourceException {
+    runtimeHttpResourceRule.setAllowedEntities(null);
+    runtimeHttpResourceRule.setAllowDomainViewers(true);
+    resourceRuleValidator.validateRuntime(runtimeHttpResourceRule);
+  }
+
   // AppIds
   public void testBadAppId() {
     
@@ -202,7 +208,15 @@ public class ResourceRuleValidatorTest extends TestCase {
     }
     fail("did not get ResourceException");
   }
-  
+ 
+  public void testAllowAllAppsFlag() throws ResourceException {
+    AppTag app = createApp("container", null);
+    app.setAllowAnyAppId(true);
+    AppTag[] apps = { app };
+    runtimeHttpResourceRule.setApps(apps);
+    resourceRuleValidator.validateRuntime(runtimeHttpResourceRule);
+  }
+
   public void testBadPatternIdentifier() {
     runtimeHttpResourceRule.setPattern("asdfasdf://sdafasfd");
     

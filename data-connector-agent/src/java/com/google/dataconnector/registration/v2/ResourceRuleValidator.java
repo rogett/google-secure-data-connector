@@ -142,37 +142,8 @@ public class ResourceRuleValidator {
             " must not contain any white space.");
     }
     
-    // allowed entities
-    
-    if (resourceRule.getAllowedEntities() == null) {
-      throwResourceException(ruleNum, "at least one 'allowedEntities' field must be present");
-    }
-      
-    for (String allowedEntity : resourceRule.getAllowedEntities()) {
-      if (allowedEntity.trim().contains(" ")) {
-        throwResourceException(ruleNum, " 'allowedEntities' field " + allowedEntity + 
-            " must not contain any white space.");
-      }
-      if (!allowedEntity.trim().contains("@")) {
-        throwResourceException(ruleNum, " 'allowedEntities' field " + allowedEntity + 
-            " must be a valid fully qualified email address");
-      }
-    }
-    
-    // appids 
-    
-    if (resourceRule.getApps() == null) {
-      throwResourceException(ruleNum, " at least one 'app' field must be present");
-    }
-    
-    for (AppTag app : resourceRule.getApps()) {
-      String container = app.getContainer();
-      String appId = app.getAppId();
-      if (container.trim().contains(" ") || appId.trim().contains(" ")) {
-        throwResourceException(ruleNum, " 'appIds' field <" + container + ":" + appId + 
-            "> must not contain any white space.");
-      }
-    }
+    validateEntities(resourceRule, ruleNum);
+    validateAppIds(resourceRule, ruleNum);
     
     // pattern
     
@@ -222,6 +193,51 @@ public class ResourceRuleValidator {
       // TODO(rayc) remove when REGEX is officially removed.
     } else {
       throwResourceException(ruleNum, " 'patternType' " + patternType + " not supported.");
+    }
+  }
+
+  private void validateAppIds(ResourceRule resourceRule, int ruleNum) throws ResourceException {
+    if (resourceRule.getApps() == null) {
+      throwResourceException(ruleNum, " at least one 'app' field must be present");
+    }
+    
+    for (AppTag app : resourceRule.getApps()) {
+      String container = app.getContainer();
+      if (container == null) {
+        throwResourceException(ruleNum, " 'apps' field must have a 'container' tag.");
+      }
+      String appId = app.getAppId();
+      if (appId == null) {
+        if (!app.getAllowAnyAppId()) {
+          throwResourceException(ruleNum, " 'apps' field must have either an 'appId' tag"
+              + " or an 'allowAny' tag.");
+        }
+      } else {
+        if (container.trim().contains(" ") || appId.trim().contains(" ")) {
+          throwResourceException(ruleNum, " 'apps' field <" + container + ":" + appId + 
+              "> must not contain any white space.");
+        }
+      }
+    }
+  }
+
+  private void validateEntities(ResourceRule resourceRule, int ruleNum) throws ResourceException {
+    if (resourceRule.getAllowedEntities() == null) {
+      if (!resourceRule.getAllowDomainViewers()) {
+        throwResourceException(ruleNum, "at least one 'allowedEntities' field must be present,"
+            + " or 'allowDomain' should be defined.");
+      }
+    } else {
+      for (String allowedEntity : resourceRule.getAllowedEntities()) {
+        if (allowedEntity.trim().contains(" ")) {
+          throwResourceException(ruleNum, " 'allowedEntities' field " + allowedEntity
+              + " must not contain any white space.");
+        }
+        if (!allowedEntity.trim().contains("@")) {
+          throwResourceException(ruleNum, " 'allowedEntities' field " + allowedEntity
+              + " must be a valid fully qualified email address");
+        }
+      }
     }
   }
 }

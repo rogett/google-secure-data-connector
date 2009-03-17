@@ -37,6 +37,7 @@ public class ResourceRule implements Comparable<ResourceRule> {
   
   private String clientId;
   private String[] allowedEntities;
+  private boolean allowDomainViewers;
   private AppTag[] apps;
   private String pattern;
   private String patternType;
@@ -77,6 +78,14 @@ public class ResourceRule implements Comparable<ResourceRule> {
     this.allowedEntities = allowedEntities;
   }
 
+  public boolean getAllowDomainViewers() {
+    return allowDomainViewers;
+  }
+
+  public void setAllowDomainViewers(boolean allowDomainViewers) {
+    this.allowDomainViewers = allowDomainViewers;
+  }
+  
   public AppTag[] getApps() {
     return apps;
   }
@@ -145,18 +154,30 @@ public class ResourceRule implements Comparable<ResourceRule> {
   public static class AppTag implements Comparable<AppTag>{
     private String container;
     private String appId;
+    private boolean allowAnyAppId;
     
     public void setContainer(String container) {
       this.container = container;
     }
+    
     public void setAppId(String appId) {
       this.appId = appId;
     }
+    
+    public void setAllowAnyAppId(boolean allowAnyAppId) {
+      this.allowAnyAppId = allowAnyAppId;
+    }
+    
     public String getContainer() {
       return container;
     }
+    
     public String getAppId() {
       return appId;
+    }
+    
+    public boolean getAllowAnyAppId() {
+      return allowAnyAppId;
     }
     
     @Override
