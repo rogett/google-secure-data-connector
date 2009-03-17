@@ -68,8 +68,8 @@ public class LocalConf {
   private Boolean debug = DEBUG;
   @Flag(help = "Allow unverified certificates")
   private Boolean allowUnverifiedCertificates = false;
-  @Flag(help = "the users who can access the healthz gadget")
-  private String healthzGadgetUsers;
+  @Flag(help = "the users who can access the healthcheck gadget")
+  private String healthCheckGadgetUsers;
   @Flag(help = "log4j properties File")
   private String log4jPropertiesFile;
   
@@ -219,12 +219,12 @@ public class LocalConf {
     return allowUnverifiedCertificates;
   }
     
-  public String getHealthzGadgetUsers() {
-    return healthzGadgetUsers;
+  public String getHealthCheckGadgetUsers() {
+    return healthCheckGadgetUsers;
   }
 
-  public void setHealthzGadgetUsers(String healthzGadgetUsers) {
-    this.healthzGadgetUsers = healthzGadgetUsers;
+  public void setHealthCheckGadgetUsers(String healthCheckGadgetUsers) {
+    this.healthCheckGadgetUsers = healthCheckGadgetUsers;
   }
 
   public String getLog4jPropertiesFile() {

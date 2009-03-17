@@ -17,7 +17,7 @@ package com.google.dataconnector.client;
 import com.google.dataconnector.registration.v2.ResourceRule;
 import com.google.dataconnector.util.ClientGuiceModule;
 import com.google.dataconnector.util.ConnectionException;
-import com.google.dataconnector.util.HealthzRequestHandler;
+import com.google.dataconnector.util.HealthCheckRequestHandler;
 import com.google.dataconnector.util.LocalConf;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
@@ -99,8 +99,8 @@ public class Client {
     final Injector injector = Guice.createInjector(new ClientGuiceModule(args));
     
     try {
-      // start the healthz service before we do anything else.
-      injector.getInstance(HealthzRequestHandler.class).init();
+      // start the healthcheck service before we do anything else.
+      injector.getInstance(HealthCheckRequestHandler.class).init();
       // Create the client instance and start services
       injector.getInstance(Client.class).startUp();
     } catch (IOException e) {

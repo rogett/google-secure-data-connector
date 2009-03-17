@@ -113,12 +113,12 @@ public class ClientGuiceModule extends AbstractModule {
    * 
    * @param localConf the local configuration.
    * @param resourceRuleUtil the resource rule util used for validation and setup of resource rules.
-   * @param healthzRequestHandler the singleton HealthzRequestHandler
+   * @param healthCheckRequestHandler the singleton HealthCheckRequestHandler
    * @return the created List of resources.
    */
   @Provides @Singleton
   public List<ResourceRule> getResourceRules(LocalConf localConf,
-      ResourceRuleUtil resourceRuleUtil, HealthzRequestHandler healthzRequestHandler) {
+      ResourceRuleUtil resourceRuleUtil, HealthCheckRequestHandler healthCheckRequestHandler) {
   
     try {
       List<ResourceRule> resourceRules = resourceRuleUtil.getResourceRules(
@@ -127,8 +127,8 @@ public class ClientGuiceModule extends AbstractModule {
       // Add System resource rules to the list
       LOG.info("Adding system resource rules");
       List<ResourceRule> systemRules = resourceRuleUtil.createSystemRules(localConf.getUser(),
-          localConf.getDomain(), localConf.getClientId(), healthzRequestHandler.getPort(),
-          localConf.getHealthzGadgetUsers());
+          localConf.getDomain(), localConf.getClientId(), healthCheckRequestHandler.getPort(),
+          localConf.getHealthCheckGadgetUsers());
       for (ResourceRule r: systemRules) {
         resourceRules.add(r);
       }
@@ -214,14 +214,14 @@ public class ClientGuiceModule extends AbstractModule {
   }
   
   /**
-   * creates a singleton instance of {@link HealthzRequestHandler} with a 
+   * creates a singleton instance of {@link HealthCheckRequestHandler} with a 
    * ServerSocket listening on an ephemeral port.
    * 
-   * @return created singleton instance of HealthzRequestHandler
+   * @return created singleton instance of HealthCheckRequestHandler
    * @throws IOException thrown if ServerSocket couldn't be created
    */
   @Provides @Singleton
-  public HealthzRequestHandler getHealthzRequestHandler() throws IOException {
-    return new HealthzRequestHandler(new ServerSocket(0));
+  public HealthCheckRequestHandler getHealthCheckRequestHandler() throws IOException {
+    return new HealthCheckRequestHandler(new ServerSocket(0));
   }
 }

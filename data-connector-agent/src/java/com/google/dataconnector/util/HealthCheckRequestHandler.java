@@ -25,23 +25,23 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class HealthzRequestHandler extends Thread {
+public class HealthCheckRequestHandler extends Thread {
   
-  public static Logger LOG = Logger.getLogger(HealthzRequestHandler.class.getName());
+  public static Logger LOG = Logger.getLogger(HealthCheckRequestHandler.class.getName());
   
   private ServerSocket serverSocket;
   private boolean quit = false;
 
   @Inject
-  public HealthzRequestHandler(ServerSocket serverSocket) {
+  public HealthCheckRequestHandler(ServerSocket serverSocket) {
     this.serverSocket = serverSocket;
   }
   
   /**
    * Returns the port this service is listening on. This is used when system rules such as
-   * healthz service rule are added to the user-defined list of resource rules.
+   * healthcheck service rule are added to the user-defined list of resource rules.
    *  
-   * @return the port the healthz service is listening on.
+   * @return the port the healthcheck service is listening on.
    */
   public int getPort() {
     if (serverSocket == null) {
@@ -51,7 +51,7 @@ public class HealthzRequestHandler extends Thread {
   }
   
   /**
-   * Initializes the HealthzRequestHandler in a separate thread after opneing a ServerSocket
+   * Initializes the HealthCheckRequestHandler in a separate thread after opneing a ServerSocket
    * 
    * @throws IOException propagated from ServerSocket creation, if any exception
    */
@@ -64,17 +64,17 @@ public class HealthzRequestHandler extends Thread {
     
     // start the service in a separate thread
     start();
-    LOG.info("healthz service started on port " + getPort());
+    LOG.info("healthcheck service started on port " + getPort());
   }
   
   /**
-   * the run method of the HealthzRequestHandler thread. It waits to receive a socket connect 
-   * request from the callers wishing to send "GET /healthz" http request. 
-   * upon receiving the /healthz request, it responds with a simple "ok" response.
+   * the run method of the HealthCheckRequestHandler thread. It waits to receive a socket connect 
+   * request from the callers wishing to send "GET /healthcheck" http request. 
+   * upon receiving the /healthcheck request, it responds with a simple "ok" response.
    */
   @Override
   public void run() {
-    setName("HealthzRequestHandler");
+    setName("HealthCheckRequestHandler");
     try {
       while (!quit) {
         Socket incomingSocket = serverSocket.accept();
@@ -85,8 +85,8 @@ public class HealthzRequestHandler extends Thread {
         PrintWriter out = new PrintWriter(incomingSocket.getOutputStream(), true);
         String inputStr;
         while ((inputStr = in.readLine()) != null) {
-          if (inputStr.contains("/healthz")) {
-            LOG.debug("healthz req found");
+          if (inputStr.contains("/healthcheck")) {
+            LOG.debug("healthcheck req found");
             break;
           }
         }
@@ -102,10 +102,10 @@ public class HealthzRequestHandler extends Thread {
         out.print("ok\r\n");
         out.flush();
         out.close();
-        LOG.debug("processed healthz request");
+        LOG.debug("processed healthcheck request");
       }
     } catch (IOException e) {
-      LOG.warn("Healthz service IOException", e);
+      LOG.warn("Healthcheck service IOException", e);
     }
   }
 

@@ -27,12 +27,12 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
- * Tests for the {@link HealthzRequestHandler} class.
+ * Tests for the {@link HealthCheckRequestHandler} class.
  * 
  * @author vnori@google.com (Vasu Nori)
  *
  */
-public class HealthzRequestHandlerTest extends TestCase {
+public class HealthCheckRequestHandlerTest extends TestCase {
 
   /**
    * Creates mock socket from the input streams provided for use with the registration util.
@@ -50,18 +50,19 @@ public class HealthzRequestHandlerTest extends TestCase {
     return fakeSocket;
   }
   
-  public void testHealthzRequestHandlerProcessingRequest() throws IOException {
+  public void testHealthCheckRequestHandlerProcessingRequest() throws IOException {
     
     // Successful case.
-    InputStream is = new ByteArrayInputStream(("GET /healthz\n").getBytes());
+    InputStream is = new ByteArrayInputStream(("GET /healthcheck\n").getBytes());
     OutputStream os = new ByteArrayOutputStream();
     ServerSocket mockServerSocket = EasyMock.createMock(ServerSocket.class);
     EasyMock.expect(mockServerSocket.accept()).andReturn(getFakeSocket(is, os));
     EasyMock.expect(mockServerSocket.accept()).andThrow(new IOException("test done"));
     EasyMock.replay(mockServerSocket);
-    HealthzRequestHandler testHealthzRequestHandler = new HealthzRequestHandler(mockServerSocket);
+    HealthCheckRequestHandler testHealthCheckRequestHandler = 
+        new HealthCheckRequestHandler(mockServerSocket);
     try {
-      testHealthzRequestHandler.run();
+      testHealthCheckRequestHandler.run();
       String strOut = ((ByteArrayOutputStream) os).toString("utf8");
       assertTrue(strOut.contains("ok"));
       assertTrue(strOut.contains("HTTP/1.1 200 OK"));

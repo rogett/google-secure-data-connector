@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import javax.net.SocketFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 /**
@@ -237,48 +236,49 @@ public class ResourceRuleUtil {
   /**
    * creates the following system resource rules
    * 
-   * 1. healthz rule:  http://localhost:portnum/<clientId>/__SDCINTERNAL__/healthz
+   * 1. healthcheck rule:  http://localhost:portnum/<clientId>/__SDCINTERNAL__/healthcheck
    * 2. rules to allow access to healthcheck feeds (TODO - after enabling routing options to be
    * declared for each resource rule)
    * 
    * @param user the userid who should be allowed to access this resource
    * @param domain the domain the above user belongs to
    * @param clientId the clientId this resource is attached to
-   * @param port the port HealthzRequestHandler is listening on
-   * @param healthzGadgetUsers the users who are allowed access to the healthz gadget
+   * @param port the port HealthCheckRequestHandler is listening on
+   * @param healthCheckGadgetUsers the users who are allowed access to the healthcheck gadget.
    * @return the list of system resources created
    */
   public List<ResourceRule> createSystemRules(String user, String domain, String clientId, 
-      int port, String healthzGadgetUsers) {
+      int port, String healthCheckGadgetUsers) {
     List<ResourceRule> systemRules = new ArrayList<ResourceRule>();
     int nextRuleNum = Integer.MAX_VALUE;
     
-    // if the input param healthzGadgetUsers is not null, add the input user to the list of users
+    // if the input param healthCheckGadgetUsers is not null, add the input user to the list of 
+    // users
     String[] allowedEntities;
     String implicitUser = user + "@" + domain;
-    if (healthzGadgetUsers != null) {
-      allowedEntities = (healthzGadgetUsers + "," + implicitUser).split(",");
+    if (healthCheckGadgetUsers != null) {
+      allowedEntities = (healthCheckGadgetUsers + "," + implicitUser).split(",");
     } else {
       allowedEntities = new String[] {implicitUser};
     }
     
-    // create healthz rule
-    ResourceRule healthzRule = new ResourceRule();
-    healthzRule.setAllowedEntities(allowedEntities);
-    healthzRule.setClientId(clientId);
+    // create healthcheck rule
+    ResourceRule healthCheckRule = new ResourceRule();
+    healthCheckRule.setAllowedEntities(allowedEntities);
+    healthCheckRule.setClientId(clientId);
     AppTag app = new AppTag();
     // TODO(josecasillas): Add a more restrictive rule for implicit rules.
     app.setContainer(".*");
     app.setAppId(".*");
     AppTag[] array = new AppTag[1];
     array[0] = app;
-    healthzRule.setApps(array);
+    healthCheckRule.setApps(array);
     // assign name of Integer.MAX_VALUE
-    healthzRule.setRuleNum(nextRuleNum--);
-    healthzRule.setPattern(ResourceRule.HTTPID + "localhost:" + port + "/" + clientId + 
-	  "/__SDCINTERNAL__/healthz");
-    healthzRule.setPatternType(ResourceRule.URLEXACT);
-    systemRules.add(healthzRule);
+    healthCheckRule.setRuleNum(nextRuleNum--);
+    healthCheckRule.setPattern(ResourceRule.HTTPID + "localhost:" + port + "/" + clientId + 
+	  "/__SDCINTERNAL__/healthcheck");
+    healthCheckRule.setPatternType(ResourceRule.URLEXACT);
+    systemRules.add(healthCheckRule);
     return systemRules;
   }
   
