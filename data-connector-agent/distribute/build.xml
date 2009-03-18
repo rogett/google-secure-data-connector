@@ -32,11 +32,9 @@ Build File for Secure Data Connector client and reference server.
 
   <!-- PROPERTIES -->
   <property name="version" value="1.0"/>
-  <property name="release" value="3"/>
+  <property name="release" value="1"/>
   <property name="name" value="google-secure-data-connector"/>
   <property name="sourcedir" value="distribute/dist/"/>
-  <property name="version.debian" value="3"/>
-  <property name="release" value="3"/>
   <property name="projects.dir" value=".." />
   <property name="COMPILE_DEBUG_FLAG" value="true" />
   <property name="COMPILE_DEBUG_LEVEL" value="source,lines,vars" />
@@ -61,7 +59,7 @@ Build File for Secure Data Connector client and reference server.
   <target name="clean-distro-all" depends="clean">
     <delete file="${dist}/${name}-${version}-${release}-bin.tar.gz" />
     <delete file="${dist}/${name}-${version}-${release}-src.tar.gz" />
-    <delete file="${dist}/${name}_${version}-${release}_i386.deb" />
+    <delete file="${dist}/${name}_${version}-${release}_all.deb" />
     <delete file="${dist}/${name}-${version}-${release}.noarch.rpm" />
     <delete file="${dist}/${name}-${version}-${release}.src.rpm" />
   </target>
@@ -209,12 +207,12 @@ Build File for Secure Data Connector client and reference server.
     <deb todir="${dist}"
          package="google-secure-data-connector"
          section="net"
-         architecture="i386"
+         architecture="all"
          depends="sun-java6-jre (>=6), openssh-server (>=3)"
          postinst="distribute/debian/securedataconnector.postinst"
          prerm="distribute/debian/securedataconnector.prerm"
          postrm="distribute/debian/securedataconnector.postrm">
-         <version upstream="${version}" debian="${version.debian}"/>
+         <version upstream="${version}" debian="${release}"/>
       <maintainer name="Sebastian Welsh"
                   email="sebastian.welsh@gmail.com"/>
       <description synopsis="The Google secure dataconnector client package.">
