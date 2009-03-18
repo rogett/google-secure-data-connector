@@ -12,7 +12,8 @@
       <container>Spreadsheets</container>
       <appId>.*</appId>
     </apps>
-    <pattern>http://internal.corp.example.com/.*</pattern>
+    <pattern>http://internal.corp.example.com/</pattern>
+    <patternType>HOSTPORT</patternType>
   </entity>
   <entity repeatable="true">
     <ruleNum>2</ruleNum>
@@ -27,7 +28,8 @@
       <container>Spreadsheets</container>
       <appId>.*</appId>
     </apps>
-    <pattern>http://feed.example.com/userlookup?user=.*/$</pattern>
+    <pattern>http://feed.example.com/userlookup?user=rayc</pattern>
+    <patternType>URLEXACT</patternType>
   </entity>
   <entity repeatable="true">
     <ruleNum>3</ruleNum>
@@ -43,5 +45,6 @@
       <appId>.*</appId>
     </apps>
     <pattern>socket://0.0.0.0:22</pattern>
+    <patternType>HOSTPORT</patternType>
   </entity>
 </feed>

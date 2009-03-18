@@ -56,7 +56,7 @@
 
   <!-- The following element is optional. It defines comma-separated list 
        of users who, in addition to the <user> defined above, can access 
-       the healthz gadget and the associated feeds. --> 
+       the healthcheck gadget and the associated feeds. --> 
 
-  <healthzGadgetUsers> foo@example.com, bar@example.com </healthzGadgetUsers>
+  <healthCheckGadgetUsers> foo@example.com, bar@example.com </healthCheckGadgetUsers>
 </entity>
