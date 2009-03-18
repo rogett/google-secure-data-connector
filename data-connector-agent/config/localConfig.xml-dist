@@ -54,9 +54,9 @@
 
   <socksServerPort>1080</socksServerPort>
 
-  <!-- The following element is optional. It defines comma-separated list 
-       of users who, in addition to the <user> defined above, can access 
-       the healthcheck gadget and the associated feeds. --> 
+  <!-- The following element is optional. It defines comma-separated list of 
+       users based on e-mail address who, in addition to the <user> defined 
+       above, can access the healthcheck gadget and the associated feeds. --> 
 
-  <healthCheckGadgetUsers> foo@example.com, bar@example.com </healthCheckGadgetUsers>
+  <healthCheckGadgetUsers></healthCheckGadgetUsers>
 </entity>
