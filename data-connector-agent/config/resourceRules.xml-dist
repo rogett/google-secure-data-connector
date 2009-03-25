@@ -12,7 +12,7 @@
       <container>Spreadsheets</container>
       <allowAnyAppId>true</allowAnyAppId>
     </apps>
-    <pattern>http://internal.corp.example.com</pattern>
+    <pattern>http://internal.corp.example.com/</pattern>
     <patternType>HOSTPORT</patternType>
   </entity>
   <entity repeatable="true">
@@ -33,7 +33,7 @@
       <appId>01234567890123456789</appId>
     </apps>
     <apps repeatable="true">
-      <container>AppEngine</container>
+      <container>appEngine</container>
       <appId>hellosdc</appId>
     </apps>
     <pattern>http://feed.example.com/userlookup?user=johndoe</pattern>
@@ -52,7 +52,7 @@
       <allowAnyAppId>true</allowAnyAppId>
     </apps>
     <apps repeatable="true">
-      <container>AppEngine</container>
+      <container>appEngine</container>
       <allowAnyAppId>true</allowAnyAppId>
     </apps>
     <pattern>socket://0.0.0.0:22</pattern>
