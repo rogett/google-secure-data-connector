@@ -1,21 +1,22 @@
 /* Copyright 2008 Google Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */ 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package com.google.dataconnector.registration.v2.testing;
 
 import com.google.dataconnector.registration.v2.ResourceRule;
-import com.google.dataconnector.registration.v2.ResourceRule.AppTag;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,38 +33,21 @@ public class FakeResourceRuleConfig {
   public static final int HTTP_RULE_NUM = 1;
   public static final String[] ALLOWED_ENTITY = 
       { "rcolline@test.joonix.net", "admin@test.joonix.net" };
-  public static final AppTag[] APPID;
+  public static final String[] APPID = { "someappid", "someappid2" };
   public static final String HTTP_PATTERN = "http://www.example.com";
   public static final int SOCKET_RULE_NUM = 2;
   public static final String SOCKET_PATTERN = "socket://128.195.131";
+  public static final String HTTP_PROXY_PORT = "10000";
   public static final String SOCKS_SERVER_PORT = "1080";
   public static final String SECRET_KEY = "23423432432";
-  public static final int URL_EXACT_RULE_NUM = 3;
-  public static final String URL_EXACT_PATTERN = "http://www.example.com/exact/path";
-  public static final int HTTPS_RULE_NUM = 4;
-  public static final String HTTPS_PATTERN = "https://www.example.com";
 
-  static {
-    APPID = new AppTag[2];
-    APPID[0] = new AppTag();
-    APPID[0].setContainer("somecontainer");
-    APPID[0].setAppId("someappid");
-    APPID[1] = new AppTag();
-    APPID[1].setContainer("somecontainer2");
-    APPID[1].setAppId("someappid2");
-  }
-  
   /** The fake properties file we generate the config from */
   private List<ResourceRule> configResourceRules;
   private List<ResourceRule> runtimeResourceRules;
   private ResourceRule runtimeHttpResourceRule;
   private ResourceRule runtimeSocketResourceRule;
-  private ResourceRule runtimeUrlExactResourceRule;
-  private ResourceRule runtimeHttpsResourceRule;
   private ResourceRule configHttpResourceRule;
   private ResourceRule configSocketResourceRule;
-  private ResourceRule configUrlExactResourceRule;
-  private ResourceRule configHttpsResourceRule;
 
   /**
    * Creates a configuration beans from the fake hardcoded XML files.  
@@ -73,66 +57,31 @@ public class FakeResourceRuleConfig {
     // Configure each resource rule to match XML.
     runtimeHttpResourceRule = getBaseResourceRule();
     runtimeHttpResourceRule.setPattern(HTTP_PATTERN);
-    runtimeHttpResourceRule.setPatternType(ResourceRule.HOSTPORT);
     runtimeHttpResourceRule.setRuleNum(HTTP_RULE_NUM);
     runtimeHttpResourceRule.setSecretKey(Long.valueOf(SECRET_KEY));
+    runtimeHttpResourceRule.setHttpProxyPort(Integer.valueOf(HTTP_PROXY_PORT));
     runtimeHttpResourceRule.setSocksServerPort(Integer.valueOf(SOCKS_SERVER_PORT));
-    runtimeHttpResourceRule.setApps(APPID);
-    
+    runtimeHttpResourceRule.setAppIds(APPID);
     runtimeSocketResourceRule = getBaseResourceRule();
     runtimeSocketResourceRule.setPattern(SOCKET_PATTERN);
-    runtimeSocketResourceRule.setPatternType(ResourceRule.HOSTPORT);
     runtimeSocketResourceRule.setRuleNum(SOCKET_RULE_NUM);
     runtimeSocketResourceRule.setSecretKey(Long.valueOf(SECRET_KEY));
     runtimeSocketResourceRule.setSocksServerPort(Integer.valueOf(SOCKS_SERVER_PORT));
-    
-    runtimeUrlExactResourceRule = getBaseResourceRule();
-    runtimeUrlExactResourceRule.setPattern(URL_EXACT_PATTERN);
-    runtimeUrlExactResourceRule.setPatternType(ResourceRule.URLEXACT);
-    runtimeUrlExactResourceRule.setRuleNum(URL_EXACT_RULE_NUM);
-    runtimeUrlExactResourceRule.setSecretKey(Long.valueOf(SECRET_KEY));
-    runtimeUrlExactResourceRule.setSocksServerPort(Integer.valueOf(SOCKS_SERVER_PORT));
-    
-    runtimeHttpsResourceRule = getBaseResourceRule();
-    runtimeHttpsResourceRule.setPattern(HTTPS_PATTERN);
-    runtimeHttpsResourceRule.setPatternType(ResourceRule.HOSTPORT);
-    runtimeHttpsResourceRule.setRuleNum(HTTPS_RULE_NUM);
-    runtimeHttpsResourceRule.setSecretKey(Long.valueOf(SECRET_KEY));
-    runtimeHttpsResourceRule.setSocksServerPort(Integer.valueOf(SOCKS_SERVER_PORT));
-    
-    configHttpResourceRule = getBaseResourceRule();
     configHttpResourceRule = getBaseResourceRule();
     configHttpResourceRule.setPattern(HTTP_PATTERN);
-    configHttpResourceRule.setPatternType(ResourceRule.HOSTPORT);
     configHttpResourceRule.setRuleNum(HTTP_RULE_NUM);
-    configHttpResourceRule.setApps(APPID);
-    
+    configHttpResourceRule.setAppIds(APPID);
     configSocketResourceRule = getBaseResourceRule();
     configSocketResourceRule.setPattern(SOCKET_PATTERN);
-    configSocketResourceRule.setPatternType(ResourceRule.HOSTPORT);
     configSocketResourceRule.setRuleNum(SOCKET_RULE_NUM);
-    
-    configUrlExactResourceRule = getBaseResourceRule();
-    configUrlExactResourceRule.setPattern(URL_EXACT_PATTERN);
-    configUrlExactResourceRule.setPatternType(ResourceRule.URLEXACT);
-    configUrlExactResourceRule.setRuleNum(URL_EXACT_RULE_NUM);
-    
-    configHttpsResourceRule = getBaseResourceRule();
-    configHttpsResourceRule.setPattern(HTTPS_PATTERN);
-    configHttpsResourceRule.setPatternType(ResourceRule.HOSTPORT);
-    configHttpsResourceRule.setRuleNum(HTTPS_RULE_NUM);
     
     // Add to Lists
     configResourceRules = new ArrayList<ResourceRule>();
     configResourceRules.add(configHttpResourceRule);
     configResourceRules.add(configSocketResourceRule);
-    configResourceRules.add(configUrlExactResourceRule);
-    configResourceRules.add(configHttpsResourceRule);
     runtimeResourceRules = new ArrayList<ResourceRule>();
     runtimeResourceRules.add(runtimeHttpResourceRule);
     runtimeResourceRules.add(runtimeSocketResourceRule);
-    runtimeResourceRules.add(runtimeUrlExactResourceRule);
-    runtimeResourceRules.add(runtimeHttpsResourceRule);
   }
 
   /**
@@ -167,126 +116,68 @@ public class FakeResourceRuleConfig {
     return configSocketResourceRule;
   }
   
-  public ResourceRule getConfigUrlExactResourceRule() {
-    return configUrlExactResourceRule;
-  }
-
-  public ResourceRule getRuntimeUrlExactResourceRule() {
-    return runtimeUrlExactResourceRule;
-  }
-  
   private ResourceRule getBaseResourceRule() {
     ResourceRule resourceRule = new ResourceRule();
     resourceRule.setClientId(CLIENT_ID);
     resourceRule.setAllowedEntities(ALLOWED_ENTITY);
-    resourceRule.setApps(APPID);
     return resourceRule;
   }
   
+
   public static final String CONFIG_RESOURCE_RULES_XML = "<feed>\n" +
     "<entity repeatable='true'>\n" +
-    "  <ruleNum>" + HTTP_RULE_NUM + "</ruleNum>\n" +
-    "  <clientId>" + CLIENT_ID + "</clientId>\n" +
-    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
-    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
-    "  <apps repeatable='true'><container>" + APPID[0].getContainer() + "</container><appId>" + APPID[0].getAppId() + "</appId></apps>\n" +
-    "  <apps repeatable='true'><container>" + APPID[1].getContainer() + "</container><appId>" + APPID[1].getAppId() + "</appId></apps>\n" +
-    "  <pattern>" + HTTP_PATTERN + "</pattern>\n" +
-    "  <patternType>" + ResourceRule.HOSTPORT + "</patternType>\n" +
+    "<ruleNum>" + HTTP_RULE_NUM + "</ruleNum>\n" +
+    "<clientId>" + CLIENT_ID + "</clientId>\n" +
+    "<allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
+    "<allowedEntities>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
+    "<appIds repeatable='true'>" + APPID[0] + "</appIds>\n" +
+    "<appIds>" + APPID[1] + "</appIds>\n" +
+    "<pattern>" + HTTP_PATTERN + "</pattern>\n" +
     "</entity>\n" +
     "<entity>\n" +
-    "  <ruleNum>" + SOCKET_RULE_NUM + "</ruleNum>\n" +
-    "  <clientId>" + CLIENT_ID + "</clientId>\n" +
-    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
-    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
-    "  <apps repeatable='true'><container>" + APPID[0].getContainer() + "</container><appId>" + APPID[0].getAppId() + "</appId></apps>\n" +
-    "  <apps repeatable='true'><container>" + APPID[1].getContainer() + "</container><appId>" + APPID[1].getAppId() + "</appId></apps>\n" +
-    "  <pattern>" + SOCKET_PATTERN + "</pattern>\n" +
-    "  <patternType>" + ResourceRule.HOSTPORT + "</patternType>\n" +
-    "</entity>\n" +
-    "<entity>\n" +
-    "  <ruleNum>" + URL_EXACT_RULE_NUM + "</ruleNum>\n" +
-    "  <clientId>" + CLIENT_ID + "</clientId>\n" +
-    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
-    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
-    "  <apps repeatable='true'><container>" + APPID[0].getContainer() + "</container><appId>" + APPID[0].getAppId() + "</appId></apps>\n" +
-    "  <apps repeatable='true'><container>" + APPID[1].getContainer() + "</container><appId>" + APPID[1].getAppId() + "</appId></apps>\n" +
-    "  <pattern>" + URL_EXACT_PATTERN + "</pattern>\n" +
-    "  <patternType>" + ResourceRule.URLEXACT + "</patternType>\n" +
-    "  </entity>\n" +
-    "<entity>\n" +
-    "  <ruleNum>" + HTTPS_RULE_NUM + "</ruleNum>\n" +
-    "  <clientId>" + CLIENT_ID + "</clientId>\n" +
-    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
-    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
-    "  <apps repeatable='true'><container>" + APPID[0].getContainer() + "</container><appId>" + APPID[0].getAppId() + "</appId></apps>\n" +
-    "  <apps repeatable='true'><container>" + APPID[1].getContainer() + "</container><appId>" + APPID[1].getAppId() + "</appId></apps>\n" +
-    "  <pattern>" + HTTPS_PATTERN + "</pattern>\n" +
-    "  <patternType>" + ResourceRule.HOSTPORT + "</patternType>\n" +
+    "<ruleNum>" + SOCKET_RULE_NUM + "</ruleNum>\n" +
+    "<clientId>" + CLIENT_ID + "</clientId>\n" +
+    "<allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
+    "<allowedEntities>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
+    "<pattern>" + SOCKET_PATTERN + "</pattern>\n" +
     "</entity>\n" +
     "</feed>\n" ;
   
   public static final String RUNTIME_RESOURCE_RULES_XML = "<feed>\n" +
     "<entity repeatable='true'>\n" +
-    "  <ruleNum>" + HTTP_RULE_NUM + "</ruleNum>\n" +
-    "  <clientId>" + CLIENT_ID + "</clientId>\n" +
-    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
-    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
-    "  <apps repeatable='true'><container>" + APPID[0].getContainer() + "</container><appId>" + APPID[0].getAppId() + "</appId></apps>\n" +
-    "  <apps repeatable='true'><container>" + APPID[1].getContainer() + "</container><appId>" + APPID[1].getAppId() + "</appId></apps>\n" +
-    "  <pattern>" + HTTP_PATTERN + "</pattern>\n" +
-    "  <patternType>" + ResourceRule.HOSTPORT + "</patternType>\n" +
-    "  <socksServerPort>" + SOCKS_SERVER_PORT + "</socksServerPort>\n" +
-    "  <secretKey>" + SECRET_KEY +"</secretKey>\n" +
+    "<ruleNum>" + HTTP_RULE_NUM + "</ruleNum>\n" +
+    "<clientId>" + CLIENT_ID + "</clientId>\n" +
+    "<allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
+    "<allowedEntities>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
+    "<appIds repeatable='true'>" + APPID[0] + "</appIds>\n" +
+    "<appIds>" + APPID[1] + "</appIds>\n" +
+    "<pattern>" + HTTP_PATTERN + "</pattern>\n" +
+    "<httpProxyPort>" + HTTP_PROXY_PORT + "</httpProxyPort>\n" +
+    "<socksServerPort>" + SOCKS_SERVER_PORT + "</socksServerPort>\n" +
+    "<secretKey>" + SECRET_KEY +"</secretKey>\n" +
     "</entity>\n" +
     "<entity>\n" +
-    "  <ruleNum>" + SOCKET_RULE_NUM + "</ruleNum>\n" +
-    "  <clientId>" + CLIENT_ID + "</clientId>\n" +
-    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
-    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
-    "  <apps repeatable='true'><container>" + APPID[0].getContainer() + "</container><appId>" + APPID[0].getAppId() + "</appId></apps>\n" +
-    "  <apps repeatable='true'><container>" + APPID[1].getContainer() + "</container><appId>" + APPID[1].getAppId() + "</appId></apps>\n" +
-    "  <pattern>" + SOCKET_PATTERN + "</pattern>\n" +
-    "  <patternType>" + ResourceRule.HOSTPORT + "</patternType>\n" +
-    "  <socksServerPort>" + SOCKS_SERVER_PORT + "</socksServerPort>\n" +
-    "  <secretKey>" + SECRET_KEY +"</secretKey>\n" +
-    "</entity>\n" +
-    "<entity>\n" +
-    "  <ruleNum>" + URL_EXACT_RULE_NUM + "</ruleNum>\n" +
-    "  <clientId>" + CLIENT_ID + "</clientId>\n" +
-    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
-    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
-    "  <apps repeatable='true'><container>" + APPID[0].getContainer() + "</container><appId>" + APPID[0].getAppId() + "</appId></apps>\n" +
-    "  <apps repeatable='true'><container>" + APPID[1].getContainer() + "</container><appId>" + APPID[1].getAppId() + "</appId></apps>\n" +
-    "  <pattern>" + URL_EXACT_PATTERN + "</pattern>\n" +
-    "  <patternType>" + ResourceRule.URLEXACT + "</patternType>\n" +
-    "  <socksServerPort>" + SOCKS_SERVER_PORT + "</socksServerPort>\n" +
-    "  <secretKey>" + SECRET_KEY +"</secretKey>\n" +
-    "</entity>\n" +
-    "<entity>\n" +
-    "  <ruleNum>" + HTTPS_RULE_NUM + "</ruleNum>\n" +
-    "  <clientId>" + CLIENT_ID + "</clientId>\n" +
-    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
-    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
-    "  <apps repeatable='true'><container>" + APPID[0].getContainer() + "</container><appId>" + APPID[0].getAppId() + "</appId></apps>\n" +
-    "  <apps repeatable='true'><container>" + APPID[1].getContainer() + "</container><appId>" + APPID[1].getAppId() + "</appId></apps>\n" +
-    "  <pattern>" + HTTPS_PATTERN + "</pattern>\n" +
-    "  <patternType>" + ResourceRule.HOSTPORT + "</patternType>\n" +
-    "  <socksServerPort>" + SOCKS_SERVER_PORT + "</socksServerPort>\n" +
-    "  <secretKey>" + SECRET_KEY +"</secretKey>\n" +
+    "<ruleNum>" + SOCKET_RULE_NUM + "</ruleNum>\n" +
+    "<clientId>" + CLIENT_ID + "</clientId>\n" +
+    "<allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
+    "<allowedEntities>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
+    "<pattern>" + SOCKET_PATTERN + "</pattern>\n" +
+    "<socksServerPort>" + SOCKS_SERVER_PORT + "</socksServerPort>\n" +
+    "<secretKey>" + SECRET_KEY +"</secretKey>\n" +
     "</entity>\n" +
     "</feed>\n" ;
   
   public static final String RUNTIME_RESOURCE_ENTITY_XML =
     "<entity repeatable='true'>\n" +
-    "  <ruleNum>" + HTTP_RULE_NUM + "</ruleNum>\n" +
-    "  <clientId>" + CLIENT_ID + "</clientId>\n" +
-    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
-    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
-    "  <apps repeatable='true'><container>" + APPID[0].getContainer() + "</container><appId>" + APPID[0].getAppId() + "</appId></apps>\n" +
-    "  <apps repeatable='true'><container>" + APPID[1].getContainer() + "</container><appId>" + APPID[1].getAppId() + "</appId></apps>\n" +
-    "  <pattern>" + HTTP_PATTERN + "</pattern>\n" +
-    "  <socksServerPort>" + SOCKS_SERVER_PORT + "</socksServerPort>\n" +
-    "  <secretKey>" + SECRET_KEY +"</secretKey>\n" +
+    "<ruleNum>" + HTTP_RULE_NUM + "</ruleNum>\n" +
+    "<clientId>" + CLIENT_ID + "</clientId>\n" +
+    "<allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
+    "<allowedEntities>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
+    "<appIds repeatable='true'>" + APPID[0] + "</appIds>\n" +
+    "<appIds>" + APPID[1] + "</appIds>\n" +
+    "<pattern>" + HTTP_PATTERN + "</pattern>\n" +
+    "<httpProxyPort>" + HTTP_PROXY_PORT + "</httpProxyPort>\n" +
+    "<socksServerPort>" + SOCKS_SERVER_PORT + "</socksServerPort>\n" +
+    "<secretKey>" + SECRET_KEY +"</secretKey>\n" +
     "</entity>\n";
 }

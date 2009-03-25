@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project 
+    name="apache-httpd" 
+    default="buildhttpd"
+    basedir=".">
+
+  <property name="version" value="1.0"/>
+
+  <!-- Define Directories. -->
+
+  <property name="binname" value="httpd-2.2.9" />
+  <property name="targz" value="dist/${binname}.tar.gz" />
+  <property name="root" value="_APACHE_ROOT_" />
+  <property name="httpd" value="${root}/bin/httpd" />
+  <property name="apachectl" value="${root}/bin/apachectl" />
+  <property name="srcdir" value="${basedir}/src" />
+  <property name="src" value="${srcdir}/${binname}" />
+
+  <!-- common targets -->
+  <target name="init">    
+    <!-- setup environment -->
+    <tstamp>
+      <format property="timestamp" pattern="MMddyyyyhhmm"/>
+    </tstamp>
+    <mkdir dir="${src}"/>
+  </target>
+
+  <target name="untar" depends="init">
+    <exec dir="${srcdir}" failonerror="true" executable="tar" >
+      <arg line="-zxf ../${targz}" />
+    </exec>
+  </target>
+
+  <target name="configure" depends="untar">
+    <exec 
+        dir="${src}"
+        failonerror="true"
+        executable="sh">
+      <arg value="configure"/>
+      <arg value="--disable-authz-user"/>
+      <arg value="--disable-authz-groupfile"/>
+      <arg value="--disable-auth-basic"/>
+      <arg value="--disable-auth-file"/>
+      <arg value="--disable-include"/>
+      <arg value="--disable-proxy-connect"/>
+      <arg value="--disable-proxy-ftp"/>
+      <arg value="--disable-proxy-ajp"/>
+      <arg value="--disable-proxy-balancer"/>
+      <arg value="--enable-proxy"/>
+      <arg value="--enable-proxy-http"/>
+      <arg value="--enable-mime-magic"/>
+      <arg value="--enable-mime"/>
+      <arg value="--prefix=${root}"/>
+    </exec>
+  </target>
+
+  <target name="make" depends="clean,configure">
+    <exec
+        dir="${src}"
+        failonerror="true"
+        executable="make">
+    </exec>
+  </target>
+
+  <target name="buildhttpd" depends="check" unless="present">
+    <echo message="httpd file doesn'exist..building it" />
+    <ant dir="." target="make" />
+    <exec
+        dir="${src}"
+        failonerror="true"
+        executable="make"/>
+  </target>
+
+  <target name="check">
+    <available property="present" file="${src}/httpd" />
+  </target>
+
+  <target name="install_httpd" depends="buildhttpd">
+    <exec
+        dir="${src}"
+        failonerror="true"
+        output="apache-install-out"
+        executable="make">
+      <arg value="install"/>
+    </exec>
+  </target>
+
+  <target name="clean" description="Deletes all build files.">
+    <delete dir="${srcdir}" />
+  </target>
+
+</project>
+

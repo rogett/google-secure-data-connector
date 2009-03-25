@@ -1,17 +1,19 @@
 /* Copyright 2008 Google Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */ 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package com.google.dataconnector.util;
 
 import com.google.dataconnector.client.testing.TrustAllTrustManager;
@@ -113,25 +115,21 @@ public class ClientGuiceModule extends AbstractModule {
    * 
    * @param localConf the local configuration.
    * @param resourceRuleUtil the resource rule util used for validation and setup of resource rules.
-   * @param healthCheckRequestHandler the singleton HealthCheckRequestHandler
+   * @param healthzRequestHandler the singleton HealthzRequestHandler
    * @return the created List of resources.
    */
   @Provides @Singleton
   public List<ResourceRule> getResourceRules(LocalConf localConf,
-      ResourceRuleUtil resourceRuleUtil, HealthCheckRequestHandler healthCheckRequestHandler) {
+      ResourceRuleUtil resourceRuleUtil, HealthzRequestHandler healthzRequestHandler) {
   
     try {
       List<ResourceRule> resourceRules = resourceRuleUtil.getResourceRules(
           new FileUtil().readFile(localConf.getRulesFile()));
       
       // Add System resource rules to the list
-      LOG.info("Adding system resource rules");
-      List<ResourceRule> systemRules = resourceRuleUtil.createSystemRules(localConf.getUser(),
-          localConf.getDomain(), localConf.getClientId(), healthCheckRequestHandler.getPort(),
-          localConf.getHealthCheckGadgetUsers());
-      for (ResourceRule r: systemRules) {
-        resourceRules.add(r);
-      }
+      LOG.info("Adding healthz service rule");
+      resourceRules.add(resourceRuleUtil.createHealthzRule(localConf.getUser(),
+          localConf.getDomain(), localConf.getClientId(), healthzRequestHandler.getPort()));
       
       // Validate Resource Rules
       ResourceRuleValidator resourceRuleValidator = new ResourceRuleValidator();
@@ -144,10 +142,11 @@ public class ClientGuiceModule extends AbstractModule {
       resourceRuleUtil.setSocksServerPort(resourceRules,
           localConf.getSocksServerPort());
       // We get local bind ports for each rule that can be used to configure apache virtual hosts.
+      resourceRuleUtil.getVirtualHostBindPortsAndSetHttpProxyPorts(resourceRules);
       resourceRuleUtil.setSecretKeys(resourceRules);
       return resourceRules;
     } catch (ResourceException e) {
-      LOG.fatal("Configuration Error:" + e.getMessage());
+      LOG.fatal("Configuration Error.", e);
       // Guice produces SUPER VERBOSE errors that make system admins cry.  we
       // instead exit early so the message is clear.  I hate this.
       System.exit(-1); 
@@ -214,14 +213,14 @@ public class ClientGuiceModule extends AbstractModule {
   }
   
   /**
-   * creates a singleton instance of {@link HealthCheckRequestHandler} with a 
+   * creates a singleton instance of {@link HealthzRequestHandler} with a 
    * ServerSocket listening on an ephemeral port.
    * 
-   * @return created singleton instance of HealthCheckRequestHandler
+   * @return created singleton instance of HealthzRequestHandler
    * @throws IOException thrown if ServerSocket couldn't be created
    */
   @Provides @Singleton
-  public HealthCheckRequestHandler getHealthCheckRequestHandler() throws IOException {
-    return new HealthCheckRequestHandler(new ServerSocket(0));
+  public HealthzRequestHandler getHealthzRequestHandler() throws IOException {
+    return new HealthzRequestHandler(new ServerSocket(0));
   }
 }

@@ -1,19 +1,4 @@
 #!/bin/sh
-#
-# Copyright 2008 Google Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#   
 
 set -e
 
@@ -21,15 +6,13 @@ PKG_NAME="google-secure-data-connector"
 WOODSTOCK_HOME="/etc/opt/$PKG_NAME/woodstock-user"
 LOGDIR="/var/opt/$PKG_NAME/log"
 RULES_DIR="/var/opt/$PKG_NAME"
-CLIENT_USER=securedataconnector
-CLIENT_GROUP=securedataconnector
+CLIENT_USER=daemon
+CLIENT_GROUP=daemon
 
 if [ "$1" = "configure" ]; then
   # Set up the user to access the client
   adduser --system --quiet --group --home $WOODSTOCK_HOME --no-create-home \
     woodstock || :
-  adduser --system --quiet --group --home /home/$CLIENT_USER --no-create-home \
-   --shell /bin/bash $CLIENT_USER || :
 
   # Set up the logfile for $PKG_NAME
   if [ ! -d $LOGDIR ]; then
@@ -56,6 +39,17 @@ if [ "$1" = "configure" ]; then
   chmod 640 /etc/opt/$PKG_NAME/localConfig.xml
   chmod 640 /etc/opt/$PKG_NAME/resourceRules.xml 
 
+  chown -R root:$CLIENT_GROUP /etc/opt/$PKG_NAME/apache 
+
+  # Configure apache modules
+  /etc/opt/$PKG_NAME/apache/configure_apache.sh
+  chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/$PKG_NAME/apache/httpd.conf-template 
+
+  chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/$PKG_NAME/apache/mime.types
+  chmod 770 /etc/opt/$PKG_NAME/apache 
+  chmod 640 /etc/opt/$PKG_NAME/apache/httpd.conf-template
+  chmod 640 /etc/opt/$PKG_NAME/apache/mime.types 
+
   chown -R root:root /etc/opt/$PKG_NAME/openssh
   chmod 600 /etc/opt/$PKG_NAME/openssh/ssh_host_dsa_key
   chmod 600 /etc/opt/$PKG_NAME/openssh/ssh_host_dsa_key.pub
@@ -76,6 +70,8 @@ if [ "$1" = "configure" ]; then
   chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/$PKG_NAME/openssh/sshd_config
   chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/$PKG_NAME/woodstock-user/.ssh/authorized_keys 
  
+  # Create htdocs path for apache
+  mkdir -p /etc/opt/$PKG_NAME/apache/htdocs
 
 fi
 

@@ -1,17 +1,19 @@
 /* Copyright 2008 Google Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */ 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 
 package com.google.dataconnector.registration.v2;
 
@@ -27,20 +29,14 @@ public class ResourceRule implements Comparable<ResourceRule> {
   public static final String HTTPSID = "https://";
   public static final String SOCKETID = "socket://";
   
-  public static final String HOSTPORT = "HOSTPORT";
-  public static final String URLEXACT = "URLEXACT";
-  public static final String REGEX = "REGEX";
-  
   private int ruleNum;
   // this exists for backward compatibility. clients with ruleNum field will not have this field
   private String name; 
   
   private String clientId;
   private String[] allowedEntities;
-  private boolean allowDomainViewers;
-  private AppTag[] apps;
+  private String[] appIds;
   private String pattern;
-  private String patternType;
   private Integer httpProxyPort;
   private Integer socksServerPort;
   private Long secretKey;
@@ -78,20 +74,12 @@ public class ResourceRule implements Comparable<ResourceRule> {
     this.allowedEntities = allowedEntities;
   }
 
-  public boolean getAllowDomainViewers() {
-    return allowDomainViewers;
+  public String[] getAppIds() {
+    return appIds;
   }
 
-  public void setAllowDomainViewers(boolean allowDomainViewers) {
-    this.allowDomainViewers = allowDomainViewers;
-  }
-  
-  public AppTag[] getApps() {
-    return apps;
-  }
-
-  public void setApps(AppTag[] apps) {
-    this.apps = apps;
+  public void setAppIds(String[] appIds) {
+    this.appIds = appIds;
   }
 
   public String getPattern() {
@@ -100,14 +88,6 @@ public class ResourceRule implements Comparable<ResourceRule> {
 
   public void setPattern(String pattern) {
     this.pattern = pattern;
-  }
-
-  public String getPatternType() {
-    return patternType;
-  }
-  
-  public void setPatternType(String patternType) {
-    this.patternType = patternType;
   }
 
   public Integer getHttpProxyPort() {
@@ -144,49 +124,6 @@ public class ResourceRule implements Comparable<ResourceRule> {
       return 1;
     } else {
       return 0;
-    }
-  }
-  
-
-  /**
-   * Models an App identification field. 
-   */
-  public static class AppTag implements Comparable<AppTag>{
-    private String container;
-    private String appId;
-    private boolean allowAnyAppId;
-    
-    public void setContainer(String container) {
-      this.container = container;
-    }
-    
-    public void setAppId(String appId) {
-      this.appId = appId;
-    }
-    
-    public void setAllowAnyAppId(boolean allowAnyAppId) {
-      this.allowAnyAppId = allowAnyAppId;
-    }
-    
-    public String getContainer() {
-      return container;
-    }
-    
-    public String getAppId() {
-      return appId;
-    }
-    
-    public boolean getAllowAnyAppId() {
-      return allowAnyAppId;
-    }
-    
-    @Override
-    public int compareTo(AppTag o) {
-      int compare = container.compareTo(o.container);
-      if (compare != 0) {
-        return compare;
-      }
-      return appId.compareTo(o.appId);
     }
   }
 }

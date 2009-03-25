@@ -1,0 +1,65 @@
+ServerRoot "/usr/local/exporthda3/svn/google-secure-data-connector-2/data-connector-agent/third-party/apache-httpd/root"
+
+Listen 8080
+
+User daemon
+Group daemon
+
+ServerAdmin woodstock@kuci.org
+DocumentRoot "/usr/local/exporthda3/svn/google-secure-data-connector-2/data-connector-agent/third-party/apache-httpd/root/htdocs"
+
+ProxyRequests on
+ProxyVia on
+
+#__PROXYMATCHRULES__
+
+<ProxyMatch .*>
+  Order deny,allow
+  Deny from all
+</ProxyMatch>
+
+<ProxyMatch http://kuci.org/.*>
+  order allow,deny
+  allow from all
+  deny from none
+  AuthType basic
+  AuthName "woodstock proxy"
+  AuthBasicAuthoritative On
+  AuthBasicProvider file
+  AuthUserFile "/usr/local/exporthda3/svn/secure-link/secure-link-client/third-party/apache-httpd/root/htpasswd"
+  Require valid-user
+</ProxyMatch>
+
+
+<Directory />
+  AuthType basic
+  AuthName "woodstock proxy"
+  AuthBasicAuthoritative On
+  AuthBasicProvider file
+  AuthUserFile "/usr/local/exporthda3/svn/secure-link/secure-link-client/third-party/apache-httpd/root/htpasswd"
+</Directory>
+
+<FilesMatch "^\.ht">
+    Order allow,deny
+    Deny from all
+    Satisfy All
+</FilesMatch>
+
+ErrorLog "logs/error_log"
+LogLevel warn
+
+<IfModule log_config_module>
+    LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" combined
+    LogFormat "%h %l %u %t \"%r\" %>s %b" common
+
+    <IfModule logio_module>
+      LogFormat "%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" %I %O" combinedio
+    </IfModule>
+
+    CustomLog "logs/access_log" common
+</IfModule>
+
+<IfModule ssl_module>
+SSLRandomSeed startup builtin
+SSLRandomSeed connect builtin
+</IfModule>

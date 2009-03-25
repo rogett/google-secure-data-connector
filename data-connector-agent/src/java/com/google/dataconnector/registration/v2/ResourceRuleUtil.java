@@ -1,20 +1,23 @@
 /* Copyright 2008 Google Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */ 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
 package com.google.dataconnector.registration.v2;
 
-import com.google.dataconnector.registration.v2.ResourceRule.AppTag;
+import com.google.dataconnector.registration.v2.RegistrationV2Annotations.MyHostname;
 import com.google.feedserver.util.BeanUtil;
 import com.google.feedserver.util.XmlUtil;
 import com.google.inject.Inject;
@@ -25,6 +28,8 @@ import java.beans.IntrospectionException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
+import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import javax.net.SocketFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 /**
@@ -43,22 +49,30 @@ public class ResourceRuleUtil {
 
   private static final String TOP_LEVEL_ELEMENT = "feed";
   private static final String ENTITY = "entity";
+  private static final String HTTP = "http";
   private static final String ALL = "all";
 
   // Dependencies
   private XmlUtil xmlUtil;
   private BeanUtil beanUtil;
+  private SocketFactory socketFactory;
+  private SocketAddress ephemeralLocalhostAddress;
 
   /**
    * Creates a new resource util with provided dependcies
    * 
    * @param xmlUtil utility to convert XML into map properties
    * @param beanUtil utility to covert properties map into a bean.
+   * @param ephemeralLocalhostAddress a created InetAddress resolved to localhost.
+   * @param socketFactory a way to get sockets such that we can bind with to get ephemeral ports.
    */
   @Inject
-  public ResourceRuleUtil(XmlUtil xmlUtil, BeanUtil beanUtil) {
+  public ResourceRuleUtil(XmlUtil xmlUtil, BeanUtil beanUtil, SocketFactory socketFactory, 
+      @MyHostname SocketAddress ephemeralLocalhostAddress) {
     this.xmlUtil = xmlUtil;
     this.beanUtil = beanUtil;
+    this.ephemeralLocalhostAddress = ephemeralLocalhostAddress;
+    this.socketFactory = socketFactory;
   }
 
   /**
@@ -69,6 +83,33 @@ public class ResourceRuleUtil {
   public void setSecretKeys(List<ResourceRule> resourceRules) {
     for (ResourceRule resourceRule : resourceRules) {
       resourceRule.setSecretKey(new Random().nextLong());
+    }
+  }
+  
+  /**
+   * Gets ephermal port for each rule that is used to bind an Apache VirtualHost proxy to. 
+   * 
+   * @param resourceRules list of resource rules for this domain.
+   * @throws ResourceException if any socket errors occur while trying to bind.
+   */
+  public void getVirtualHostBindPortsAndSetHttpProxyPorts(List<ResourceRule> resourceRules) 
+      throws ResourceException {
+    for (ResourceRule resourceRule : resourceRules) {
+      // We only get ports for HTTP rules as others do not transverse the HTTP Proxy (apache)
+      if (!resourceRule.getPattern().startsWith(HTTP)) {
+        continue;
+      }
+      try {
+        // In order for the OS to return us an available ephemeral port we have to bind a socket
+        // to "127.0.0.1:0" we get the port then close the socket.  Its a bit lame but I have
+        // not found a better way to do it.
+        Socket socket = socketFactory.createSocket();
+        socket.bind(ephemeralLocalhostAddress);
+        resourceRule.setHttpProxyPort(socket.getLocalPort());
+        socket.close();
+      } catch (IOException e) {
+        throw new ResourceException("Error while trying to obtain ephemeral ports.", e);
+      }
     }
   }
 
@@ -93,6 +134,20 @@ public class ResourceRuleUtil {
     }
     // Delete out the entries not for this client.
     resourceRules.removeAll(removalList);
+  }
+
+  /**
+   * Sets the httpProxyPort to the apache httpd server for each rule.
+   * 
+   * @param resourceRules a list of resourceRules.
+   * @param httpProxyPort the port number to use for each http rule.
+   */
+  public void setHttpProxyPorts(List<ResourceRule> resourceRules, int httpProxyPort) {
+    for (ResourceRule resourceRule : resourceRules) {
+      if (resourceRule.getPattern().startsWith(HTTP)) {
+        resourceRule.setHttpProxyPort(httpProxyPort);
+      }
+    }
   }
 
   /**
@@ -205,6 +260,9 @@ public class ResourceRuleUtil {
    * @return a hostname.
    */
   public String getHostnameFromRule(ResourceRule resourceRule) {
+    if (!resourceRule.getPattern().startsWith(ResourceRule.HTTPSID)) {
+      throw new RuntimeException("Can only invoke on HTTPS rules");
+    }
     try {
       URL url = new URL(resourceRule.getPattern());
       return url.getHost();
@@ -220,82 +278,40 @@ public class ResourceRuleUtil {
    * @return a port.
    */
   public Integer getPortFromRule(ResourceRule resourceRule) {
+    if (!resourceRule.getPattern().startsWith(ResourceRule.HTTPSID)) {
+      throw new RuntimeException("Can only invoke on HTTPS rules");
+    }
     try {
       URL url = new URL(resourceRule.getPattern());
-      int port = url.getPort();
-      if (port != -1) {
-        return port;
-      }
-      // not specified
-      return (resourceRule.getPattern().startsWith(ResourceRule.HTTPSID)) ? 443 : 80;
+      return (url.getPort() == -1 ? 443 : url.getPort());
     } catch (MalformedURLException e) {
       throw new RuntimeException(e);
     }
   }
   
   /**
-   * creates the following system resource rules
+   * creates a healthz resource rule by for the given clientId with allowed entity being the given
+   * user + domain. 
    * 
-   * 1. healthcheck rule:  http://localhost:portnum/<clientId>/__SDCINTERNAL__/healthcheck
-   * 2. rules to allow access to healthcheck feeds (TODO - after enabling routing options to be
-   * declared for each resource rule)
+   * healthz rule looks like this
+   *    http://localhost:portnum/<clientId>/__SDCINTERNAL__/healthz
+   *       clientId helps make url unique if two clients in the same domain 
+   *       start the HealthzRequest service on the same (ephemeral) portnum.
    * 
    * @param user the userid who should be allowed to access this resource
    * @param domain the domain the above user belongs to
    * @param clientId the clientId this resource is attached to
-   * @param port the port HealthCheckRequestHandler is listening on
-   * @param healthCheckGadgetUsers the users who are allowed access to the healthcheck gadget.
-   * @return the list of system resources created
+   * @param port the port HealthzRequestHandler is listening on
+   * @return the healthz ResourceRule created
    */
-  public List<ResourceRule> createSystemRules(String user, String domain, String clientId, 
-      int port, String healthCheckGadgetUsers) {
-    List<ResourceRule> systemRules = new ArrayList<ResourceRule>();
-    int nextRuleNum = Integer.MAX_VALUE;
-    
-    // if the input param healthCheckGadgetUsers is not null, add the input user to the list of 
-    // users
-    String[] allowedEntities;
-    String implicitUser = user + "@" + domain;
-    if (healthCheckGadgetUsers != null) {
-      allowedEntities = (healthCheckGadgetUsers + "," + implicitUser).split(",");
-    } else {
-      allowedEntities = new String[] {implicitUser};
-    }
-    
-    // create healthcheck rule
-    ResourceRule healthCheckRule = new ResourceRule();
-    healthCheckRule.setAllowedEntities(allowedEntities);
-    healthCheckRule.setClientId(clientId);
-    AppTag app = new AppTag();
-    // TODO(josecasillas): Add a more restrictive rule for implicit rules.
-    app.setContainer(".*");
-    app.setAppId(".*");
-    AppTag[] array = new AppTag[1];
-    array[0] = app;
-    healthCheckRule.setApps(array);
+  public ResourceRule createHealthzRule(String user, String domain, String clientId, int port) {
+    ResourceRule healthzRule = new ResourceRule();
+    healthzRule.setAllowedEntities(new String[] {user + "@" + domain});
+    healthzRule.setClientId(clientId);
     // assign name of Integer.MAX_VALUE
-    healthCheckRule.setRuleNum(nextRuleNum--);
-    healthCheckRule.setPattern(ResourceRule.HTTPID + "localhost:" + port + "/" + clientId + 
-	  "/__SDCINTERNAL__/healthcheck");
-    healthCheckRule.setPatternType(ResourceRule.URLEXACT);
-    systemRules.add(healthCheckRule);
-    return systemRules;
-  }
-  
-  /**
-   * For legacy clients, sets rule number from deprecated name. 
-   * TODO(rayc) remove when we deprecate TT2 and older clients.
-   */
-  @Deprecated
-  public void setRuleNumFromName(List<ResourceRule> resourceRules) throws ResourceException {
-    for (ResourceRule resourceRule : resourceRules) {
-      if (resourceRule.getName() != null) {
-        try {
-          resourceRule.setRuleNum(Integer.valueOf(resourceRule.getName()));
-        } catch (NumberFormatException e) {
-          throw new ResourceException(e);
-        }
-      }
-    }
+    healthzRule.setRuleNum(Integer.MAX_VALUE);
+    healthzRule.setPattern(ResourceRule.HTTPID + "localhost:" + 
+        port + "/" + clientId + "/__SDCINTERNAL__/healthz");
+    return healthzRule;
   }
 }

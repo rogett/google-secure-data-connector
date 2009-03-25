@@ -1,20 +1,21 @@
 /* Copyright 2008 Google Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */ 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package com.google.dataconnector.registration.v2;
 
-import com.google.dataconnector.registration.v2.ResourceRule.AppTag;
 import com.google.dataconnector.registration.v2.testing.FakeResourceRuleConfig;
 
 import junit.framework.TestCase;
@@ -30,7 +31,6 @@ public class ResourceRuleValidatorTest extends TestCase {
   private ResourceRule configHttpResourceRule;
   private ResourceRule runtimeSocketResourceRule;
   private ResourceRule configSocketResourceRule;
-  private ResourceRule runtimeUrlExactResourceRule;
   private ResourceRuleValidator resourceRuleValidator;
   
   @Override
@@ -41,7 +41,6 @@ public class ResourceRuleValidatorTest extends TestCase {
     runtimeHttpResourceRule = fakeResourceRuleConfig.getFakeRuntimeResourceRules().get(0); 
     configSocketResourceRule = fakeResourceRuleConfig.getFakeConfigResourceRules().get(1); 
     runtimeSocketResourceRule = fakeResourceRuleConfig.getFakeRuntimeResourceRules().get(1); 
-    runtimeUrlExactResourceRule = fakeResourceRuleConfig.getFakeRuntimeResourceRules().get(2); 
     resourceRuleValidator = new ResourceRuleValidator();
   }
   
@@ -62,6 +61,31 @@ public class ResourceRuleValidatorTest extends TestCase {
   public void testProperConfigResourceRules() throws ResourceException {
     resourceRuleValidator.validate(configHttpResourceRule);
     resourceRuleValidator.validate(configSocketResourceRule);
+  }
+  
+  // Http Proxy Port
+  public void testBadHttpProxyPort() {
+    runtimeHttpResourceRule.setHttpProxyPort(3242343);
+    
+    try {
+      resourceRuleValidator.validateRuntime(runtimeHttpResourceRule);
+    } catch (ResourceException e) {
+      assertTrue(e.getMessage().contains("out of range"));
+      return;
+    }
+    fail("did not get ResourceException");
+  }
+  
+  public void testMissingHttpProxyPort() {
+    runtimeHttpResourceRule.setHttpProxyPort(null);
+    
+    try {
+      resourceRuleValidator.validateRuntime(runtimeHttpResourceRule);
+    } catch (ResourceException e) {
+      assertTrue(e.getMessage().contains("required for each"));
+      return;
+    }
+    fail("did not get ResourceException");
   }
   
   // Socks Server Port
@@ -154,7 +178,7 @@ public class ResourceRuleValidatorTest extends TestCase {
     }
     
     // Reset test.
-    runtimeHttpResourceRule.setRuleNum(1);
+    runtimeHttpResourceRule.setName(null);
     String[] allowedEntitiesSpace = { "has a space" };   
     runtimeHttpResourceRule.setAllowedEntities(allowedEntitiesSpace);
     try {
@@ -178,17 +202,11 @@ public class ResourceRuleValidatorTest extends TestCase {
     fail("did not get ResourceException");
   }
   
-  public void testAllowDomainFlag() throws ResourceException {
-    runtimeHttpResourceRule.setAllowedEntities(null);
-    runtimeHttpResourceRule.setAllowDomainViewers(true);
-    resourceRuleValidator.validateRuntime(runtimeHttpResourceRule);
-  }
-
   // AppIds
   public void testBadAppId() {
     
-    AppTag[] appIds = { createApp("has a space", ".*") };   
-    runtimeHttpResourceRule.setApps(appIds);
+    String[] appIds = { "has a space" };   
+    runtimeHttpResourceRule.setAppIds(appIds);
     try {
       resourceRuleValidator.validateRuntime(runtimeHttpResourceRule);
     } catch (ResourceException e) {
@@ -198,25 +216,11 @@ public class ResourceRuleValidatorTest extends TestCase {
     fail("did not get ResourceException");
   }
   
-  public void testMissingAppIds() {
-    runtimeHttpResourceRule.setApps(null);
-    try {
-      resourceRuleValidator.validateRuntime(runtimeHttpResourceRule);
-    } catch (ResourceException e) {
-      assertTrue(e.getMessage().contains("field must be present"));
-      return;
-    }
-    fail("did not get ResourceException");
-  }
- 
-  public void testAllowAllAppsFlag() throws ResourceException {
-    AppTag app = createApp("container", null);
-    app.setAllowAnyAppId(true);
-    AppTag[] apps = { app };
-    runtimeHttpResourceRule.setApps(apps);
+  public void testMissingAppIds() throws ResourceException {
+    runtimeHttpResourceRule.setAppIds(null);
     resourceRuleValidator.validateRuntime(runtimeHttpResourceRule);
   }
-
+  
   public void testBadPatternIdentifier() {
     runtimeHttpResourceRule.setPattern("asdfasdf://sdafasfd");
     
@@ -251,43 +255,5 @@ public class ResourceRuleValidatorTest extends TestCase {
       return;
     }
     fail("did not get ResourceException");
-  }
-  
-  public void testUrlPathInHostPortPattern() {
-    runtimeHttpResourceRule.setPattern("http://foo.com/has/path");
-    try {
-      resourceRuleValidator.validateRuntime(runtimeHttpResourceRule);
-    } catch (ResourceException e) {
-      assertTrue(e.getMessage().contains("cannot contain any path"));
-      return;
-    }
-  }
-  
-  public void testUrlExactTypeCannotBeUsedWithHttpsPattern() {
-    runtimeHttpResourceRule.setPatternType(ResourceRule.URLEXACT);
-    runtimeHttpResourceRule.setPattern("https://somehttpssite.com");
-    try {
-      resourceRuleValidator.validateRuntime(runtimeHttpResourceRule);
-    } catch (ResourceException e) {
-      assertTrue(e.getMessage().contains("URLEXACT works only"));
-      return;
-    }
-  }
-  
-  public void testUrlExactTypeCannotBeUsedWithSocketPattern() {
-    runtimeSocketResourceRule.setPatternType(ResourceRule.URLEXACT);
-    try {
-      resourceRuleValidator.validateRuntime(runtimeSocketResourceRule);
-    } catch (ResourceException e) {
-      assertTrue(e.getMessage().contains("URLEXACT works only"));
-      return;
-    }
-  }
-
-  private AppTag createApp(String container, String appId) {
-    AppTag app = new AppTag();
-    app.setContainer(container);
-    app.setAppId(appId);
-    return app;
   }
 }

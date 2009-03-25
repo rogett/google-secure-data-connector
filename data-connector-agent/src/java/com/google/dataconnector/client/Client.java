@@ -1,23 +1,28 @@
 /* Copyright 2008 Google Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */ 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package com.google.dataconnector.client;
 
+import com.google.dataconnector.registration.v2.RegistrationV2GuiceModule;
 import com.google.dataconnector.registration.v2.ResourceRule;
+import com.google.dataconnector.util.ApacheSetupException;
 import com.google.dataconnector.util.ClientGuiceModule;
+import com.google.dataconnector.util.AgentConfigurationException;
 import com.google.dataconnector.util.ConnectionException;
-import com.google.dataconnector.util.HealthCheckRequestHandler;
+import com.google.dataconnector.util.HealthzRequestHandler;
 import com.google.dataconnector.util.LocalConf;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
@@ -53,6 +58,8 @@ public class Client {
 
   /* Dependencies */
   private LocalConf localConfiguration;
+  private JsocksStarter jsocksStarter;
+  private ApacheStarter apacheStarter;
   private SecureDataConnection secureDataConnection;
   
   /**
@@ -61,29 +68,40 @@ public class Client {
    * @param localConfiguration the local configuration object.
    * @param resourceRules runtime configured resource rules.
    * @param sslSocketFactory 
+   * @param apacheStarter 
+   * @param jsocksStarter 
    * @param secureDataConnection
    */
   @Inject
   public Client(LocalConf localConfiguration, List<ResourceRule> resourceRules, 
-      SSLSocketFactory sslSocketFactory, SecureDataConnection secureDataConnection) {
+      SSLSocketFactory sslSocketFactory, ApacheStarter apacheStarter, 
+      JsocksStarter jsocksStarter, SecureDataConnection secureDataConnection) {
     this.localConfiguration = localConfiguration;
+    this.apacheStarter = apacheStarter;
+    this.jsocksStarter = jsocksStarter;
     this.secureDataConnection = secureDataConnection;
   }
   
   /**
-   * Starts 2 components in separate threads.
+   * Starts three components in separate threads.
    * 
    * @throws IOException if any socket communication issues occur.
    * @throws ConnectionException if login is incorrect or other Woodstock connection errors.
+   * @throws ApacheSetupException if apache has any errors.
    */
-  public void startUp() throws IOException, ConnectionException {
+  public void startUp() throws IOException, ConnectionException, ApacheSetupException {
     
-    // Set log4j properties and watch for changes every min (default)
-    PropertyConfigurator.configureAndWatch(localConfiguration.getLog4jPropertiesFile());
+    // Set client logging properties.
+    Properties properties = new Properties();
+    properties.load(new ByteArrayInputStream(
+        localConfiguration.getLogProperties().trim().getBytes()));
+    PropertyConfigurator.configure(properties);
     if (localConfiguration.getDebug()) {
 	  Logger.getRootLogger().setLevel(Level.DEBUG);
     }
     
+    apacheStarter.startApacheHttpd();
+    jsocksStarter.startJsocksProxy();
     secureDataConnection.connect();
   }
   
@@ -96,17 +114,20 @@ public class Client {
   public static void main(String[] args) {
     // Bootstrap logging system
     PropertyConfigurator.configure(getBootstrapLoggingProperties());
-    final Injector injector = Guice.createInjector(new ClientGuiceModule(args));
+    final Injector injector = Guice.createInjector(new ClientGuiceModule(args), 
+        new RegistrationV2GuiceModule());
     
     try {
-      // start the healthcheck service before we do anything else.
-      injector.getInstance(HealthCheckRequestHandler.class).init();
+      // start the healthz service before we do anything else.
+      injector.getInstance(HealthzRequestHandler.class).init();
       // Create the client instance and start services
       injector.getInstance(Client.class).startUp();
     } catch (IOException e) {
       log.fatal("Connection error.", e);
     } catch (ConnectionException e) {
       log.fatal("Client connection failure.", e);
+    } catch (AgentConfigurationException e) {
+      log.fatal("Client configuration error.", e);
     }
   }
   

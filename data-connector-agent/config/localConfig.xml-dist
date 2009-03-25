@@ -1,62 +1,24 @@
 <entity>
-
-  <!-- The element <sdcServerHost> is required. This value defines the
-       Google server host IPv4 IP address or fully-qualified domain name 
-       for use by Secure Data Connector. This value should not be changed 
-       unless instructed by Google. -->   
-
   <sdcServerHost>apps-secure-data-connector.google.com</sdcServerHost>
-
-  <!-- The element <sdcServerPort> is required. This value defines the
-       TCP port for the Google host that listens for Secure Data Connector 
-       service requests. This value should not be changed unless instructed 
-       by Google. -->  
-
   <sdcServerPort>443</sdcServerPort>
-
-  <!-- The element <domain> is required. This value defines the
-       Google Apps domain name that your are connecting the Secure Data 
-       Connector to. -->
-
   <domain>example.com</domain>
-
-  <!-- The element <user> is required. This value defines the Google 
-       Apps user account the Secure Data Connector uses to authenticate 
-       to the Google Apps domain. -->
-
-  <user>secure-data-connector-user</user>
-
-  <!-- The element <password> is required. This value defines the
-       password for the account defined by the <user>               
-       element. --> 
-
+  <user>AnyValidDomainUsername</user>
   <password>ValidDomainUserPassword</password>
-
-  <!-- The element <clientId> is required. This value defines the client ID 
-       which is a unique name that repsents this Secure Data Connector
-       Client. Valid characters are a-z,A-Z,0-9,-_       
-       -->
-
   <clientId>client1_example-com</clientId>
-
-  <!-- The element <sshd> is required. This value defines the Secure shell
-      (SSH) network protocol startup script path and file name. This value
-      is predefined based on the installation path. This value should not 
-      require modification. -->
-
   <sshd>_START_SSHD_</sshd>
-
-  <!-- The element <socksServerPort> is required. This value defines the Socket 
-       server listner port. If this port conflicts with another service on the 
-       machine, you can change the port to another value. If you customize 
-       <socksServerPort> you must also change the permit port details in the 
-       woodstock-user/.ssh/authorized_keys file --> 
-
+  <!-- NOTE: If you customize the socksServerPort you must also change 
+       the permit port # in the woodstock-user/.ssh/authorized_keys --> 
   <socksServerPort>1080</socksServerPort>
+  <apacheCtl>_APACHE_CTL_</apacheCtl>
+  <apacheConfDir>_APACHE_CONF_DIR_</apacheConfDir>
+  <logProperties>
+    # ***** Set root logger level to DEBUG and its only appender to A.
+    log4j.rootLogger=info, A
 
-  <!-- The following element is optional. It defines comma-separated list of 
-       users based on e-mail address who, in addition to the <user> defined 
-       above, can access the healthcheck gadget and the associated feeds. --> 
-
-  <healthCheckGadgetUsers></healthCheckGadgetUsers>
+    # ***** A is set to be a ConsoleAppender.
+    log4j.appender.A=org.apache.log4j.ConsoleAppender
+    # ***** A uses PatternLayout.
+    log4j.appender.A.layout=org.apache.log4j.PatternLayout
+    log4j.appender.A.layout.ConversionPattern=%-4r [%t] %-5p %c %x - %m%n
+  </logProperties>
 </entity>

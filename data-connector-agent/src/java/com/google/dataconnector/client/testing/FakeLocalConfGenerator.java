@@ -1,17 +1,19 @@
 /* Copyright 2008 Google Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */ 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package com.google.dataconnector.client.testing;
 
 import com.google.dataconnector.registration.v2.AuthRequest;
@@ -53,6 +55,8 @@ public class FakeLocalConfGenerator {
   public static final Integer SOCKS_SERVER_PORT = 1080;
   public static final String SOCKSD_BIND_HOST = "127.0.0.1";
   public static final String RULES_FILE = "/tmp/rulesConf.xml";
+  public static final String APACHE_CONF_DIR = "/tmp/apache";
+  public static final String APACHE_CTL = "/tmp/apacheroot/bin/apachectl";
   
   /**
    * Creates a configuration beans from the fake hardcoded XML files.  
@@ -105,6 +109,8 @@ public class FakeLocalConfGenerator {
     "<httpProxyBindHost>" + HTTP_PROXY_BIND_HOST + "</httpProxyBindHost>\n" +
     "<socksServerPort>" + SOCKS_SERVER_PORT + "</socksServerPort>\n" +
     "<socksdBindHost>" + SOCKSD_BIND_HOST + "</socksdBindHost>\n" +
+    "<apacheConfDir>" + APACHE_CONF_DIR + "</apacheConfDir>\n" +
+    "<apacheCtl>" + APACHE_CTL + "</apacheCtl>" +
     // We hard code socks properties and log properties because they are not used in our tests.
     "<socksProperties>\n" +
     "iddleTimeout    = 600000   # 10 minutes\n" +
@@ -112,5 +118,15 @@ public class FakeLocalConfGenerator {
     "udpTimeout      = 600000   # 10 minutes\n" +
     "log = -\n" +
     "</socksProperties>\n" +
+    "<logProperties>\n" +
+    "# ***** Set root logger level to DEBUG and its only appender to A.\n" +
+    "log4j.rootLogger=debug, A\n" +
+    "\n" +
+    "# ***** A is set to be a ConsoleAppender.\n" +
+    "log4j.appender.A=org.apache.log4j.ConsoleAppender\n" +
+    "# ***** A uses PatternLayout.\n" +
+    "log4j.appender.A.layout=org.apache.log4j.PatternLayout\n" +
+    "log4j.appender.A.layout.ConversionPattern=%-4r [%t] %-5p %c %x - %m%n\n" +
+    "</logProperties>\n" +
     "</entity>\n";
 }

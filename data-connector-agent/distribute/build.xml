@@ -1,19 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- Copyright 2007 Google Inc. 
-
- Licensed under the Apache License, Version 2.0 (the "License");
- you may not use this file except in compliance with the License.
- You may obtain a copy of the License at
-
-     http://www.apache.org/licenses/LICENSE-2.0
-
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an "AS IS" BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
- 
+<!-- Copyright 2007 Google Inc. All rights reserved. 
+  
 Build File for Secure Data Connector client and reference server.
 
   Interesting targets:
@@ -32,9 +20,11 @@ Build File for Secure Data Connector client and reference server.
 
   <!-- PROPERTIES -->
   <property name="version" value="1.0"/>
-  <property name="release" value="1"/>
+  <property name="release" value="3"/>
   <property name="name" value="google-secure-data-connector"/>
   <property name="sourcedir" value="distribute/dist/"/>
+  <property name="version.debian" value="3"/>
+  <property name="release" value="3"/>
   <property name="projects.dir" value=".." />
   <property name="COMPILE_DEBUG_FLAG" value="true" />
   <property name="COMPILE_DEBUG_LEVEL" value="source,lines,vars" />
@@ -59,7 +49,7 @@ Build File for Secure Data Connector client and reference server.
   <target name="clean-distro-all" depends="clean">
     <delete file="${dist}/${name}-${version}-${release}-bin.tar.gz" />
     <delete file="${dist}/${name}-${version}-${release}-src.tar.gz" />
-    <delete file="${dist}/${name}_${version}-${release}_all.deb" />
+    <delete file="${dist}/${name}_${version}-${release}_i386.deb" />
     <delete file="${dist}/${name}-${version}-${release}.noarch.rpm" />
     <delete file="${dist}/${name}-${version}-${release}.src.rpm" />
   </target>
@@ -81,6 +71,7 @@ Build File for Secure Data Connector client and reference server.
       <arg value="--lsb"/>
       <arg value="--openssh=/usr/sbin/sshd"/>
       <arg value="--noverify"/>
+      <arg value="--apachectl=/usr/sbin/apache2ctl"/>
       <arg value="--javahome=/usr"/>
     </exec>
    <ant 
@@ -95,8 +86,8 @@ Build File for Secure Data Connector client and reference server.
       <arg value="--lsb"/>
       <arg value="--noverify"/>
       <arg value="--openssh=/usr/sbin/sshd"/>
-      <arg value="--user=securedataconnector"/>
-      <arg value="--group=securedataconnector"/>
+      <arg value="--apachectl=/usr/sbin/apache2ctl"/>
+      <arg value="--apache_modules_dir=/usr/lib/apache2/modules"/>
       <arg value="--javahome=/usr"/>
     </exec>
    <ant 
@@ -112,6 +103,8 @@ Build File for Secure Data Connector client and reference server.
       <arg value="--lsb"/>
       <arg value="--noverify"/>
       <arg value="--openssh=/usr/sbin/sshd"/>
+      <arg value="--apachectl=/usr/sbin/apachectl"/>
+      <arg value="--apache_modules_dir=/usr/lib/httpd/modules"/>
       <arg value="--user=securedataconnector"/>
       <arg value="--group=securedataconnector"/>
       <arg value="--javahome=/usr"/>
@@ -121,6 +114,7 @@ Build File for Secure Data Connector client and reference server.
         dir="."
         inheritAll="false"/>
    </target>
+
 
   <target name="source-distro" depends="clean,timestamp">
     <mkdir dir="${dist}" />
@@ -147,15 +141,15 @@ Build File for Secure Data Connector client and reference server.
       </tarfileset>
     </tar>
   </target>
-  
+    
   <target name="binary-distro" depends="init">
     <tar 
         destfile="${dist}/${name}-${version}-${release}-bin.tar.gz"
         longfile="gnu"
         basedir="."
-        excludes="**/test_server/**, **/pANTakge/**, **/java-service-wrapper/**, third-party/ant-deb/**, jsch/com/**,tmp/**, third-party/*/docs/**"
         includes="config/*,
           config/openssh/*,
+          config/apache/*,
           COPYING,
           CHANGE_LOG,
 	  build/agent.jar,
@@ -178,8 +172,10 @@ Build File for Secure Data Connector client and reference server.
           third-party/aopalliance/**,
           third-party/google-feedserver/**,
           third-party/oauth/**,
-          third-party/guice-snapshot20081016/**"
-          compression="gzip">
+          third-party/guice-snapshot20081016/**,
+          third-party/java-service-wrapper/*,
+	  third-party/java-service-wrapper/linux/**"
+        compression="gzip">
       <tarfileset dir="." mode="600">
         <include name="config/openssh/*"/>
       </tarfileset>
@@ -190,10 +186,16 @@ Build File for Secure Data Connector client and reference server.
         <include name="config/openssh/configure_sshdconf.sh"/>
       </tarfileset>
       <tarfileset dir="." mode="755">
+        <include name="config/apache/configure_apache.sh"/>
+      </tarfileset>
+      <tarfileset dir="." mode="755">
+        <include name="third-party/java-service-wrapper/linux/googlesdc.sh"/>
+        <include name="third-party/java-service-wrapper/linux/bin/*"/>
         <include name="runclient.sh"/>
       </tarfileset>
     </tar>
   </target>
+
 
   <path id="deb-classpath">
     <fileset dir="third-party/ant-deb" includes="ant-deb-0.0.1.jar"/>
@@ -207,12 +209,12 @@ Build File for Secure Data Connector client and reference server.
     <deb todir="${dist}"
          package="google-secure-data-connector"
          section="net"
-         architecture="all"
-         depends="sun-java6-jre (>=6), openssh-server (>=3)"
+         architecture="i386"
+         depends="sun-java6-jre (>=6), openssh-server (>=3), apache2 (>=2)"
          postinst="distribute/debian/securedataconnector.postinst"
          prerm="distribute/debian/securedataconnector.prerm"
          postrm="distribute/debian/securedataconnector.postrm">
-         <version upstream="${version}" debian="${release}"/>
+         <version upstream="${version}" debian="${version.debian}"/>
       <maintainer name="Sebastian Welsh"
                   email="sebastian.welsh@gmail.com"/>
       <description synopsis="The Google secure dataconnector client package.">
@@ -230,9 +232,14 @@ http://code.google.com/
         filemode="640" dirmode="750">
         <include name="resourceRules.xml"/>
 	<include name="localConfig.xml"/>
-	<include name="log4j.properties"/>
         <include name="openssh/sshd_config"/>
         <include name="openssh/ssh_host*"/>
+        <include name="apache/mime.types"/>
+        <include name="apache/httpd.conf-template"/>
+      </conffiles>
+      <conffiles dir="third-party/java-service-wrapper/linux/conf" prefix="etc/opt/${name}/jsw"
+        filemode="640" dirmode="750">
+        <include name="*.conf"/>
       </conffiles>
       <tarfileset dir="build" prefix="opt/${name}/lib"
         filemode="640" dirmode="750">
@@ -241,15 +248,28 @@ http://code.google.com/
       </tarfileset>
       <tarfileset dir="third-party" prefix="opt/${name}/lib/third-party"
 	filemode="640" dirmode="750"
-        excludes="**/dist/, **/src/, **/build.xml, **ant-deb/**, 
-                  **/java-service-wrapper/**, **/pANTkage/** ">
+        excludes="**/dist/, **/src/, **/build.xml, **/apache-httpd/**, **/java-service-wrapper/**, **/pANTakge/**">
 	<include name="**"/>
+      </tarfileset>
+      <tarfileset dir="third-party/java-service-wrapper/linux" filemode="640" dirmode="750"
+                  prefix="opt/${name}/lib/third-party/java-service-wrapper/linux">
+         <include name="lib/*.jar"/>
+      </tarfileset>
+      <tarfileset dir="third-party/java-service-wrapper/linux" filemode="750" dirmode="750"
+                  prefix="opt/${name}/lib/third-party/java-service-wrapper/linux">
+         <include name="*.sh"/>
+         <include name="bin/*"/>
+         <include name="lib/*.so"/>
+         <include name="lib/*.jnilib"/>
       </tarfileset>
       <tarfileset dir="." prefix="opt/${name}/bin" filemode="755">
         <include name="runclient.sh"/>
       </tarfileset>
       <tarfileset dir="config" prefix="etc/opt/${name}" filemode="750">
         <include name="openssh/configure_sshdconf.sh"/>
+      </tarfileset>
+      <tarfileset dir="config" prefix="etc/opt/${name}" filemode="750">
+        <include name="apache/configure_apache.sh"/>
       </tarfileset>
       <tarfileset dir="config" prefix="etc/opt/${name}" filemode="750">
         <include name="openssh/start_sshd.sh"/>

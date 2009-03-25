@@ -1,35 +1,25 @@
 #!/bin/bash
 #
+# Copyright 2008 Google Inc. All Rights Reserved.
 # Author: rayc@google.com (Ray Colline)
-#
-# Copyright 2008 Google Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
 
 # OPTIONS
 # -prefix Secure Data Connector install location
+# -httpd Apache2 httpd location (Must have mod_proxy).
 # -opensshd OpenSSH daemon binary.
 
 PACKAGE="google-secure-data-connector"
 PREFIX="/usr/local"
 ETCPREFIX=
 VARPREFIX=
+APACHEVERSION="2.2"
+APACHECTL=
 MODULESDIR=
 OPENSSHD=
 JAVAHOME=${JAVAHOME}  # Get it from the environment
 USER=daemon
 GROUP=daemon
+USE_SUPPLIED_APACHE="false"
 LSB="false"
 NOVERIFY="false"
 
@@ -41,13 +31,16 @@ chmod 755 config.status
 [ -x "$(which getopt)" ] || { echo "gnu getopt binary not found." ; exit 1; }
 
 # Command line arguments
-OPTS=$(getopt -o h --long lsb,noverify,prefix:,etcprefix::,varprefix::,binprefix::,opensshd::,javahome::,user::,group:: -n 'configure' -- "$@") 
+OPTS=$(getopt -o h --long lsb,noverify,prefix:,etcprefix::,varprefix::,binprefix::,apachectl::,opensshd:,apache_modules_dir::,javahome::,use_supplied_apache,user::,group:: -n 'configure' -- "$@") 
 if [ $? != 0 ] || [ $# = 0 ]; then 
   echo -e "\nUsage:
     --lsb) use LSB defaults no other PREFIX options are neccessary
     --prefix) binary prefix
     --etcprefix) etc prefix.  defaults to $PREFIX/etc
     --varprefix) var prefix. defaults to $PREFIX/var
+    --use_supplied_apache) no other apache/ht options are needed.
+    --apachectl) location of apachectl binary.
+    --apache_modules_dir) location of apache modules dir.
     --opensshd) location of openssh's sshd binary.
     --user) user to run woodstock as. Default is 'daemon'
     --group) group to run woodstock as. Default is 'daemon'
@@ -63,10 +56,13 @@ while true; do
   case "$1" in
     --lsb) LSB="true" ; shift 1 ;;
     --noverify) NOVERIFY="true" ; shift 1 ;; 
+    --use_supplied_apache) USE_SUPPLIED_APACHE="true" ; shift 1 ;;
     --prefix) PREFIX=$2 ; shift 2 ;;
     --etcprefix) ETCPREFIX=$2; shift 2 ;;
     --varprefix) VARPREFIX=$2; shift 2 ;;
     --binprefix) BINPREFIX=$2; shift 2 ;;
+    --apachectl) APACHECTL=$2 ; shift 2 ;;
+    --apache_modules_dir) MODULESDIR=$2 ; shift 2 ;;
     --opensshd) OPENSSHD=$2 ; shift 2 ;;
     --javahome) JAVAHOME=$2 ; shift 2 ;;
     --user) USER=$2 ; shift 2 ;;
@@ -93,6 +89,11 @@ if [ ${LSB} = "true" ]; then
   PREFIX=/opt/${PACKAGE}
   ETCPREFIX=/etc/opt/${PACKAGE}
   VARPREFIX=/var/opt/${PACKAGE}
+fi
+
+# Check supplied apache and check.
+if [ ${USE_SUPPLIED_APACHE} = "true" ]; then
+  APACHECTL=${PREFIX}/lib/apache/bin/apachectl
 fi
 
 # Infer java binary location from JAVA_HOME env, JAVAHOME env 
@@ -156,6 +157,31 @@ if [ ${NOVERIFY} = "false" ]; then
 
   fi
 
+  # verify non supplied apache.
+  if [ ${USE_SUPPLIED_APACHE} = "false" ]; then
+
+    if [ -z ${APACHECTL} ]; then
+     echo "--apachectl option is missing!"
+     exit 1
+    fi
+ 
+   if [ -z ${MODULESDIR} ]; then
+     echo "--apache_modules_dir option is missing!"
+     exit 1
+    fi
+
+    if [ ! -x "${APACHECTL}" ]; then
+      echo "httpd: ${APACHECTL} not found"
+      exit 1
+    fi
+ 
+   if [ ! -x ${MODULESDIR} ]; then
+     echo "Apache modules directory ${MODULESDIR} not found!" 
+     exit 1
+    fi
+
+  fi
+
   # verify woodstock user
   HOMEDIR=~woodstock
   if [ ${HOMEDIR} = '~woodstock' ]; then
@@ -210,6 +236,7 @@ template="install-sdc.sh"
 cp "install-sdc.sh-dist" ${template}
 echo Generating ${template}
 sed -i ${template} -e 's^__PREFIX__^'${PREFIX}'^'
+sed -i ${template} -e 's^__USE_SUPPLIED_APACHE__^'${USE_SUPPLIED_APACHE}'^'
 sed -i ${template} -e 's^__ETCPREFIX__^'${ETCPREFIX}'^'
 sed -i ${template} -e 's^__VARPREFIX__^'${VARPREFIX}'^'
 sed -i ${template} -e 's^__USER__^'${USER}'^'
@@ -220,9 +247,40 @@ chmod 755 $template
 template=build.xml
 cp build.xml-dist ${template}
 echo Generating ${template}
+if [ ${USE_SUPPLIED_APACHE} = "true" ]; then
+  sed -i ${template} -e 's^__BUILDHTTPD__^,compile-httpd^'
+  sed -i ${template} -e 's^__INSTALLHTTPD__^,install-httpd^'
+  sed -i ${template} -e 's^__CLEANHTTPD__^clean-httpd^'
+  sed -i ${template} -e 's^__DISTCLEANHTTPD__^,dist-clean-httpd^'
+  sed -i ${template} -e 's^__ETCPREFIX__^'${ETCPREFIX}'^'
+else 
+  sed -i ${template} -e 's^__BUILDHTTPD__^^'
+  sed -i ${template} -e 's^__INSTALLHTTPD__^^'
+  sed -i ${template} -e 's^__CLEANHTTPD__^^'
+  sed -i ${template} -e 's^__DISTCLEANHTTPD__^^'
+fi
 
 # Create resourceRules.xml since we don't need to edit this file.
 cp config/resourceRules.xml-dist config/resourceRules.xml
+
+# Edit httpd.conf-dist
+template=config/apache/httpd.conf-template
+cp config/apache/httpd.conf-dist ${template}
+echo Generating ${template}
+
+sed -i ${template} -e 's^_APACHE_ROOT_^'${ETCPREFIX}'/apache^'
+sed -i ${template} -e 's^_APACHE_LOG_DIR_^'${VARPREFIX}'/log^'
+sed -i ${template} -e 's^_USER_^'${USER}'^'
+sed -i ${template} -e 's^_GROUP_^'${GROUP}'^'
+
+# Edit configure_apache.sh
+template=config/apache/configure_apache.sh
+cp config/apache/configure_apache.sh-dist ${template}
+echo Generating ${template}
+sed -i ${template} -e 's^_APACHE_CTL_^'${APACHECTL}'^'
+sed -i ${template} -e 's^_APACHE_MODULESDIR_^'${MODULESDIR}'^'
+sed -i ${template} -e 's^_APACHE_CONF_DIR_^'${ETCPREFIX}'/apache^'
+sed -i ${template} -e 's^_ETCPREFIX_^'${ETCPREFIX}'^'
 
 # Edit configure_sshdconf.sh
 template=config/openssh/configure_sshdconf.sh
@@ -235,6 +293,8 @@ sed -i ${template} -e 's^_SSHD_^'${OPENSSHD}'^'
 template=config/localConfig.xml
 cp config/localConfig.xml-dist ${template}
 echo Generating ${template}
+sed -i ${template} -e 's^_APACHE_CTL_^'${APACHECTL}'^'
+sed -i ${template} -e 's^_APACHE_CONF_DIR_^'${ETCPREFIX}'/apache^'
 sed -i ${template} -e 's^_START_SSHD_^'${ETCPREFIX}'/openssh/start_sshd.sh^'
 
 # Openssh start_ssh.sh-dist
@@ -259,3 +319,13 @@ sed -i ${template} -e 's^_ETCPREFIX_^'${ETCPREFIX}'^'
 sed -i ${template} -e 's^_JAVABIN_^'${JAVABIN}'^'
 sed -i ${template} -e 's^_USER_^'${USER}'^'
 sed -i ${template} -e 's^_GROUP_^'${GROUP}'^'
+
+# Supplied Apache build.xml
+if [ ${USE_SUPPLIED_APACHE} = "true" ]; then
+  template=third-party/apache-httpd/build.xml
+  cp third-party/apache-httpd/build.xml-dist ${template}
+  echo Generating ${template}
+  sed -i ${template} -e 's^_APACHE_ROOT_^'${PREFIX}'/lib/apache^'
+fi
+
+

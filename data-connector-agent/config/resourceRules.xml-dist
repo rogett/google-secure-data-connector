@@ -2,60 +2,22 @@
   <entity repeatable="true">
     <ruleNum>1</ruleNum>
     <clientId>all</clientId>
-    <allowedEntities repeatable="true">johndoe@example.com</allowedEntities>
-    <allowedEntities repeatable="true">admin@example.com</allowedEntities>
-    <apps repeatable="true">
-      <container>Gadgets</container>
-      <allowAnyAppId>true</allowAnyAppId>
-    </apps>
-    <apps repeatable="true">
-      <container>Spreadsheets</container>
-      <allowAnyAppId>true</allowAnyAppId>
-    </apps>
-    <pattern>http://internal.corp.example.com</pattern>
-    <patternType>HOSTPORT</patternType>
+    <allowedEntities repeatable="true">testuser@example.com</allowedEntities>
+    <allowedEntities>admin@example.com</allowedEntities>
+    <pattern>http://internal.corp.example.com/.*</pattern>
   </entity>
-  <entity repeatable="true">
+  <entity>
     <ruleNum>2</ruleNum>
     <clientId>all</clientId>
-    <allowedEntities repeatable="true">johndoe@example.com</allowedEntities>
-    <allowedEntities repeatable="true">admin@example.com</allowedEntities>
-    <apps repeatable="true">
-      <container>Spreadsheets</container>
-      <appId>rFEnGGi0WemLRz263UBxRhw</appId>
-    </apps>
-    <apps repeatable="true">
-      <container>Spreadsheets</container>
-      <appId>r3HAKrIsC_kWuE3MSmwm1ag</appId>
-    </apps>
-    <apps repeatable="true">
-      <container>Gadgets</container>
-      <appId>01234567890123456789</appId>
-    </apps>
-    <apps repeatable="true">
-      <container>AppEngine</container>
-      <appId>hellosdc</appId>
-    </apps>
-    <pattern>http://feed.example.com/userlookup?user=johndoe</pattern>
-    <patternType>URLEXACT</patternType>
+    <allowedEntities repeatable="true">testuser@example.com</allowedEntities>
+    <allowedEntities>admin@example.com</allowedEntities>
+    <pattern>http://feed.example.com/userlookup?user=.*/$</pattern>
   </entity>
-  <entity repeatable="true">
+  <entity>
     <ruleNum>3</ruleNum>
     <clientId>all</clientId>
-    <allowDomainViewers>true</allowDomainViewers>
-    <apps repeatable="true">
-      <container>Gadgets</container>
-      <allowAnyAppId>true</allowAnyAppId>
-    </apps>
-    <apps repeatable="true">
-      <container>Spreadsheets</container>
-      <allowAnyAppId>true</allowAnyAppId>
-    </apps>
-    <apps repeatable="true">
-      <container>AppEngine</container>
-      <allowAnyAppId>true</allowAnyAppId>
-    </apps>
-    <pattern>socket://0.0.0.0:22</pattern>
-    <patternType>HOSTPORT</patternType>
+    <allowedEntities repeatable="true">testuser@example.com</allowedEntities>
+    <allowedEntities>admin@example.com</allowedEntities>
+    <pattern>socket://128.195.131.4:22</pattern>
   </entity>
-</feed>  
+</feed>

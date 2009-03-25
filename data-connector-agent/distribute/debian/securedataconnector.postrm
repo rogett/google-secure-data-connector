@@ -1,19 +1,4 @@
 #!/bin/sh
-#
-# Copyright 2008 Google Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#   
 
 set -e
 
@@ -23,9 +8,10 @@ installinit_error() {
   exit $?
 }
 
-echo $PKG_NAME --- package name
-
 if [ "$1" = "purge" ]; then
   deluser --system --quiet woodstock || true
-  deluser --system --quiet securedataconnector || true
+  if [ -x /opt/$PKG_NAME ]; then  rm -rf /opt/$PKG_NAME; fi
+  if [ -x /etc/opt/$PKG_NAME ]; then rm -rf /etc/opt/$PKG_NAME; fi
+  if [ -x /var/log/$PKG_NAME ]; then rm -rf /var/log/$PKG_NAME; fi
+  if [ -x /var/opt/$PKG_NAME ]; then rm -rf /var/opt/$PKG_NAME; fi
 fi

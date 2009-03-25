@@ -1,23 +1,21 @@
 /* Copyright 2008 Google Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */ 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package com.google.dataconnector.registration.v2;
 
-import com.google.dataconnector.registration.v2.ResourceRule.AppTag;
-
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -92,7 +90,19 @@ public class ResourceRuleValidator {
     
     // All Config time validation and ...
     validate(resourceRule);
-
+    
+    // httpProxyPort - required for all HTTP resources
+    // TODO(rayc) remove when we eliminate wpg-proxy
+    Integer httpProxyPort = resourceRule.getHttpProxyPort();
+    if (httpProxyPort != null) {
+      if (httpProxyPort > MAX_PORT || httpProxyPort < 0) {
+        throw new ResourceException("HttpProxyPort " + httpProxyPort + " out of range.");
+      }
+    } else if (resourceRule.getPattern().trim().startsWith(ResourceRule.HTTPID)) {
+      throw new ResourceException("'httpProxyPort' required for each " + ResourceRule.HTTPID +
+          "resource");
+    }
+    
     // socksServerPort 
     Integer socksServerPort = resourceRule.getSocksServerPort();
     if (socksServerPort != null) {
@@ -110,13 +120,6 @@ public class ResourceRuleValidator {
   }
   
   /**
-   * Convenience method to wrap rule number with message.
-   */
-  private void throwResourceException(int ruleNum, String message) throws ResourceException {
-    throw new ResourceException("Resource " + ruleNum + " " + message);
-  }
-  
-  /**
    * Validates a single resource rule against the required configuration.  
    * 
    * @param resourceRule a resource rule at configuration time.
@@ -125,119 +128,75 @@ public class ResourceRuleValidator {
    */
   public void validate(ResourceRule resourceRule) throws ResourceException {
     
+    // Name - this is not to be used anymore.
+    if (resourceRule.getName() != null) {
+      throw new ResourceException("Resource " +  resourceRule.getName() + " uses deprecated " +
+          "<name/> element.  Please use <ruleNum>" + resourceRule.getName() + 
+          "</ruleNum> instead.");
+    }
+    
     // ruleNum
-    if (resourceRule.getRuleNum() <= 0) {
+    if (resourceRule.getRuleNum() > 0) {
+      // set name to ruleNum
+      resourceRule.setName(String.valueOf(resourceRule.getRuleNum()));
+    } else {
       throw new ResourceException("Resource " + resourceRule.getPattern() + 
           " must have <ruleNum/> greater than 0.");
     }
-    int ruleNum = resourceRule.getRuleNum();
     
     // clientId
-    
-    if (resourceRule.getClientId() == null) {
-      throwResourceException(ruleNum, " 'clientId' field must be present");
-    }
-    if (resourceRule.getClientId().trim().contains(" ")) {
-      throwResourceException(ruleNum, " 'clientId' field " + resourceRule.getClientId() + 
-            " must not contain any white space.");
-    }
-    
-    validateEntities(resourceRule, ruleNum);
-    validateAppIds(resourceRule, ruleNum);
-    
-    // pattern
-    
-    String pattern = resourceRule.getPattern();
-    if (pattern == null) {
-      throwResourceException(ruleNum, " 'pattern' must be present.");
+    if (resourceRule.getClientId() != null) {
+       if (resourceRule.getClientId().trim().contains(" ")) {
+         throw new ResourceException("'clientId' field " + resourceRule.getClientId() + 
+             " must not contain any white space.");
+       }
+    } else { 
+      throw new ResourceException("'clientId' field must be present");
     }
     
-    pattern = pattern.trim();
-    if (pattern.contains(" ")) {
-      throwResourceException(ruleNum,  " 'pattern' field " + pattern + 
-          " must not contain any white space.");
-    }
-    if (!pattern.startsWith(ResourceRule.HTTPID) && 
-        !pattern.startsWith(ResourceRule.HTTPSID) && 
-        !pattern.startsWith(ResourceRule.SOCKETID)) {
-      throwResourceException(ruleNum, " Invalid pattern: " + pattern);
-    }
-    
-    //  pattern type
-    String patternType = resourceRule.getPatternType();
-    if (patternType == null) {
-      throwResourceException(ruleNum, " 'patternType' missing for " + pattern);
-    }
-    
-    // Verify URLEXACT is set ONLY on http rules.
-    if (patternType.equals(ResourceRule.URLEXACT)) {
-      if (pattern.startsWith(ResourceRule.HTTPSID) || pattern.startsWith(ResourceRule.SOCKETID)) {
-        throwResourceException(ruleNum, " Pattern type: URLEXACT works only with http.  Use " +
-            "HOSTPORT for https or socket");
-      }
-    } else if (patternType.equals(ResourceRule.HOSTPORT)) {
-      // URI should have no path data if using HOSTPORT.
-      if (pattern.startsWith(ResourceRule.HTTPSID) || pattern.startsWith(ResourceRule.HTTPID)) {
-        URI uri = null;
-        try {
-          uri = new URI(pattern);
-        } catch (URISyntaxException e) {
-          throwResourceException(ruleNum, " Invalid pattern URL: "+ e.getMessage());
-        } 
-        if (uri.getPath().length() > 1) {
-          throwResourceException(ruleNum, " 'pattern' " + pattern + " cannot contain any path " +
-              "elements when using HOSTPORT pattern type");
-        }
-      }
-    } else if (patternType.equals(ResourceRule.REGEX)) {
-      // TODO(rayc) remove when REGEX is officially removed.
-    } else {
-      throwResourceException(ruleNum, " 'patternType' " + patternType + " not supported.");
-    }
-  }
-
-  private void validateAppIds(ResourceRule resourceRule, int ruleNum) throws ResourceException {
-    if (resourceRule.getApps() == null) {
-      throwResourceException(ruleNum, " at least one 'app' field must be present");
-    }
-    
-    for (AppTag app : resourceRule.getApps()) {
-      String container = app.getContainer();
-      if (container == null) {
-        throwResourceException(ruleNum, " 'apps' field must have a 'container' tag.");
-      }
-      String appId = app.getAppId();
-      if (appId == null) {
-        if (!app.getAllowAnyAppId()) {
-          throwResourceException(ruleNum, " 'apps' field must have either an 'appId' tag"
-              + " or an 'allowAny' tag.");
-        }
-      } else {
-        if (container.trim().contains(" ") || appId.trim().contains(" ")) {
-          throwResourceException(ruleNum, " 'apps' field <" + container + ":" + appId + 
-              "> must not contain any white space.");
-        }
-      }
-    }
-  }
-
-  private void validateEntities(ResourceRule resourceRule, int ruleNum) throws ResourceException {
-    if (resourceRule.getAllowedEntities() == null) {
-      if (!resourceRule.getAllowDomainViewers()) {
-        throwResourceException(ruleNum, "at least one 'allowedEntities' field must be present,"
-            + " or 'allowDomain' should be defined.");
-      }
-    } else {
+    // allowed entities
+    if (resourceRule.getAllowedEntities() != null) {
       for (String allowedEntity : resourceRule.getAllowedEntities()) {
         if (allowedEntity.trim().contains(" ")) {
-          throwResourceException(ruleNum, " 'allowedEntities' field " + allowedEntity
-              + " must not contain any white space.");
+           throw new ResourceException(
+               "'allowedEntities' field " + allowedEntity + " must not contain any white space.");
         }
         if (!allowedEntity.trim().contains("@")) {
-          throwResourceException(ruleNum, " 'allowedEntities' field " + allowedEntity
-              + " must be a valid fully qualified email address");
+           throw new ResourceException(
+               "'allowedEntities' field " + allowedEntity + " must be a valid fully qualified " +
+                     "email address");
+          
         }
       }
+    } else {
+      throw new ResourceException("at least one 'allowedEntities' field must be present");
+    }
+    
+    // appids - not required
+    if (resourceRule.getAppIds() != null) {
+      for (String appId : resourceRule.getAppIds()) {
+        if (appId.trim().contains(" ")) {
+           throw new ResourceException(
+               "'appIds' field " + appId + " must not contain any white space.");
+        }
+      }
+    } 
+    
+    // pattern
+    String pattern = resourceRule.getPattern();
+    if (pattern != null) {
+      pattern = pattern.trim();
+      if (pattern.contains(" ")) {
+        throw new ResourceException("'pattern' field " + pattern + 
+            " must not contain any white space.");
+      }
+      if (!pattern.startsWith(ResourceRule.HTTPID) && 
+          !pattern.startsWith(ResourceRule.HTTPSID) && 
+          !pattern.startsWith(ResourceRule.SOCKETID)) {
+        throw new ResourceException("Invalid pattern, missing identifier: " + pattern);
+      }
+    } else {
+      throw new ResourceException("'pattern' must be present.");
     }
   }
 }

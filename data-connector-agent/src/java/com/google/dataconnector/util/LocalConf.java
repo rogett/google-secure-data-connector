@@ -1,17 +1,20 @@
 /* Copyright 2008 Google Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */ 
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
 package com.google.dataconnector.util;
 
 import com.google.dataconnector.registration.v2.AuthRequest;
@@ -62,18 +65,21 @@ public class LocalConf {
   private String clientId;
   @Flag(help = "Location of sshd binary to use for SDC protocol multiplexor")
   private String sshd;
+  @Flag(help = "Default bind host is localhost, One should not have to change this.")
+  private String httpProxyBindHost = DEFAULT_BIND_HOST;
   @Flag(help = "Port to bind socks firewall port to.")
   private Integer socksServerPort;
+  @Flag(help = "System apache2 apachectl location")
+  private String apacheCtl = "third-party/apache-httpd/root/bin/apachectl";
+  @Flag(help = "Apache configuration files.  Must be writable by user agent runs as.")
+  private String apacheConfDir;
   @Flag(help = "Turn on debug logging.")
   private Boolean debug = DEBUG;
   @Flag(help = "Allow unverified certificates")
   private Boolean allowUnverifiedCertificates = false;
-  @Flag(help = "the users who can access the healthcheck gadget")
-  private String healthCheckGadgetUsers;
-  @Flag(help = "log4j properties File")
-  private String log4jPropertiesFile;
   
   // Config File Only
+  private String logProperties;
   private String socksProperties = 
       "iddleTimeout = 60000\n" + // 10 minutes
       "acceptTimeout = 60000\n" + // 1 minutes
@@ -179,6 +185,14 @@ public class LocalConf {
     this.sshd = sshd;
   }
 
+  public String getHttpProxyBindHost() {
+    return httpProxyBindHost;
+  }
+
+  public void setHttpProxyBindHost(String httpProxyBindHost) {
+    this.httpProxyBindHost = httpProxyBindHost;
+  }
+
   public Integer getSocksServerPort() {
     return socksServerPort;
   }
@@ -187,12 +201,36 @@ public class LocalConf {
     this.socksServerPort = socksServerPort;
   }
 
+  public String getLogProperties() {
+    return logProperties;
+  }
+
+  public void setLogProperties(String logProperties) {
+    this.logProperties = logProperties;
+  }
+
   public String getSocksProperties() {
     return socksProperties;
   }
 
   public void setSocksProperties(String socksProperties) {
     this.socksProperties = socksProperties;
+  }
+  
+  public String getApacheCtl() {
+    return apacheCtl;
+  }
+
+  public void setApacheCtl(String apacheCtl) {
+    this.apacheCtl = apacheCtl;
+  }
+
+  public String getApacheConfDir() {
+    return apacheConfDir;
+  }
+
+  public void setApacheConfDir(String apacheConfDir) {
+    this.apacheConfDir = apacheConfDir;
   }
   
   public AuthRequest.AuthType getAuthType() {
@@ -217,21 +255,5 @@ public class LocalConf {
 
   public Boolean getAllowUnverifiedCertificates() {
     return allowUnverifiedCertificates;
-  }
-    
-  public String getHealthCheckGadgetUsers() {
-    return healthCheckGadgetUsers;
-  }
-
-  public void setHealthCheckGadgetUsers(String healthCheckGadgetUsers) {
-    this.healthCheckGadgetUsers = healthCheckGadgetUsers;
-  }
-
-  public String getLog4jPropertiesFile() {
-    return log4jPropertiesFile;
-  }
-
-  public void setLog4jPropertiesFile(String log4jPropertiesFile) {
-    this.log4jPropertiesFile = log4jPropertiesFile;
   }
 }
