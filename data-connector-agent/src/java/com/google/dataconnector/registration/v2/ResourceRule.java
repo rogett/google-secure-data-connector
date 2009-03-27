@@ -29,27 +29,47 @@ public class ResourceRule implements Comparable<ResourceRule> {
   
   public static final String HOSTPORT = "HOSTPORT";
   public static final String URLEXACT = "URLEXACT";
+  
+  @Deprecated
   public static final String REGEX = "REGEX";
   
-  private int ruleNum;
-  // this exists for backward compatibility. clients with ruleNum field will not have this field
+  @Deprecated
   private String name; 
+  private int ruleNum;
   
+  @Deprecated
   private String clientId;
+  private String agentId;
+  
+  @Deprecated
   private String[] allowedEntities;
+  private String[] viewerEmail;
+  
   private boolean allowDomainViewers;
+  
   private AppTag[] apps;
+  
+  @Deprecated
   private String pattern;
+  private String url;
+  
+  @Deprecated
   private String patternType;
+  private String urlMatch;
+  
   private Integer httpProxyPort;
+  
   private Integer socksServerPort;
+  
   private Long secretKey;
   
   // getters and setters
+  @Deprecated
   public String getName() {
     return name;
   }
 
+  @Deprecated
   public void setName(String name) {
     this.name = name;
   }
@@ -62,20 +82,40 @@ public class ResourceRule implements Comparable<ResourceRule> {
     this.ruleNum = ruleNum;
   }
 
+  @Deprecated
   public String getClientId() {
-    return clientId;
+    return agentId;
   }
 
+  @Deprecated
   public void setClientId(String clientId) {
-    this.clientId = clientId;
+    this.agentId = clientId;
   }
 
+  public String getAgentId() {
+    return agentId;
+  }
+
+  public void setAgentId(String agentId) {
+    this.agentId = agentId;
+  }
+
+  @Deprecated
   public String[] getAllowedEntities() {
-    return allowedEntities;
+    return viewerEmail;
   }
 
+  @Deprecated
   public void setAllowedEntities(String[] allowedEntities) {
-    this.allowedEntities = allowedEntities;
+    this.viewerEmail = allowedEntities;
+  }
+
+  public String[] getViewerEmail() {
+    return viewerEmail;
+  }
+
+  public void setViewerEmail(String[] viewerEmail) {
+    this.viewerEmail = viewerEmail;
   }
 
   public boolean getAllowDomainViewers() {
@@ -93,21 +133,41 @@ public class ResourceRule implements Comparable<ResourceRule> {
   public void setApps(AppTag[] apps) {
     this.apps = apps;
   }
-
+  
+  @Deprecated
   public String getPattern() {
-    return pattern;
+    return url;
   }
 
+  @Deprecated
   public void setPattern(String pattern) {
-    this.pattern = pattern;
+    this.url = pattern;
   }
 
+  public String getUrl() {
+    return url;
+  }
+
+  public void setUrl(String url) {
+    this.url = url;
+  }
+
+  @Deprecated
   public String getPatternType() {
-    return patternType;
+    return urlMatch;
   }
   
+  @Deprecated
   public void setPatternType(String patternType) {
-    this.patternType = patternType;
+    this.urlMatch = patternType;
+  }
+
+  public String getUrlMatch() {
+    return urlMatch;
+  }
+
+  public void setUrlMatch(String urlMatch) {
+    this.urlMatch = urlMatch;
   }
 
   public Integer getHttpProxyPort() {
@@ -152,34 +212,55 @@ public class ResourceRule implements Comparable<ResourceRule> {
    * Models an App identification field. 
    */
   public static class AppTag implements Comparable<AppTag>{
+    @Deprecated
     private String container;
+    private String service;
     private String appId;
     private boolean allowAnyAppId;
+    private boolean allowAnyPrivateGadget;
     
+    @Deprecated
+    public String getContainer() {
+      return service;
+    }
+    
+    @Deprecated
     public void setContainer(String container) {
-      this.container = container;
+      this.service = container;
+    }
+    
+    public String getService() {
+      return service;
+    }
+
+    public void setService(String service) {
+      this.service = service;
+    }
+
+    public String getAppId() {
+      return appId;
     }
     
     public void setAppId(String appId) {
       this.appId = appId;
     }
     
-    public void setAllowAnyAppId(boolean allowAnyAppId) {
-      this.allowAnyAppId = allowAnyAppId;
-    }
-    
-    public String getContainer() {
-      return container;
-    }
-    
-    public String getAppId() {
-      return appId;
-    }
-    
     public boolean getAllowAnyAppId() {
       return allowAnyAppId;
     }
     
+    public void setAllowAnyAppId(boolean allowAnyAppId) {
+      this.allowAnyAppId = allowAnyAppId;
+    }
+    
+    public boolean isAllowAnyPrivateGadget() {
+      return allowAnyPrivateGadget;
+    }
+
+    public void setAllowAnyPrivateGadget(boolean allowAnyPrivateGadget) {
+      this.allowAnyPrivateGadget = allowAnyPrivateGadget;
+    }
+
     @Override
     public int compareTo(AppTag o) {
       int compare = container.compareTo(o.container);

@@ -127,7 +127,7 @@ public class ClientGuiceModule extends AbstractModule {
       // Add System resource rules to the list
       LOG.info("Adding system resource rules");
       List<ResourceRule> systemRules = resourceRuleUtil.createSystemRules(localConf.getUser(),
-          localConf.getDomain(), localConf.getClientId(), healthCheckRequestHandler.getPort(),
+          localConf.getDomain(), localConf.getAgentId(), healthCheckRequestHandler.getPort(),
           localConf.getHealthCheckGadgetUsers());
       for (ResourceRule r: systemRules) {
         resourceRules.add(r);
@@ -138,7 +138,7 @@ public class ClientGuiceModule extends AbstractModule {
       resourceRuleValidator.validate(resourceRules);
       
       // Remove all the rules in the config that arent for this client.
-      resourceRuleUtil.getThisClientRulesAndSetId(resourceRules, localConf.getClientId());
+      resourceRuleUtil.getThisClientRulesAndSetId(resourceRules, localConf.getAgentId());
       
       // Set the socks server port for the rules based on the local configuration.
       resourceRuleUtil.setSocksServerPort(resourceRules,

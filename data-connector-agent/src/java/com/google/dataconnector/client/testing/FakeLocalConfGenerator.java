@@ -47,7 +47,7 @@ public class FakeLocalConfGenerator {
   public static final String PASSWORD = "testpassword";
   public static final String SSL_KEY_STORE_PASSWORD = "woodstock";
   public static final String SSL_KEY_STORE_FILE = "./testSecureLinkClientTrustStore";
-  public static final String CLIENT_ID = "testClientId1";
+  public static final String AGENT_ID = "testAgentId1";
   public static final String SSHD = "./sshd";
   public static final String HTTP_PROXY_BIND_HOST = "127.0.0.1";
   public static final Integer SOCKS_SERVER_PORT = 1080;
@@ -100,7 +100,7 @@ public class FakeLocalConfGenerator {
     "<password>" + PASSWORD + "</password>\n" +
     "<sslKeyStorePassword>" + SSL_KEY_STORE_PASSWORD + "</sslKeyStorePassword>\n" +
     "<sslKeyStoreFile>" + SSL_KEY_STORE_FILE +"</sslKeyStoreFile>\n" +
-    "<clientId>" + CLIENT_ID + "</clientId>\n" +
+    "<agentId>" + AGENT_ID + "</agentId>\n" +
     "<sshd>\n" + SSHD + "</sshd>\n" +
     "<httpProxyBindHost>" + HTTP_PROXY_BIND_HOST + "</httpProxyBindHost>\n" +
     "<socksServerPort>" + SOCKS_SERVER_PORT + "</socksServerPort>\n" +

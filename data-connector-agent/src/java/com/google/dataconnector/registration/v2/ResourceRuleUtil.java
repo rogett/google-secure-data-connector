@@ -41,8 +41,8 @@ import javax.xml.parsers.ParserConfigurationException;
  */
 public class ResourceRuleUtil {
 
-  private static final String TOP_LEVEL_ELEMENT = "feed";
-  private static final String ENTITY = "entity";
+  private static final String TOP_LEVEL_ELEMENT = "resourceRules";
+  private static final String ENTITY = "rule";
   private static final String ALL = "all";
 
   // Dependencies

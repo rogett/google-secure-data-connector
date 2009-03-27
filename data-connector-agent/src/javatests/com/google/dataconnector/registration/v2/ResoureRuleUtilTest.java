@@ -58,7 +58,7 @@ public class ResoureRuleUtilTest extends TestCase {
   
   public void testGetResourceRules() throws ResourceException {
     List<ResourceRule> resourceRules = resourceRuleUtil.getResourceRules(
-        FakeResourceRuleConfig.RUNTIME_RESOURCE_RULES_XML);
+        FakeResourceRuleConfig.CONFIG_RESOURCE_RULES_XML);
     
     // Check Http Runtime - rule 0
     ResourceRule expected = fakeResourceRuleConfig.getRuntimeHttpResourceRule();
@@ -93,6 +93,7 @@ public class ResoureRuleUtilTest extends TestCase {
     assertEquals(expected.getPattern(), actual.getPattern());
     assertEquals(expected.getHttpProxyPort(), actual.getHttpProxyPort());
     verifyCommonResourceParams(expected, actual);
+    verifyCommonRuntimeParams(expected, actual);
   }
   
   public void testGetEntityXmlFromResourceRule() throws ResourceException {
@@ -107,6 +108,19 @@ public class ResoureRuleUtilTest extends TestCase {
     assertEquals(expected.getPattern(), actual.getPattern());
     assertEquals(expected.getHttpProxyPort(), actual.getHttpProxyPort());
     verifyCommonResourceParams(expected, actual);
+    verifyCommonRuntimeParams(expected, actual);
+  }
+  
+  /**
+   * Looks at common parameters between two runtime resource rules.  HTTP and Socket rules always 
+   * share these parameters.
+   * 
+   * @param expected ResourceRule
+   * @param actual ResourceRule
+   */
+  private void verifyCommonRuntimeParams(ResourceRule expected, ResourceRule actual) {
+    assertEquals(expected.getSocksServerPort(), actual.getSocksServerPort());
+    assertEquals(expected.getSecretKey(), actual.getSecretKey());
   }
   
   /**
@@ -126,8 +140,6 @@ public class ResoureRuleUtilTest extends TestCase {
 	    assertNotNullAndEqual(expected.getApps()[index], actual.getApps()[index]);
 	  }
     }
-    assertEquals(expected.getSocksServerPort(), actual.getSocksServerPort());
-    assertEquals(expected.getSecretKey(), actual.getSecretKey());
   }
   
   private void assertNotNullAndEqual(AppTag app1, AppTag app2) {

@@ -39,7 +39,13 @@ Build File for Secure Data Connector client and reference server.
     </tstamp>
   </target>
 
-  <target name="init" depends="timestamp">    
+  <target name="buildstamp">
+    <tstamp>
+      <format property="buildstamp" pattern="MM-dd-yyyy hh:mm"/>
+    </tstamp>
+  </target>
+
+  <target name="init" depends="buildstamp, timestamp">    
     <mkdir dir="${build}" />
     <mkdir dir="${classes}" />
   </target>
@@ -104,7 +110,7 @@ Build File for Secure Data Connector client and reference server.
       <fileset dir="${classes}" includes="**"/>
       <manifest>
         <attribute name="Implementation-Title" value="Secure Data Connector"/>
-        <attribute name="Implementation-Version" value="${version} ${TODAY}"/>
+        <attribute name="Implementation-Version" value="SDC ${version} Built: ${buildstamp}"/>
         <attribute name="Implementation-Vendor" value="Google"/>
         <attribute name="Main-Class"
               value="com.google.dataconnector.client.Client"/>
@@ -115,7 +121,7 @@ Build File for Secure Data Connector client and reference server.
       <fileset dir="${classes}" includes="com/google/dataconnector/registration/**"/>
       <manifest>
         <attribute name="Implementation-Title" value="Secure Data Connector Protocol"/>
-        <attribute name="Implementation-Version" value="${version} ${TODAY}"/>
+        <attribute name="Implementation-Version" value="SDC ${version} Built: ${buildstamp}"/>
         <attribute name="Implementation-Vendor" value="Google"/>
       </manifest>
     </jar>
@@ -128,7 +134,7 @@ Build File for Secure Data Connector client and reference server.
       </fileset>
       <manifest>
         <attribute name="Implementation-Title" value="Secure Data Connector"/>
-        <attribute name="Implementation-Version" value="${version} ${TODAY}"/>
+        <attribute name="Implementation-Version" value="SDC ${version} Built: ${buildstamp}"/>
         <attribute name="Implementation-Vendor" value="Google"/>
       </manifest>
     </jar>
@@ -140,7 +146,7 @@ Build File for Secure Data Connector client and reference server.
       </fileset>
       <manifest>
         <attribute name="Implementation-Title" value="Secure Data Connector Protocol"/>
-        <attribute name="Implementation-Version" value="${version} ${TODAY}"/>
+        <attribute name="Implementation-Version" value="SDC ${version} Built: ${buildstamp}"/>
         <attribute name="Implementation-Vendor" value="Google"/>
       </manifest>
     </jar>

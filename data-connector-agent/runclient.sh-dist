@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Runs client with appropriate class path.
+# Runs agent with appropriate class path.
 
 WOODSTOCK_HOME=_PREFIX_
 WOODSTOCK_LIB=${WOODSTOCK_HOME}/lib
@@ -77,7 +77,7 @@ umask 0077
 
 function checkfile {
 
-if [ ${NOVERIFY} = "false" ]; then 
+if [ ${NOVERIFY} = "false" ]; then
 
   file=$1
   if [ -e ${file} ]; then
@@ -91,11 +91,43 @@ if [ ${NOVERIFY} = "false" ]; then
       echo $file has incorrect permissions should be $2:$3 $4
       exit
     fi
-  else 
+  else
     echo $file does not exist!
     exit
   fi
 fi
+}
+
+function migrate {
+
+  local_config_file=$1
+  resource_rules_file=$2
+
+  # Local Config
+  egrep -q '<clientId' ${local_config_file}
+
+  if [ $? = 0 ]; then
+    echo "Migrating ${local_config_file}"
+    sed -i ${local_config_file} -e 's^clientId>^agentId>^g'
+  fi
+
+  # Resource Rules
+  egrep -q '<feed|<entity|<allowedEntities|<clientId|<pattern|<patternType' \
+      ${resource_rules_file}
+
+  if [ $? = 0 ]; then
+    echo "Migrating ${resource_rules_file}"
+    sed -i ${resource_rules_file} -e 's^feed>^resourceRules>^g'
+    # repeatable
+    sed -i ${resource_rules_file} -e 's^<entity^<rule^g'
+    sed -i ${resource_rules_file} -e 's^entity>^rule>^g'
+    # repeatable
+    sed -i ${resource_rules_file} -e 's^<allowedEntities^<viewerEmail^g'
+    sed -i ${resource_rules_file} -e 's^allowedEntities>^viewerEmail>^g'
+    sed -i ${resource_rules_file} -e 's^clientId>^agentId>^g'
+    sed -i ${resource_rules_file} -e 's^pattern>^url>^g'
+    sed -i ${resource_rules_file} -e 's^patternType>^urlMatch>^g'
+  fi
 }
 
 if [ ${NOVERIFY} = "false" ]; then 
@@ -113,6 +145,8 @@ if [ ${NOVERIFY} = "false" ]; then
   checkfile ${ETCPREFIX}/openssh/start_sshd.sh ${USER} ${GROUP} 750
   checkfile ${ETCPREFIX}/woodstock-user/.ssh/authorized_keys ${USER} ${GROUP} 600
 fi
+
+migrate ${CONFIGFILE} ${RULESFILE}
 
 while /bin/true; do
   su ${USER} -c "_JAVABIN_ ${JVM_ARGS} com.google.dataconnector.client.Client \

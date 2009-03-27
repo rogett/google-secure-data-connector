@@ -147,14 +147,13 @@ public class LocalConfValidator {
         errors.append("'sslKeyStorePassword' required\n");
     }
     
-    // clientId
-    if (localConf.getClientId() != null) {
-      if (!localConf.getClientId().matches("^[A-z0-9_-]+$")) {
-        errors.append("'clientId' " + localConf.getClientId() + " not valid.  Only a-z,A-Z,0-9," +
-            "-_ allowed.\n");
+    // agentId
+    if (localConf.getAgentId() != null) {
+      if (localConf.getAgentId().length() > 200) { 
+        errors.append("'agentId' " + localConf.getAgentId() + " too long.");
       }
     } else {
-      errors.append("'clientId' required\n");
+      errors.append("'agentId' required\n");
     }
     
     // sshd

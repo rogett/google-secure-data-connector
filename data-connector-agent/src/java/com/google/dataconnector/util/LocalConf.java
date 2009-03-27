@@ -25,7 +25,6 @@ import com.google.feedserver.util.Flag;
  */
 public class LocalConf {
   
-  private static final String DEFAULT_BIND_HOST = "127.0.0.1";
   private static final String DEFAULT_GOOGLE_SDC_HOST = "apps-secure-data-connector.google.com";
   private static final int DEFAULT_GOOGLE_SDC_PORT = 443;
   private static final String DEFAULT_SSL_KEYSTORE_PASSWORD = "woodstock";
@@ -57,9 +56,9 @@ public class LocalConf {
   @Flag(help = "External keystore to use.  Default only allows verified certs per java default " +
       "trust store.")
   private String sslKeyStoreFile;
-  @Flag(help = "Client identifier for this agent.  These must be unique for all agents in this " +
+  @Flag(help = "Agent identifier for this agent.  These must be unique for all agents in this " +
       "domain.")
-  private String clientId;
+  private String agentId;
   @Flag(help = "Location of sshd binary to use for SDC protocol multiplexor")
   private String sshd;
   @Flag(help = "Port to bind socks firewall port to.")
@@ -163,12 +162,12 @@ public class LocalConf {
     this.sslKeyStoreFile = sslKeyStoreFile;
   }
 
-  public String getClientId() {
-    return clientId;
+  public String getAgentId() {
+    return agentId;
   }
 
-  public void setClientId(String clientId) {
-    this.clientId = clientId;
+  public void setAgentId(String clientId) {
+    this.agentId = clientId;
   }
 
   public String getSshd() {

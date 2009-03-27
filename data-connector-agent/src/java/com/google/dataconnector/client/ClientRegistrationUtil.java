@@ -63,7 +63,8 @@ public class ClientRegistrationUtil {
     this.registrationRequest = registrationRequest;
   }
       
-  public static final String INITIAL_HANDSHAKE_MSG = "v2.1";
+  public static final String INITIAL_HANDSHAKE_MSG = "v2.2 " + 
+      ClientRegistrationUtil.class.getPackage().getImplementationVersion();
  
   /**
    * Authorizes this Secure Link connection from the info specified in the Client Configuration
