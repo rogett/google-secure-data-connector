@@ -32,12 +32,12 @@
 
   <password>ValidDomainUserPassword</password>
 
-  <!-- The element <clientId> is required. This value defines the client ID 
+  <!-- The element <agentId> is required. This value defines the agent ID 
        which is a unique name that repsents this Secure Data Connector
-       Client. Valid characters are a-z,A-Z,0-9,-_       
+       Agent. Valid characters are a-z,A-Z,0-9,-_       
        -->
 
-  <clientId>client1_example-com</clientId>
+  <agentId>agent1_example-com</agentId>
 
   <!-- The element <sshd> is required. This value defines the Secure shell
       (SSH) network protocol startup script path and file name. This value

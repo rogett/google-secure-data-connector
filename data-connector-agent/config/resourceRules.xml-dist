@@ -1,61 +1,61 @@
-<feed>
-  <entity repeatable="true">
+<resourceRules>
+  <rule repeatable="true">
     <ruleNum>1</ruleNum>
-    <clientId>all</clientId>
-    <allowedEntities repeatable="true">johndoe@example.com</allowedEntities>
-    <allowedEntities repeatable="true">admin@example.com</allowedEntities>
+    <agentId>all</agentId>
+    <viewerEmail repeatable="true">johndoe@example.com</viewerEmail>
+    <viewerEmail repeatable="true">admin@example.com</viewerEmail>
     <apps repeatable="true">
-      <container>Gadgets</container>
+      <service>Gadgets</service>
       <allowAnyAppId>true</allowAnyAppId>
     </apps>
     <apps repeatable="true">
-      <container>Spreadsheets</container>
+      <service>Spreadsheets</service>
       <allowAnyAppId>true</allowAnyAppId>
     </apps>
-    <pattern>http://internal.corp.example.com</pattern>
-    <patternType>HOSTPORT</patternType>
-  </entity>
-  <entity repeatable="true">
+    <url>http://internal.corp.example.com</url>
+    <urlMatch>HOSTPORT</urlMatch>
+  </rule>
+  <rule repeatable="true">
     <ruleNum>2</ruleNum>
-    <clientId>all</clientId>
-    <allowedEntities repeatable="true">johndoe@example.com</allowedEntities>
-    <allowedEntities repeatable="true">admin@example.com</allowedEntities>
+    <agentId>all</agentId>
+    <viewerEmail repeatable="true">johndoe@example.com</viewerEmail>
+    <viewerEmail repeatable="true">admin@example.com</viewerEmail>
     <apps repeatable="true">
-      <container>Spreadsheets</container>
+      <service>Spreadsheets</service>
       <appId>rFEnGGi0WemLRz263UBxRhw</appId>
     </apps>
     <apps repeatable="true">
-      <container>Spreadsheets</container>
+      <service>Spreadsheets</service>
       <appId>r3HAKrIsC_kWuE3MSmwm1ag</appId>
     </apps>
     <apps repeatable="true">
-      <container>Gadgets</container>
+      <service>Gadgets</service>
       <appId>01234567890123456789</appId>
     </apps>
     <apps repeatable="true">
-      <container>AppEngine</container>
+      <service>AppEngine</service>
       <appId>hellosdc</appId>
     </apps>
-    <pattern>http://feed.example.com/userlookup?user=johndoe</pattern>
-    <patternType>URLEXACT</patternType>
-  </entity>
-  <entity repeatable="true">
+    <url>http://feed.example.com/userlookup?user=johndoe</url>
+    <urlMatch>URLEXACT</urlMatch>
+  </rule>
+  <rule repeatable="true">
     <ruleNum>3</ruleNum>
-    <clientId>all</clientId>
+    <agentId>all</agentId>
     <allowDomainViewers>true</allowDomainViewers>
     <apps repeatable="true">
-      <container>Gadgets</container>
+      <service>Gadgets</service>
       <allowAnyAppId>true</allowAnyAppId>
     </apps>
     <apps repeatable="true">
-      <container>Spreadsheets</container>
+      <service>Spreadsheets</service>
       <allowAnyAppId>true</allowAnyAppId>
     </apps>
     <apps repeatable="true">
-      <container>AppEngine</container>
+      <service>AppEngine</service>
       <allowAnyAppId>true</allowAnyAppId>
     </apps>
-    <pattern>socket://0.0.0.0:22</pattern>
-    <patternType>HOSTPORT</patternType>
-  </entity>
+    <url>socket://0.0.0.0:22</url>
+    <urlMatch>HOSTPORT</urlMatch>
+  </rule>
 </feed>  
