@@ -57,6 +57,13 @@ done
 cp runclient.sh "${BINPREFIX}" 
 chmod -R 755 ${BINPREFIX}
 
+cp start.sh "${BINPREFIX}" 
+chmod -R 755 ${BINPREFIX}
+
+cp stop.sh "${BINPREFIX}" 
+chmod -R 755 ${BINPREFIX}
+
+
 # lib
 for jar in "agent.jar" "protocol.jar"; do
   echo installing ${jar} 

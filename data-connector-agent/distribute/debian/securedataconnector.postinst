@@ -37,7 +37,7 @@ if [ "$1" = "configure" ]; then
   fi
   chown root:$CLIENT_GROUP $LOGDIR
   chmod 770 $LOGDIR
-  for filename in "$PKG_NAME" "access_log" "error_log"; do
+  for filename in "agent"; do
     logfile="$LOGDIR/$filename"
     if [ ! -f $logfile ]; then
       touch $logfile

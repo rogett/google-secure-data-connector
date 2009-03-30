@@ -64,8 +64,10 @@ mv $RPM_BUILD_ROOT/opt/%{name}/config/localConfig.xml $RPM_BUILD_ROOT/etc/opt/%{
 mv $RPM_BUILD_ROOT/opt/%{name}/config/resourceRules.xml $RPM_BUILD_ROOT/etc/opt/%{name}/resourceRules.xml
 mv $RPM_BUILD_ROOT/opt/%{name}/config/log4j.properties $RPM_BUILD_ROOT/etc/opt/%{name}/log4j.properties
 
-# Relocate runclient.sh
+# Relocate runclient.sh, start.sh, stop.sh
 mv $RPM_BUILD_ROOT/opt/%{name}/runclient.sh $RPM_BUILD_ROOT/opt/%{name}/bin
+mv $RPM_BUILD_ROOT/opt/%{name}/start.sh $RPM_BUILD_ROOT/opt/%{name}/bin
+mv $RPM_BUILD_ROOT/opt/%{name}/stop.sh $RPM_BUILD_ROOT/opt/%{name}/bin
 
 # Relocate core jars
 mv $RPM_BUILD_ROOT/opt/%{name}/build/agent.jar $RPM_BUILD_ROOT/opt/%{name}/lib
@@ -104,7 +106,7 @@ dd if=/dev/urandom bs=1024 count=1 |passwd --stdin $CLIENT_USER
   fi
   chown root:$CLIENT_GROUP $LOGDIR
   chmod 770 $LOGDIR
-  for filename in "%{name}" "access_log" "error_log"; do
+  for filename in "agent"; do
     logfile="$LOGDIR/$filename"
     if [ ! -f $logfile ]; then
       touch $logfile

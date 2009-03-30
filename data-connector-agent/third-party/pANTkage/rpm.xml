@@ -26,9 +26,11 @@
       cleanBuildDir="true"
       command="-bs"
       failOnError="true"/>
+<!-- NOT USING SOURCE RPMS. DO NOT COPY TO DIST PATH 
     <exec executable="mv">
       <arg line="rpm/SRPMS/${name}-${version}-${release}.src.rpm distribute/dist/"/>
     </exec>
+-->
     <exec executable="mv">
       <arg line="rpm/RPMS/noarch/${name}-${version}-${release}.noarch.rpm distribute/dist/"/>
     </exec>

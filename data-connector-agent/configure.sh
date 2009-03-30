@@ -250,6 +250,17 @@ cp config/openssh/sshd_config-dist ${template}
 echo Generating ${template}
 sed -i ${template} -e 's^_OPENSSHCONF_^'${ETCPREFIX}'/openssh^'
 
+# start.sh
+template=start.sh
+cp start.sh-dist start.sh
+echo Generating ${template}
+sed -i ${template} -e 's^_PREFIX_^'${PREFIX}'^'
+sed -i ${template} -e 's^_VARPREFIX_^'${VARPREFIX}'^'
+
+# stop.sh
+template=start.sh
+cp stop.sh-dist stop.sh
+
 # Runclient
 template=runclient.sh
 cp runclient.sh-dist runclient.sh
@@ -259,3 +270,4 @@ sed -i ${template} -e 's^_ETCPREFIX_^'${ETCPREFIX}'^'
 sed -i ${template} -e 's^_JAVABIN_^'${JAVABIN}'^'
 sed -i ${template} -e 's^_USER_^'${USER}'^'
 sed -i ${template} -e 's^_GROUP_^'${GROUP}'^'
+

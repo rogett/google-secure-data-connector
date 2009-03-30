@@ -64,6 +64,8 @@ Build File for Secure Data Connector client and reference server.
     <delete file="build.properties"/>
     <delete file="config.status"/>
     <delete file="runclient.sh"/>
+    <delete file="start.sh"/>
+    <delete file="stop.sh"/>
     <delete file="install-sdc.sh"/>
     <delete file="config/localConfig.xml"/>
     <delete file="config/resourceRules.xml"/>

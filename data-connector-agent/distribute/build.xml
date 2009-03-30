@@ -61,7 +61,6 @@ Build File for Secure Data Connector client and reference server.
     <delete file="${dist}/${name}-${version}-${release}-src.tar.gz" />
     <delete file="${dist}/${name}_${version}-${release}_all.deb" />
     <delete file="${dist}/${name}-${version}-${release}.noarch.rpm" />
-    <delete file="${dist}/${name}-${version}-${release}.src.rpm" />
   </target>
 
   <target name="clean-distro" depends="clean">
@@ -191,6 +190,8 @@ Build File for Secure Data Connector client and reference server.
       </tarfileset>
       <tarfileset dir="." mode="755">
         <include name="runclient.sh"/>
+        <include name="start.sh"/>
+        <include name="stop.sh"/>
       </tarfileset>
     </tar>
   </target>
@@ -201,7 +202,7 @@ Build File for Secure Data Connector client and reference server.
 
  <taskdef resource="ant_deb_task.properties" classpathref="deb-classpath"/>
 
-  <target name="deb" depends="cfgdeb,binary-distro">
+  <target name="deb" depends="cfgdeb">
     <mkdir dir="${dist}"/>
  
     <deb todir="${dist}"
@@ -247,6 +248,8 @@ http://code.google.com/
       </tarfileset>
       <tarfileset dir="." prefix="opt/${name}/bin" filemode="755">
         <include name="runclient.sh"/>
+        <include name="start.sh"/>
+        <include name="stop.sh"/>
       </tarfileset>
       <tarfileset dir="config" prefix="etc/opt/${name}" filemode="750">
         <include name="openssh/configure_sshdconf.sh"/>
@@ -266,7 +269,7 @@ http://code.google.com/
  In the mean time we can run ant deb and ant rpm separately and then all for tarballs.
 --> 
 
-	  <target name="all" depends="clean-distro-all,source-distro,binary-distro,rpm,deb"/>
+	  <target name="all" depends="clean-distro-all,source-distro,rpm,deb"/>
 
 </project>
 
