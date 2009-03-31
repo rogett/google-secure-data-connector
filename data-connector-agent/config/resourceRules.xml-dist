@@ -30,7 +30,7 @@
     </apps>
     <apps repeatable="true">
       <service>Gadgets</service>
-      <appId>01234567890123456789</appId>
+      <appId>http://feedserver-enterprise.googleusercontent.com/a/example.com/g/PrivateGadgetSpec/gadget.xml</appId>
     </apps>
     <apps repeatable="true">
       <service>AppEngine</service>
@@ -58,4 +58,4 @@
     <url>socket://0.0.0.0:22</url>
     <urlMatch>HOSTPORT</urlMatch>
   </rule>
-</resourceRules>  
+</resourceRules>

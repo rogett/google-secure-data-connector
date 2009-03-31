@@ -14,14 +14,19 @@
  See the License for the specific language governing permissions and
  limitations under the License.
 
+
 -->
+
+<!-- Health Probe Gadget Spec v1.0 -->
+
 <Module>
   <ModulePrefs 
-    title="SDC Prober"
+    title="Secure Data Connector Health Probe"
+    title_url="http://code.google.com/p/google-secure-data-connector/"
     author="vasu n"
     author_email="vnori@google.com"
-    author_affiliation="google"
-    description="SDC prober"
+    author_affiliation="Google"
+    description="Gadget which queries and displays the health of Secure Data Connector agents"
     height="400"
     width="800"
     scaling="true">
