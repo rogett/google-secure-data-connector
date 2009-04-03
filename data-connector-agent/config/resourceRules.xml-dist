@@ -22,11 +22,7 @@
     <viewerEmail repeatable="true">admin@example.com</viewerEmail>
     <apps repeatable="true">
       <service>Spreadsheets</service>
-      <appId>rFEnGGi0WemLRz263UBxRhw</appId>
-    </apps>
-    <apps repeatable="true">
-      <service>Spreadsheets</service>
-      <appId>r3HAKrIsC_kWuE3MSmwm1ag</appId>
+      <allowAnyAppId>true</allowAnyAppId>
     </apps>
     <apps repeatable="true">
       <service>Gadgets</service>
