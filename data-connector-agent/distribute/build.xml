@@ -209,7 +209,7 @@ Build File for Secure Data Connector client and reference server.
          package="google-secure-data-connector"
          section="net"
          architecture="all"
-         depends="sun-java6-jre (>=6), openssh-server (>=3)"
+         depends="openssh-server (>=3)"
          postinst="distribute/debian/securedataconnector.postinst"
          prerm="distribute/debian/securedataconnector.prerm"
          postrm="distribute/debian/securedataconnector.postrm">
