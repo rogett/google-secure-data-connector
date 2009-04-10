@@ -110,6 +110,10 @@ install -g ${GROUP} -o root -m 640 ./config/log4j.properties ${file}
 # authorized_keys 
 file="${SSH_USER_DIR}/authorized_keys"
 echo installing ${file}
+chmod 755 ${SSH_USER_DIR}/.. 
+chown root:${GROUP} ${SSH_USER_DIR}/..
+chmod 755 ${SSH_USER_DIR} 
+chown root:${GROUP} ${SSH_USER_DIR}
 install -g ${GROUP} -o ${USER} -m 600 "config/openssh/authorized_keys" ${file}
 
 # ssh host keys 
