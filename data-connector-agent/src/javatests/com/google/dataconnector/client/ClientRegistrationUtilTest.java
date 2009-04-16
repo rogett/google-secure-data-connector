@@ -94,7 +94,7 @@ public class ClientRegistrationUtilTest extends TestCase {
       clientRegistrationUtil.authorize(getFakeSocket(is, os),
           fakeLocalConfGenerator.getFakeLocalConf());
     } catch (AuthenticationException e) {
-      fail("not supposed to receive exception");
+      fail("not supposed to receive exception " + e);
     }
     
     // Access Denied Case
@@ -111,6 +111,20 @@ public class ClientRegistrationUtilTest extends TestCase {
     } 
     assertTrue(threwException);
     
+    // Access Denied because of Captcha.
+    authResponse = new AuthResponse();
+    authResponse.setStatus(AuthResponse.Status.ACCESS_DENIED_CAPTCHA_REQUIRED_TO_UNLOCK);
+    is = new ByteArrayInputStream((authResponse.toJson().toString() + "\n").getBytes());
+    os = new ByteArrayOutputStream();
+    threwException = false;
+    try {
+      clientRegistrationUtil.authorize(getFakeSocket(is, os),
+          fakeLocalConfGenerator.getFakeLocalConf());
+    } catch (AuthenticationException e) {
+      threwException = true;
+    } 
+    assertTrue(threwException);
+
     // Mangled Server Response.
     is = new ByteArrayInputStream("SO NOT A REAL JSON STRING\n".getBytes());
     os = new ByteArrayOutputStream();

@@ -118,9 +118,14 @@ public class ClientRegistrationUtil {
       
       String email = localConf.getUser() + "@" + localConf.getDomain();
       AuthResponse authResponse = new AuthResponse(new JSONObject(jsonResponseString));
-      if(authResponse.getStatus() != AuthResponse.Status.OK) {
+      AuthResponse.Status status = authResponse.getStatus();
+      if(status != AuthResponse.Status.OK) {
+        if(status == AuthResponse.Status.ACCESS_DENIED_CAPTCHA_REQUIRED_TO_UNLOCK) {
+          throw new AuthenticationException(authResponse.getCustomMessage());
+        }
+        
         throw new AuthenticationException("Authentication Failed for " + email + ": " + 
-            authResponse.getStatus());
+            authResponse.getStatus() + " : " + authResponse.getCustomMessage());
       }
       LOG.info("Login for " + email + " successful");
       return authRequest;
