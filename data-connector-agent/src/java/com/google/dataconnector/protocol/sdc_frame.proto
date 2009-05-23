@@ -1,0 +1,70 @@
+syntax = "proto2";
+
+package sdc_frame;
+option java_package = "com.google.dataconnector.protocol.proto";
+
+message FrameInfo {
+
+  enum Type {
+    SOCKET_DATA = 0;
+    REGISTRATION = 1;
+    HEALTH_CHECK = 2;
+    AUTHORIZATION = 3;
+  }
+
+  optional int64 sequence = 1;
+  optional Type type = 2;
+  optional bytes payload = 3;
+}
+
+message SocketDataInfo {
+
+  enum State {
+    START = 0;
+    CONTINUE = 1;
+    CLOSE = 2;
+  }
+
+  required int64 connectionId = 1;
+  required State state = 2;
+  optional bytes segment = 3;
+}
+  
+message AuthorizationInfo {
+
+  enum ResultCode {
+    OK = 1;
+    ACCESS_DENIED = 2;
+    ACCESS_DENIED_CAPTCHA_REQUIRED_TO_UNLOCK = 3;
+    SERVER_ERROR = 4;
+  }
+  
+  enum AuthType {
+    PASSWORD = 1;
+  }
+  
+  // request
+  optional string email = 1;
+  optional AuthType authType = 2;
+  optional string password = 3;
+  
+  // response 
+  optional ResultCode result = 5;
+  optional string statusMessage = 6;
+}
+
+message RegistrationInfo {
+
+  enum ResultCode {
+    OK = 1;
+    FAILED = 2;
+  }
+  
+  // request 
+  optional string xml = 1;
+  
+  // response.
+  optional string statusMessage = 2;
+  optional ResultCode result = 3;  
+  
+}
