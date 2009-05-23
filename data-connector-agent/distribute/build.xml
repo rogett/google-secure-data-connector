@@ -78,7 +78,6 @@ Build File for Secure Data Connector client and reference server.
   <target name="lsb" depends="init">
     <exec dir="." executable="./configure.sh">
       <arg value="--lsb"/>
-      <arg value="--openssh=/usr/sbin/sshd"/>
       <arg value="--noverify"/>
       <arg value="--javahome=/usr"/>
     </exec>
@@ -93,7 +92,6 @@ Build File for Secure Data Connector client and reference server.
     <exec dir="." executable="./configure.sh">
       <arg value="--lsb"/>
       <arg value="--noverify"/>
-      <arg value="--openssh=/usr/sbin/sshd"/>
       <arg value="--user=securedataconnector"/>
       <arg value="--group=securedataconnector"/>
       <arg value="--javahome=/usr"/>
@@ -110,7 +108,6 @@ Build File for Secure Data Connector client and reference server.
    <exec dir="." executable="./configure.sh">
       <arg value="--lsb"/>
       <arg value="--noverify"/>
-      <arg value="--openssh=/usr/sbin/sshd"/>
       <arg value="--user=securedataconnector"/>
       <arg value="--group=securedataconnector"/>
       <arg value="--javahome=/usr"/>
@@ -154,7 +151,6 @@ Build File for Secure Data Connector client and reference server.
         basedir="."
         excludes="**/test_server/**, **/pANTakge/**, **/java-service-wrapper/**, third-party/ant-deb/**, jsch/com/**,tmp/**, third-party/*/docs/**"
         includes="config/*,
-          config/openssh/*,
           COPYING,
           CHANGE_LOG,
 	  build/agent.jar,
@@ -179,14 +175,8 @@ Build File for Secure Data Connector client and reference server.
           third-party/oauth/**,
           third-party/guice-snapshot20081016/**"
           compression="gzip">
-      <tarfileset dir="." mode="600">
-        <include name="config/openssh/*"/>
-      </tarfileset>
       <tarfileset dir="." mode="755">
         <include name="configure.sh"/>
-      </tarfileset>
-      <tarfileset dir="." mode="755">
-        <include name="config/openssh/configure_sshdconf.sh"/>
       </tarfileset>
       <tarfileset dir="." mode="755">
         <include name="runclient.sh"/>
@@ -209,7 +199,6 @@ Build File for Secure Data Connector client and reference server.
          package="google-secure-data-connector"
          section="net"
          architecture="all"
-         depends="openssh-server (>=3)"
          postinst="distribute/debian/securedataconnector.postinst"
          prerm="distribute/debian/securedataconnector.prerm"
          postrm="distribute/debian/securedataconnector.postrm">
@@ -228,12 +217,10 @@ The current implementation permits access to http and socket services.
 http://code.google.com/
       </description>
       <conffiles dir="config" prefix="etc/opt/${name}"
-        filemode="640" dirmode="750">
+          filemode="640" dirmode="750">
         <include name="resourceRules.xml"/>
-	<include name="localConfig.xml"/>
-	<include name="log4j.properties"/>
-        <include name="openssh/sshd_config"/>
-        <include name="openssh/ssh_host*"/>
+      	<include name="localConfig.xml"/>
+      	<include name="log4j.properties"/>
       </conffiles>
       <tarfileset dir="build" prefix="opt/${name}/lib"
         filemode="640" dirmode="750">
@@ -250,15 +237,6 @@ http://code.google.com/
         <include name="runclient.sh"/>
         <include name="start.sh"/>
         <include name="stop.sh"/>
-      </tarfileset>
-      <tarfileset dir="config" prefix="etc/opt/${name}" filemode="750">
-        <include name="openssh/configure_sshdconf.sh"/>
-      </tarfileset>
-      <tarfileset dir="config" prefix="etc/opt/${name}" filemode="750">
-        <include name="openssh/start_sshd.sh"/>
-      </tarfileset>
-      <tarfileset dir="config/openssh" prefix="etc/opt/${name}/woodstock-user/.ssh" filemode="640">
-        <include name="authorized_keys"/>
       </tarfileset>
   </deb>
   </target>

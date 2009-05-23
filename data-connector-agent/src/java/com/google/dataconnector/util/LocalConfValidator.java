@@ -14,8 +14,6 @@
  */ 
 package com.google.dataconnector.util;
 
-import com.google.dataconnector.registration.v2.AuthRequest;
-
 import org.apache.log4j.Logger;
 
 import java.io.File;
@@ -131,9 +129,7 @@ public class LocalConfValidator {
     }
     
     // oauthKey or password required
-    if (localConf.getPassword() != null) {
-      localConf.setAuthType(AuthRequest.AuthType.PASSWORD);
-    } else {
+    if (localConf.getPassword() == null) {
       errors.append("'password' required\n");
     }
     
@@ -154,13 +150,6 @@ public class LocalConfValidator {
       }
     } else {
       errors.append("'agentId' required\n");
-    }
-    
-    // sshd
-    if (localConf.getSshd() != null) {
-      errors.append(canReadFile("sshd", localConf.getSshd()));
-    } else {
-      errors.append("'sshd' required\n");
     }
     
     // socksServerPort 

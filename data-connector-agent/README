@@ -1,5 +1,13 @@
 Secure Data Connector Install Instructions (brief).
 
+Prerequisites:
+
+You must install the Google Protocol Buffer compiler and make sure its in the path.  It can be 
+downloaded here:
+  - http://code.google.com/p/protobuf/downloads/list
+  - follow the README to install.
+  - We include the generated protocol buffer classes should protoc not be available.
+
 1) sh configure.sh.
 
 Options:
@@ -7,10 +15,9 @@ Options:
     --prefix) binary prefix
     --etcprefix) etc prefix.  defaults to /usr/local/etc
     --varprefix) var prefix. defaults to /usr/local/var
-    --opensshd) location of openssh's sshd binary.
     --javahome) system java location. Will look in the default path too.
 
-Generally only --prefix, --opensshd are required. The rest are for tuning to your platform. 
+Generally only --prefix, The rest is for tuning to your platform. 
 
 2) ant 
 

@@ -15,25 +15,43 @@
 package com.google.dataconnector.util;
 
 import com.google.dataconnector.client.testing.TrustAllTrustManager;
-import com.google.dataconnector.registration.v2.ResourceException;
-import com.google.dataconnector.registration.v2.ResourceRule;
-import com.google.dataconnector.registration.v2.ResourceRuleUtil;
-import com.google.dataconnector.registration.v2.ResourceRuleValidator;
+import com.google.dataconnector.protocol.ProtocolGuiceModule;
+import com.google.dataconnector.registration.v3.ResourceException;
+import com.google.dataconnector.registration.v3.ResourceRule;
+import com.google.dataconnector.registration.v3.ResourceRuleUtil;
+import com.google.dataconnector.registration.v3.ResourceRuleValidator;
+import com.google.dataconnector.registration.v3.SocketInfo;
 import com.google.feedserver.util.BeanCliHelper;
 import com.google.feedserver.util.ConfigurationBeanException;
+
 import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Provider;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
+
+import net.sourceforge.jsocks.socks.ProxyServer;
 
 import org.apache.log4j.Logger;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.Inet4Address;
+import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.net.UnknownHostException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.util.List;
+import java.util.Properties;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
+import javax.net.SocketFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
@@ -42,26 +60,57 @@ import javax.net.ssl.TrustManagerFactory;
 /**
  * Client Guice module.
  * 
+ * TODO(rayc) write unit tests for this module.
+ * 
  * @author rayc@google.com (Ray Colline)
  */
 public class ClientGuiceModule extends AbstractModule {
   
   private static final Logger LOG = Logger.getLogger(ClientGuiceModule.class);
 
-  private String[] args; // command line args
+  private static final int MAX_THREADS = 500;
+
+  private static String[] args; // command line args
   
-  /**
-   * Creates the guice module using the VMs command line arguments.
-   * 
-   * @param args command line.
-   */
-  public ClientGuiceModule(String[] args) {
-    this.args = args;
+  public static void setArgs(String[] args) {
+    ClientGuiceModule.args = args;
   }
 
-  /** Use default binding */
   @Override
   protected void configure() {}
+  
+  /**
+   * Provides an injector configured for use in the TunnelServer.
+   *
+   * @author rayc@google.com (Ray Colline)
+   */
+  public static class InjectorProvider implements Provider<Injector> {
+    
+    private static Injector injector; // Singleton
+    
+    public Injector get() {
+      // Preconditions
+      if (args == null) {
+        throw new RuntimeException("Must use setArgs(String[] args) before calling provider");
+      }
+      // Create injector if its not already created. 
+      if (injector == null) {
+        injector = Guice.createInjector(new ClientGuiceModule(), new ProtocolGuiceModule());
+      }
+      return injector;
+    }
+  }
+  
+  @Provides @Singleton
+  public SocketFactory getSocketFactory() {
+    return SocketFactory.getDefault(); 
+  }
+  
+  @Provides @Singleton
+  public ThreadPoolExecutor getThreadPoolExecutor() {
+    return new ThreadPoolExecutor(50, MAX_THREADS, 60L, TimeUnit.SECONDS, 
+        new SynchronousQueue<Runnable>());
+  }
   
   /** 
    * Provides the runtime for methods needing to make processes.
@@ -213,6 +262,50 @@ public class ClientGuiceModule extends AbstractModule {
     return null;
   }
   
+  @Provides @Singleton
+  public Rfc1929SdcAuthenticator getRfc1929SdcAuthenticator(List<ResourceRule> resourceRules,
+      ResourceRuleUtil resourceRuleUtil) {
+    Rfc1929SdcAuthenticator authenticator = new Rfc1929SdcAuthenticator();
+    for (ResourceRule resourceRule : resourceRules) {
+      if (resourceRule.getUrl().startsWith(ResourceRule.SOCKETID)) {
+        SocketInfo socketInfo;
+        try {
+          socketInfo = new SocketInfo(resourceRule.getUrl());
+        } catch (ResourceException e) {
+          throw new RuntimeException("Invalid Socket Pattern : entry.getPattern()");
+        }
+        authenticator.add(resourceRule.getSecretKey().toString(), socketInfo.getHostAddress(),
+            socketInfo.getPort());
+      } else if (resourceRule.getUrl().startsWith(ResourceRule.HTTPID) || 
+          (resourceRule.getUrl().startsWith(ResourceRule.HTTPSID))) {
+        authenticator.add(resourceRule.getSecretKey().toString(), 
+            resourceRuleUtil.getHostnameFromRule(resourceRule), 
+            resourceRuleUtil.getPortFromRule(resourceRule));
+        LOG.debug("Added rule " + resourceRule.getUrl() + " host: " + 
+            resourceRuleUtil.getHostnameFromRule(resourceRule) + " port: " + 
+            resourceRuleUtil.getPortFromRule(resourceRule));
+      }
+      LOG.info("Adding rule: " + resourceRule.getUrl());
+    }
+    return authenticator;
+  }
+  
+  @Provides @Singleton @Named("Socks Properties")
+  public Properties getSocksProperties(LocalConf localConf) {
+    Properties properties = new Properties();   
+    try {
+      properties.load(new ByteArrayInputStream(localConf.getSocksProperties().trim().getBytes()));
+      return properties;
+    } catch (IOException e) {
+      throw new RuntimeException("Invalid socks properties", e);
+    }
+  }
+  
+  @Provides
+  public ProxyServer getProxyServer(Rfc1929SdcAuthenticator rfc1929SdcAuthenticator) {
+    return new ProxyServer(rfc1929SdcAuthenticator);
+  }
+  
   /**
    * creates a singleton instance of {@link HealthCheckRequestHandler} with a 
    * ServerSocket listening on an ephemeral port.
@@ -224,4 +317,14 @@ public class ClientGuiceModule extends AbstractModule {
   public HealthCheckRequestHandler getHealthCheckRequestHandler() throws IOException {
     return new HealthCheckRequestHandler(new ServerSocket(0));
   }
+
+  @Provides @Singleton @Named("localhost") 
+  public InetAddress getLocalHostInetAddress() {  
+    try {
+      return Inet4Address.getByName("127.0.0.1");
+    } catch (UnknownHostException e) {
+      throw new RuntimeException("Could not resolve localhost", e);
+    }
+  }
+
 }

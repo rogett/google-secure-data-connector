@@ -25,11 +25,8 @@ ETCPREFIX=__ETCPREFIX__
 VARPREFIX=__VARPREFIX__
 BINPREFIX=${PREFIX}/bin
 LIBPREFIX=${PREFIX}/lib
-SSH_CONF_DIR=${ETCPREFIX}/openssh
-SSH_USER_DIR=${ETCPREFIX}/woodstock-user/.ssh
 USER=__USER__
 GROUP=__GROUP__
-SSH_WOODSTOCK_USER=woodstock
 
 TIMESTAMP=$(date +'%Y%m%d_%H%M%S')
 
@@ -46,11 +43,9 @@ for dir in \
     "${BINPREFIX}" \
     "${ETCPREFIX}" \
     "${VARPREFIX}" \
-    "${VARPREFIX}/log" \
-    "${SSH_CONF_DIR}" \
-    "${SSH_USER_DIR}" ; do
-  echo making dir ${dir}
-  mkdir -p $dir
+    "${VARPREFIX}/log" 
+  do echo making dir ${dir}
+  mkdir -p ${dir}
 done
 
 # binary
@@ -65,7 +60,7 @@ chmod -R 755 ${BINPREFIX}
 
 
 # lib
-for jar in "agent.jar" "protocol.jar"; do
+for jar in "registration-v3.jar" "agent.jar" "protocol.jar"; do
   echo installing ${jar} 
   install -m 644 build/${jar} ${LIBPREFIX}/${jar}
 done
@@ -104,44 +99,3 @@ install -g ${GROUP} -o root -m 640 ./config/resourceRules.xml-dist ${file}
 file="${ETCPREFIX}/log4j.properties"
 echo installing ${file}
 install -g ${GROUP} -o root -m 640 ./config/log4j.properties ${file}
-
-### openssh  ###
-
-# authorized_keys 
-file="${SSH_USER_DIR}/authorized_keys"
-echo installing ${file}
-chmod 755 ${SSH_USER_DIR}/.. 
-chown root:${GROUP} ${SSH_USER_DIR}/..
-chmod 755 ${SSH_USER_DIR} 
-chown root:${GROUP} ${SSH_USER_DIR}
-install -g ${GROUP} -o ${USER} -m 600 "config/openssh/authorized_keys" ${file}
-
-# ssh host keys 
-for file in "ssh_host_rsa_key" "ssh_host_dsa_key" "ssh_host_rsa_key.pub" \
-    "ssh_host_dsa_key.pub"; do
-  echo installing ${SSH_CONF_DIR}/${file}
-  install -g ${GROUP} -o ${USER} -m 600 ./config/openssh/${file} \
-      ${SSH_CONF_DIR}/${file}
-done
-
-# sshd_config
-file="${SSH_CONF_DIR}/sshd_config"
-echo installing ${file}
-install -g ${GROUP} -o ${USER} -m 600 \
-   "./config/openssh/sshd_config" ${file}
-
-# start_sshd.sh 
-file="${SSH_CONF_DIR}/start_sshd.sh"
-echo installing ${file}
-install -g ${GROUP} -o ${USER} -m 750 \
-    "./config/openssh/start_sshd.sh" ${file}
-
-# configure_sshdconf.sh 
-file="${SSH_CONF_DIR}/configure_sshdconf.sh"
-echo installing ${file}
-install -g ${GROUP}  -m 750 \
-    "./config/openssh/configure_sshdconf.sh" ${file}
-
-echo "Running Post Install Scripts...."
-
-${ETCPREFIX}/openssh/configure_sshdconf.sh 

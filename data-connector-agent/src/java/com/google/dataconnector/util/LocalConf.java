@@ -14,7 +14,6 @@
  */ 
 package com.google.dataconnector.util;
 
-import com.google.dataconnector.registration.v2.AuthRequest;
 import com.google.feedserver.util.ConfigFile;
 import com.google.feedserver.util.Flag;
 
@@ -78,8 +77,6 @@ public class LocalConf {
       "acceptTimeout = 60000\n" + // 1 minutes
       "udpTimeout = 600000\n" + // 10 minutes
       "log = -\n"; // stdout.
-  
-  private AuthRequest.AuthType authType = AuthRequest.AuthType.NONE;
   
   // getters and setters
   public String getName() {
@@ -194,14 +191,6 @@ public class LocalConf {
     this.socksProperties = socksProperties;
   }
   
-  public AuthRequest.AuthType getAuthType() {
-    return authType;
-  }
-
-  public void setAuthType(AuthRequest.AuthType authType) {
-    this.authType = authType;
-  }
-
   public Boolean getDebug() {
     return debug;
   }

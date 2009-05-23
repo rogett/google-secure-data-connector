@@ -14,13 +14,12 @@
  */ 
 package com.google.dataconnector.client;
 
-import com.google.dataconnector.registration.v2.ResourceException;
-import com.google.dataconnector.registration.v2.ResourceRule;
-import com.google.dataconnector.registration.v2.ResourceRuleUtil;
-import com.google.dataconnector.registration.v2.SocketInfo;
+import com.google.dataconnector.registration.v3.ResourceRule;
+import com.google.dataconnector.registration.v3.ResourceRuleUtil;
 import com.google.dataconnector.util.LocalConf;
 import com.google.dataconnector.util.Rfc1929SdcAuthenticator;
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 
 import net.sourceforge.jsocks.SOCKS;
 import net.sourceforge.jsocks.socks.ProxyServer;
@@ -45,64 +44,37 @@ public class JsocksStarter extends Thread {
   // Logging instance
   private static final Logger LOG = Logger.getLogger(JsocksStarter.class);
 
-  private static final String LOCALHOST = "127.0.0.1";
-
   /* Dependencies */
   private LocalConf localConfiguration;
-  private List<ResourceRule> resourceRules;
-  private ResourceRuleUtil resourceRuleUtil;
-
-  // Socks V5 User/Password authenticator object.
-  private Rfc1929SdcAuthenticator authenticator;
+  private Rfc1929SdcAuthenticator rfc1929SdcAuthenticator;
+  private Properties socksProperties;
 
   // Bind address
   private InetAddress bindAddress;
 
   // Socks Server Properties
-  private Properties socksProperties;
-
 
   /**
    * Configures the SOCKS User/Password authenticator based on the rules provided
    *
    * @param localConfiguration the local configuration object.   
    * @param resourceRules the rule sets.
+   * @param rfc1929SdcAuthenticator the 
+   * @param socksProperties 
    */
   @Inject
   public JsocksStarter(LocalConf localConfiguration, List<ResourceRule> resourceRules,
-      ResourceRuleUtil resourceRuleUtil) {
+      ResourceRuleUtil resourceRuleUtil, Rfc1929SdcAuthenticator rfc1929SdcAuthenticator, 
+      @Named("Socks Properties") Properties socksProperties) {
     this.localConfiguration = localConfiguration;
-    this.resourceRules = resourceRules;
-    this.resourceRuleUtil = resourceRuleUtil;
+    this.rfc1929SdcAuthenticator = rfc1929SdcAuthenticator;
+    this.socksProperties = socksProperties;
   }
   
   /**
    * Do runtime configuration and start jsocks proxy thread.
    */
   public void startJsocksProxy() {
-    // Create firewall rules in jsocks proxy.
-    authenticator = new Rfc1929SdcAuthenticator();
-    for (ResourceRule resourceRule : resourceRules) {
-      if (resourceRule.getPattern().startsWith(ResourceRule.SOCKETID)) {
-        SocketInfo socketInfo;
-        try {
-          socketInfo = new SocketInfo(resourceRule.getPattern());
-        } catch (ResourceException e) {
-          throw new RuntimeException("Invalid Socket Pattern : entry.getPattern()");
-        }
-        authenticator.add(resourceRule.getSecretKey().toString(), socketInfo.getHostAddress(),
-            socketInfo.getPort());
-      } else if (resourceRule.getPattern().startsWith(ResourceRule.HTTPID) || 
-          (resourceRule.getPattern().startsWith(ResourceRule.HTTPSID))) {
-        authenticator.add(resourceRule.getSecretKey().toString(), 
-            resourceRuleUtil.getHostnameFromRule(resourceRule), 
-            resourceRuleUtil.getPortFromRule(resourceRule));
-        LOG.debug("Added rule " + resourceRule.getPattern() + " host: " + 
-            resourceRuleUtil.getHostnameFromRule(resourceRule) + " port: " + 
-            resourceRuleUtil.getPortFromRule(resourceRule));
-      }
-      LOG.info("Adding rule: " + resourceRule.getPattern());
-    }
     
     // Resolve our bind host which should normally be localhost.
     try {
@@ -111,16 +83,8 @@ public class JsocksStarter extends Thread {
       throw new RuntimeException("Couldnt lookup bind host", e);
     }
     
-    // Load properties from LocalConf.
-    socksProperties = new Properties();
-    try {
-    socksProperties.load(
-        new ByteArrayInputStream(localConfiguration.getSocksProperties().trim().getBytes()));
-    } catch (IOException e) {
-      throw new RuntimeException("Invalid socks properties", e);
-    }
-    setName("jsocks-starter-thread");
     setDaemon(true);
+    setName("jsocks-starter-thread");
     start();
   }
   
@@ -128,7 +92,7 @@ public class JsocksStarter extends Thread {
   public void run() {
     // JSOCKS is configured in a static context
     SOCKS.serverInit(socksProperties);
-    ProxyServer server = new ProxyServer(authenticator);
+    ProxyServer server = new ProxyServer(rfc1929SdcAuthenticator);
     LOG.info("Starting JSOCKS listener thread on port " + localConfiguration.getSocksServerPort());
     server.start(localConfiguration.getSocksServerPort(), 5, bindAddress);
   }

@@ -29,6 +29,12 @@ Build File for Secure Data Connector client and reference server.
     default="compile"
     basedir=".">
 
+  <taskdef resource="net/sf/antcontrib/antcontrib.properties">
+    <classpath>
+      <pathelement location="third-party/antcontrib/ant-contrib-1.0b2.jar"/>
+    </classpath>
+  </taskdef>
+
   <!-- PROPERTIES -->
   <property file="build.properties" />
 
@@ -69,13 +75,41 @@ Build File for Secure Data Connector client and reference server.
     <delete file="install-sdc.sh"/>
     <delete file="config/localConfig.xml"/>
     <delete file="config/resourceRules.xml"/>
-    <delete file="config/openssh/start_sshd.sh"/>
-    <delete file="config/openssh/sshd_config"/>
-    <delete file="config/openssh/configure_sshdconf.sh"/>
     <delete dir="${build}"/>
   </target>
 
-  <target name="compile" depends="init" >
+  <!-- Protocol Buffer compiler steps -->
+  <target name="protoc-all-protos">
+    <foreach param="proto-to-compile" target="compile-proto">
+      <path>
+        <fileset dir="${src}">
+          <include name="**/*.proto"/>
+        </fileset>
+      </path>
+    </foreach>
+  </target>
+
+  <target name="compile-proto">
+    <exec executable="${protoc}">
+      <arg value="--java_out=${src-generated}"/>
+      <arg value="--proto_path=${basedir}"/>
+      <arg value="${proto-to-compile}"/>
+    </exec>
+  </target>
+
+  <target name="compile" depends="init, protoc-all-protos" >
+
+    <javac 
+        srcdir="${src-generated}" 
+        destdir="${classes}"
+        debug="${COMPILE_DEBUG_FLAG}"
+        debuglevel="${COMPILE_DEBUG_LEVEL}"
+        includes="**"
+        >
+      <classpath>
+        <pathelement path="third-party/protobuf/protobuf-java-2.1.0.jar"/>
+      </classpath>
+    </javac>
 
     <javac 
         srcdir="${src}" 
@@ -86,6 +120,9 @@ Build File for Secure Data Connector client and reference server.
         >
       <classpath>
         <pathelement path="third-party/jsocks/jsocks.jar"/>
+        <pathelement path="third-party/beepcore/lib/beepcore.jar"/>
+        <pathelement path="third-party/beepcore/lib/xerces.jar"/>
+        <pathelement path="third-party/beepcore/lib/concurrent.jar"/>
         <pathelement path="third-party/commons-cli/commons-cli-1.1.jar"/>
         <pathelement path="third-party/commons-logging/commons-logging-1.1.jar"/>
         <pathelement path="third-party/apache-log4j/log4j-1.2.15.jar"/>
@@ -103,13 +140,19 @@ Build File for Secure Data Connector client and reference server.
         <pathelement path="third-party/junit/junit-4.4.jar"/>
         <pathelement path="third-party/oauth/core.jar"/>
         <pathelement path="third-party/oauth/commons-codec-1.3.jar"/>
+        <pathelement path="third-party/protobuf/protobuf-java-2.1.0.jar"/>
+        <pathelement path="third-party/sdc-shared/shared.jar"/>
       </classpath>
     </javac>
 
     <!-- create agent jar -->
     <tstamp/>
     <jar jarfile="${agent.jarfile}">
-      <fileset dir="${classes}" includes="**"/>
+      <fileset dir="${classes}">
+        <include name="**"/>
+        <exclude name="com/google/dataconnector/registration/**"/>
+        <exclude name="com/google/dataconnector/protocol/**"/>
+      </fileset>
       <manifest>
         <attribute name="Implementation-Title" value="Secure Data Connector"/>
         <attribute name="Implementation-Version" value="SDC ${version} Built: ${buildstamp}"/>
@@ -119,8 +162,17 @@ Build File for Secure Data Connector client and reference server.
       </manifest>
     </jar>
 
-    <jar jarfile="${protocol.jarfile}">
+    <jar jarfile="${registration.jarfile}">
       <fileset dir="${classes}" includes="com/google/dataconnector/registration/**"/>
+      <manifest>
+        <attribute name="Implementation-Title" value="Secure Data Connector Registration Utils"/>
+        <attribute name="Implementation-Version" value="SDC ${version} Built: ${buildstamp}"/>
+        <attribute name="Implementation-Vendor" value="Google"/>
+      </manifest>
+    </jar>
+
+    <jar jarfile="${protocol.jarfile}">
+      <fileset dir="${classes}" includes="com/google/dataconnector/protocol/**"/>
       <manifest>
         <attribute name="Implementation-Title" value="Secure Data Connector Protocol"/>
         <attribute name="Implementation-Version" value="SDC ${version} Built: ${buildstamp}"/>
@@ -144,7 +196,10 @@ Build File for Secure Data Connector client and reference server.
     <tstamp/>
     <jar jarfile="${protocol-src.jarfile}">
       <fileset dir="${src}"> 
-        <include name="com/google/dataconnector/registration/**" />
+        <include name="com/google/dataconnector/protocol/**" />
+      </fileset>
+      <fileset dir="${src-generated}"> 
+        <include name="com/google/dataconnector/protocol/**" />
       </fileset>
       <manifest>
         <attribute name="Implementation-Title" value="Secure Data Connector Protocol"/>
@@ -153,6 +208,17 @@ Build File for Secure Data Connector client and reference server.
       </manifest>
     </jar>
 
+    <tstamp/>
+    <jar jarfile="${registration-src.jarfile}">
+      <fileset dir="${src}"> 
+        <include name="com/google/dataconnector/registration/**" />
+      </fileset>
+      <manifest>
+        <attribute name="Implementation-Title" value="Secure Data Connector Registration Utils"/>
+        <attribute name="Implementation-Version" value="SDC ${version} Built: ${buildstamp}"/>
+        <attribute name="Implementation-Vendor" value="Google"/>
+      </manifest>
+    </jar>
   </target>
 
   <!-- install -->
@@ -171,6 +237,8 @@ Build File for Secure Data Connector client and reference server.
   <path id="classpath.test">
     <pathelement location="${testClasses.home}" />
     <pathelement location="${agent.jarfile}" />
+    <pathelement location="${protocol.jarfile}" />
+    <pathelement location="${registration.jarfile}" />
     <fileset dir="third-party">
       <include name="**/*.jar"/>
     </fileset>

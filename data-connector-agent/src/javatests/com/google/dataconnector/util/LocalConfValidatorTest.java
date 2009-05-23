@@ -60,7 +60,6 @@ public class LocalConfValidatorTest extends TestCase {
         mockGoodFile);
     EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.SSL_KEY_STORE_FILE)).andReturn(
         mockGoodFile);
-    EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.SSHD)).andReturn(mockGoodFile);
     EasyMock.replay(mockFileFactory); 
   }
   
@@ -92,7 +91,6 @@ public class LocalConfValidatorTest extends TestCase {
     EasyMock.expect(mockFileFactory.getFile(badFile)).andReturn(mockBadFile);
     EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.SSL_KEY_STORE_FILE)).andReturn(
         mockGoodFile);
-    EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.SSHD)).andReturn(mockGoodFile);
     EasyMock.replay(mockFileFactory);
     
     // Create new validator with our updated factory.
@@ -166,7 +164,6 @@ public class LocalConfValidatorTest extends TestCase {
     EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.RULES_FILE)).andReturn(
         mockGoodFile);
     EasyMock.expect(mockFileFactory.getFile(badFile)).andReturn(mockBadFile);
-    EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.SSHD)).andReturn(mockGoodFile);
     EasyMock.replay(mockFileFactory);
     
     // Create new validator with our updated factory.
@@ -198,36 +195,5 @@ public class LocalConfValidatorTest extends TestCase {
       return;
     }
     fail("did not get LocalConf");
-  }
-  
-  // Sshd
-  public void testBadSshd() {
-    // Setup bad data
-    String badFile = "/bad/file";
-    localConf.setSshd(badFile);
-    
-    // Create filefactory to give the right bad files.
-    mockFileFactory = EasyMock.createMock(LocalConfValidator.FileFactory.class);
-    EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.RULES_FILE)).andReturn(
-        mockGoodFile);
-    EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.SSL_KEY_STORE_FILE)).andReturn(
-        mockGoodFile);
-    EasyMock.expect(mockFileFactory.getFile(badFile)).andReturn(mockBadFile);
-    EasyMock.replay(mockFileFactory);
-    
-    // Create new validator with our updated factory.
-    localConfValidator = new LocalConfValidator(mockFileFactory);
-    
-    // Test and verify
-    try {
-      localConfValidator.validate(localConf);
-    } catch (LocalConfException e) {
-      assertTrue(e.getMessage().contains("Cannot read"));
-      EasyMock.verify(mockBadFile);
-      EasyMock.verify(mockGoodFile);
-      EasyMock.verify(mockFileFactory);
-      return;
-    }
-    fail("did not get LocalConfException");
   }
 }

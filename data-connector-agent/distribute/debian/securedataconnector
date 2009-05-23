@@ -139,8 +139,6 @@ check_startup()
   # - Start socks proxy
   # - Authenticate to WTS
   # - Register rules
-  # - Start ssh
-  # - Swap in ssh for TLS
   # Look through the log for these events in reverse order: All must be
   # successful for the client to have started successfully.
   # Return the following at the end of the startup period:
@@ -160,7 +158,6 @@ check_startup()
   match3="ClientRegistrationUtil  - Login .* successful"
   match4="ClientRegistrationUtil  - Registration .* successful"
   match5="SecureDataConnection  - Login successful as"
-  match6="Connecting SSHD to existing stream"
   # TODO(sebastian): add failure conditions as well.
   # Annoyingly, read spawns a subshell, which means that the parsing results
   # get dropped and I can't return the status array. The easy workaround it to

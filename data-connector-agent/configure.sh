@@ -19,14 +19,13 @@
 
 # OPTIONS
 # -prefix Secure Data Connector install location
-# -opensshd OpenSSH daemon binary.
 
 PACKAGE="google-secure-data-connector"
 PREFIX="/usr/local"
 ETCPREFIX=
 VARPREFIX=
 MODULESDIR=
-OPENSSHD=
+PROTOC=
 JAVAHOME=${JAVAHOME}  # Get it from the environment
 USER=daemon
 GROUP=daemon
@@ -34,23 +33,23 @@ LSB="false"
 NOVERIFY="false"
 
 # Save last run config options to config.status
-echo $0 $* > config.status
+echo $(pwd)/configure.sh $* > config.status
 chmod 755 config.status
 
 # Check for getopt gnu util
 [ -x "$(which getopt)" ] || { echo "gnu getopt binary not found." ; exit 1; }
 
 # Command line arguments
-OPTS=$(getopt -o h --long lsb,noverify,prefix:,etcprefix::,varprefix::,binprefix::,opensshd::,javahome::,user::,group:: -n 'configure' -- "$@") 
+OPTS=$(getopt -o h --long lsb,noverify,prefix:,etcprefix::,varprefix::,binprefix::,protoc::,javahome::,user::,group:: -n 'configure' -- "$@") 
 if [ $? != 0 ] || [ $# = 0 ]; then 
   echo -e "\nUsage:
     --lsb) use LSB defaults no other PREFIX options are neccessary
     --prefix) binary prefix
     --etcprefix) etc prefix.  defaults to $PREFIX/etc
     --varprefix) var prefix. defaults to $PREFIX/var
-    --opensshd) location of openssh's sshd binary.
-    --user) user to run woodstock as. Default is 'daemon'
-    --group) group to run woodstock as. Default is 'daemon'
+    --protoc) location of protocol buffer compiler.
+    --user) user to run SDC as. Default is 'daemon'
+    --group) group to run SDC as. Default is 'daemon'
     --javahome) system java location.
     --noverify) do not perform configure validation steps.
   " >&2
@@ -67,7 +66,7 @@ while true; do
     --etcprefix) ETCPREFIX=$2; shift 2 ;;
     --varprefix) VARPREFIX=$2; shift 2 ;;
     --binprefix) BINPREFIX=$2; shift 2 ;;
-    --opensshd) OPENSSHD=$2 ; shift 2 ;;
+    --protoc) PROTOC=$2 ; shift 2 ;;
     --javahome) JAVAHOME=$2 ; shift 2 ;;
     --user) USER=$2 ; shift 2 ;;
     --group) GROUP=$2 ; shift 2 ;;
@@ -105,24 +104,28 @@ else # Try to figure it out.
   JAVABIN=$(which java)
 fi
 
+# look for protoc
+if [ -e "${PROTOC}" ]; then
+  if [ ! -x "${PROTOC}" ]; then
+    echo "protoc: ${PROTOC} not found"
+  fi
+else 
+  type protoc > /dev/null 2>&1 # try to find it in our path.
+  if [ $? != 0 ]; then
+    echo "You do not have protoc installed, however, we ship pregenerated sources" 
+    echo "but you will not be able to edit any .proto files"
+    PROTOC="$(pwd)/src/no-op-protoc.sh" 
+  else
+    echo "Found protoc in your path, using that."
+    PROTOC="protoc"
+  fi
+fi
 
 #
 ### Verification Checks
 #
 
 if [ ${NOVERIFY} = "false" ]; then
-
-  if [ -z ${OPENSSHD} ]; then
-     echo "--openssh option is missing!"
-     exit 1
-    fi
-
-
-  # verify opensshd
-  if [ ! -x "${OPENSSHD}" ]; then
-    echo "opensshd: ${OPENSSHD} not found"
-    exit 1
-  fi
 
   # verify user and group for existence
   getent=$(which getent)
@@ -156,24 +159,6 @@ if [ ${NOVERIFY} = "false" ]; then
 
   fi
 
-  # verify woodstock user
-  HOMEDIR=~woodstock
-  if [ ${HOMEDIR} = '~woodstock' ]; then
-    # if the user doesnt exist, the string '~woodstock' will be present
-    echo "'woodstock' user does not exist."
-    echo "Create woodstock user with homedir as ${ETCPREFIX}/woodstock-user"
-    echo "To create on most linux systems run:"
-    echo "useradd --home-dir=${ETCPREFIX}/woodstock-user" \
-        "--comment='Woodstock User' --shell=/bin/false woodstock"
-    echo
-    echo "Once you create the user re-run configure.sh again!" 
-    exit 1
-  elif [ ${HOMEDIR} != ${ETCPREFIX}/woodstock-user ]; then
-    echo "'woodstock' home directory is incorrect."
-    echo It should be \"${ETCPREFIX}/woodstock-user\"
-    exit 1
-  fi
-
   # verify java binary.
   if [ -x "${JAVABIN}" ]; then
     ${JAVABIN} -version 2>&1 | grep 'version' |grep -q '1.6'
@@ -204,6 +189,7 @@ sed -i ${template} -e 's^__ETCPREFIX__^'${ETCPREFIX}'^'
 sed -i ${template} -e 's^__VARPREFIX__^'${VARPREFIX}'^'
 sed -i ${template} -e 's^__USER__^'${USER}'^'
 sed -i ${template} -e 's^__GROUP__^'${GROUP}'^'
+sed -i ${template} -e 's^__PROTOC__^'${PROTOC}'^'
 
 # Edit install-sdc.sh
 template="install-sdc.sh"
@@ -224,31 +210,9 @@ echo Generating ${template}
 # Create resourceRules.xml since we don't need to edit this file.
 cp config/resourceRules.xml-dist config/resourceRules.xml
 
-# Edit configure_sshdconf.sh
-template=config/openssh/configure_sshdconf.sh
-cp config/openssh/configure_sshdconf.sh-dist ${template}
-echo Generating ${template}
-sed -i ${template} -e 's^_SSHDCONF_^'${ETCPREFIX}'/openssh/sshd_config^'
-sed -i ${template} -e 's^_SSHD_^'${OPENSSHD}'^'
-
 # Edit localConf.xml-dist
 template=config/localConfig.xml
 cp config/localConfig.xml-dist ${template}
-echo Generating ${template}
-sed -i ${template} -e 's^_START_SSHD_^'${ETCPREFIX}'/openssh/start_sshd.sh^'
-
-# Openssh start_ssh.sh-dist
-template=config/openssh/start_sshd.sh
-cp config/openssh/start_sshd.sh-dist ${template}
-echo Generating ${template}
-sed -i ${template} -e 's^_SSHD_^'${OPENSSHD}'^'
-sed -i ${template} -e 's^_OPENSSHCONF_^'${ETCPREFIX}'/openssh^'
-
-# Openssh sshd_config-dist.
-template=config/openssh/sshd_config
-cp config/openssh/sshd_config-dist ${template}
-echo Generating ${template}
-sed -i ${template} -e 's^_OPENSSHCONF_^'${ETCPREFIX}'/openssh^'
 
 # start.sh
 template=start.sh

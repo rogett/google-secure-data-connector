@@ -136,16 +136,6 @@ if [ ${NOVERIFY} = "false" ]; then
   checkfile ${RULESFILE} root ${GROUP} 640
   checkfile ${ETCPREFIX}/localConfig.xml root ${GROUP} 640
   checkfile ${ETCPREFIX}/resourceRules.xml root ${GROUP} 640
-  checkfile ${ETCPREFIX}/openssh root root 755
-  checkfile ${ETCPREFIX}/openssh/ssh_host_dsa_key ${USER} ${GROUP} 600
-  checkfile ${ETCPREFIX}/openssh/ssh_host_dsa_key.pub ${USER} ${GROUP} 600
-  checkfile ${ETCPREFIX}/openssh/ssh_host_rsa_key ${USER} ${GROUP} 600
-  checkfile ${ETCPREFIX}/openssh/ssh_host_rsa_key.pub ${USER} ${GROUP} 600
-  checkfile ${ETCPREFIX}/openssh/sshd_config ${USER} ${GROUP} 600
-  checkfile ${ETCPREFIX}/openssh/start_sshd.sh ${USER} ${GROUP} 750
-  checkfile ${ETCPREFIX}/woodstock-user root ${GROUP} 755
-  checkfile ${ETCPREFIX}/woodstock-user/.ssh root ${GROUP} 755
-  checkfile ${ETCPREFIX}/woodstock-user/.ssh/authorized_keys ${USER} ${GROUP} 600
 fi
 
 migrate ${CONFIGFILE} ${RULESFILE}

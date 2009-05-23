@@ -25,7 +25,9 @@ build=build
 bin=bin
 deb=deb
 src=src/java
+src-generated=src/java-generated
 classes=${build}/classes
+protoc=__PROTOC__
 
 # Install Properties
 install.prefix=__PREFIX__
@@ -33,12 +35,11 @@ install.etc.prefix=__ETCPREFIX__
 install.var.prefix=__VARPREFIX__
 install.lib.prefix=${install.prefix}/lib
 install.bin.prefix=${install.prefix}/bin
-install.ssh.conf.dir=${install.etc.prefix}/openssh
-install.ssh.user.dir=${install.etc.prefix}/woodstock-user/.ssh
 install.user=__USER__
 install.group=__GROUP__
-install.woodstock.user=woodstock
 agent.jarfile=${build}/agent.jar
 agent-src.jarfile=${build}/agent-src.jar
 protocol.jarfile=${build}/protocol.jar
 protocol-src.jarfile=${build}/protocol-src.jar
+registration-src.jarfile=${build}/registration-v3-src.jar
+registration.jarfile=${build}/registration-v3.jar

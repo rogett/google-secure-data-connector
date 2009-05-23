@@ -18,7 +18,6 @@
 set -e
 
 PKG_NAME="google-secure-data-connector"
-WOODSTOCK_HOME="/etc/opt/$PKG_NAME/woodstock-user"
 LOGDIR="/var/opt/$PKG_NAME/log"
 RULES_DIR="/var/opt/$PKG_NAME"
 CLIENT_USER=securedataconnector
@@ -26,8 +25,6 @@ CLIENT_GROUP=securedataconnector
 
 if [ "$1" = "configure" ]; then
   # Set up the user to access the client
-  adduser --system --quiet --group --home $WOODSTOCK_HOME --no-create-home \
-    woodstock || :
   adduser --system --quiet --group --home /home/$CLIENT_USER --no-create-home \
    --shell /bin/bash $CLIENT_USER || :
 
@@ -56,26 +53,6 @@ if [ "$1" = "configure" ]; then
   chmod 640 /etc/opt/$PKG_NAME/localConfig.xml
   chmod 640 /etc/opt/$PKG_NAME/resourceRules.xml 
 
-  chown -R root:root /etc/opt/$PKG_NAME/openssh
-  chmod 600 /etc/opt/$PKG_NAME/openssh/ssh_host_dsa_key
-  chmod 600 /etc/opt/$PKG_NAME/openssh/ssh_host_dsa_key.pub
-  chmod 600 /etc/opt/$PKG_NAME/openssh/ssh_host_rsa_key
-  chmod 600 /etc/opt/$PKG_NAME/openssh/ssh_host_rsa_key.pub
-  chmod 750 /etc/opt/$PKG_NAME/openssh/start_sshd.sh
-  chmod 600 /etc/opt/$PKG_NAME/woodstock-user/.ssh/authorized_keys 
- 
-  # Configure sshd_config
-  /etc/opt/$PKG_NAME/openssh/configure_sshdconf.sh
-  chmod 600 /etc/opt/$PKG_NAME/openssh/sshd_config
-
-  chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/$PKG_NAME/openssh/ssh_host_dsa_key
-  chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/$PKG_NAME/openssh/ssh_host_dsa_key.pub
-  chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/$PKG_NAME/openssh/ssh_host_rsa_key
-  chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/$PKG_NAME/openssh/ssh_host_rsa_key.pub
-  chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/$PKG_NAME/openssh/start_sshd.sh 
-  chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/$PKG_NAME/openssh/sshd_config
-  chown -R $CLIENT_USER:$CLIENT_GROUP /etc/opt/$PKG_NAME/woodstock-user/.ssh/authorized_keys 
- 
   # Check for java
   echo "Checking for Java..."
   if [ ${JAVA_HOME} ]; then

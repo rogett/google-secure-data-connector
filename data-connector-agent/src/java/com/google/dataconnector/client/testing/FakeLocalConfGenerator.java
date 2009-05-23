@@ -14,7 +14,6 @@
  */ 
 package com.google.dataconnector.client.testing;
 
-import com.google.dataconnector.registration.v2.AuthRequest;
 import com.google.dataconnector.util.LocalConf;
 import com.google.feedserver.client.FeedServerEntry;
 import com.google.feedserver.util.ContentUtil;
@@ -61,8 +60,6 @@ public class FakeLocalConfGenerator {
 
     FeedServerEntry configEntry = new FeedServerEntry(CONFIG_XML);
     fakeLocalConf = new LocalConf();
-    // TODO: write tests for LocalConf.AuthType.PASSWORD also
-    fakeLocalConf.setAuthType(AuthRequest.AuthType.PASSWORD);
     ContentUtil contentUtil = new ContentUtil();
     try {
       contentUtil.fillBean((OtherContent) configEntry.getContent(), fakeLocalConf);

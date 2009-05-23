@@ -14,7 +14,7 @@
  */ 
 package com.google.dataconnector.client;
 
-import com.google.dataconnector.registration.v2.ResourceRule;
+import com.google.dataconnector.registration.v3.ResourceRule;
 import com.google.dataconnector.util.ClientGuiceModule;
 import com.google.dataconnector.util.ConnectionException;
 import com.google.dataconnector.util.HealthCheckRequestHandler;
@@ -38,7 +38,7 @@ import javax.net.ssl.SSLSocketFactory;
  * Secure Data Connector: 
  * 
  * 1) The "secure data connection" to the server which provides the transport from the server
- * side back to the client.  see {@link SecureDataConnection}
+ * side back to the client.  see {@link SdcConnection}
  * 2) The Socks 5 proxy which provides the network firewall to incoming network connections through
  * the secure data transport. see {@link JsocksStarter}
  * 3) The HTTP(S) proxy which provides the http firewall filtering for incoming http requests.
@@ -52,7 +52,8 @@ public class Client {
 
   /* Dependencies */
   private LocalConf localConfiguration;
-  private SecureDataConnection secureDataConnection;
+  private SdcConnection secureDataConnection;
+  private JsocksStarter jsocksStarter;
   
   /**
    * Creates a new client from the populated client configuration object.
@@ -64,9 +65,11 @@ public class Client {
    */
   @Inject
   public Client(LocalConf localConfiguration, List<ResourceRule> resourceRules, 
-      SSLSocketFactory sslSocketFactory, SecureDataConnection secureDataConnection) {
+      SSLSocketFactory sslSocketFactory, SdcConnection secureDataConnection,
+      JsocksStarter jsocksStarter) {
     this.localConfiguration = localConfiguration;
     this.secureDataConnection = secureDataConnection;
+    this.jsocksStarter = jsocksStarter;
   }
   
   /**
@@ -83,6 +86,7 @@ public class Client {
 	  Logger.getRootLogger().setLevel(Level.DEBUG);
     }
     
+    jsocksStarter.startJsocksProxy();
     secureDataConnection.connect();
   }
   
@@ -95,7 +99,8 @@ public class Client {
   public static void main(String[] args) {
     // Bootstrap logging system
     PropertyConfigurator.configure(getBootstrapLoggingProperties());
-    final Injector injector = Guice.createInjector(new ClientGuiceModule(args));
+    ClientGuiceModule.setArgs(args);
+    Injector injector = new ClientGuiceModule.InjectorProvider().get();
     
     try {
       // start the healthcheck service before we do anything else.
