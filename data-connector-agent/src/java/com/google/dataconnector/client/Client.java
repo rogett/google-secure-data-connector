@@ -48,7 +48,7 @@ import javax.net.ssl.SSLSocketFactory;
 public class Client {
   
   // Logging instance
-  private static final Logger log = Logger.getLogger(Client.class);
+  private static final Logger LOG = Logger.getLogger(Client.class);
 
   /* Dependencies */
   private LocalConf localConfiguration;
@@ -86,8 +86,15 @@ public class Client {
 	  Logger.getRootLogger().setLevel(Level.DEBUG);
     }
     
-    jsocksStarter.startJsocksProxy();
-    secureDataConnection.connect();
+    try {
+      jsocksStarter.startJsocksProxy();
+      secureDataConnection.connect();
+    } catch (ConnectionException e) {
+      LOG.info(e);
+    } finally {
+      LOG.info("Exiting agent.");
+      System.exit(1);
+    }
   }
   
   /**
@@ -108,9 +115,9 @@ public class Client {
       // Create the client instance and start services
       injector.getInstance(Client.class).startUp();
     } catch (IOException e) {
-      log.fatal("Connection error.", e);
+      LOG.fatal("Connection error.", e);
     } catch (ConnectionException e) {
-      log.fatal("Client connection failure.", e);
+      LOG.fatal("Client connection failure.", e);
     }
   }
   
