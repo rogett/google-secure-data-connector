@@ -66,5 +66,30 @@ message RegistrationInfo {
   // response.
   optional string statusMessage = 2;
   optional ResultCode result = 3;  
+  optional ServerSuppliedConf serverSuppliedConf = 4;
   
+}
+
+message ServerSuppliedConf {
+  optional int32 healthCheckTimeout = 4;
+  optional int32 healthCheckWakeUpInterval = 5;
+} 
+
+message HealthCheckInfo {
+  
+  enum Source {
+    CLIENT = 1;
+    SERVER = 2;
+  }
+  
+  enum Type {
+    REQUEST = 1;
+    RESPONSE = 2;
+  }
+  
+  optional int64 timeStamp = 1;
+  
+  // server provided configuration parameters.
+  optional Source source = 2;
+  optional Type type = 3;
 }

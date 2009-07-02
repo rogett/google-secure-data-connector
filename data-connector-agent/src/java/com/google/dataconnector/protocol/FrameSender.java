@@ -38,7 +38,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class FrameSender extends Thread {
 
-  private static final Logger LOG = Logger.getLogger(FrameReceiver.class);
+  private static final Logger LOG = Logger.getLogger(FrameSender.class);
 
   private BlockingQueue<FrameInfo> sendQueue;
   
@@ -99,14 +99,20 @@ public class FrameSender extends Thread {
 
     // Add frame start.
     outputStream.write(FrameReceiver.FRAME_START);
+    LOG.debug("Start byte: " + FrameReceiver.FRAME_START);
     // Add magic.
     outputStream.write(FrameReceiver.MAGIC);
+    LOG.debug("Magic: " + FrameReceiver.MAGIC);
     // Add sequence number.
     dataOutputStream.writeLong(sequence);
+    LOG.debug("sequence: " + sequence);
     // Add length value
     dataOutputStream.writeInt(frameInfoBytes.length);
+    LOG.debug("payload length: " + frameInfoBytes.length);
     // Add frame info pb raw bytes.
     outputStream.write(frameInfoBytes);
+    LOG.debug("payload: " + frameInfoBytes);
+    LOG.debug("frame:\n" + frameInfo.toString());
     // Update bytes sent counter if one has been supplied.
     if (byteCounter != null) {
       byteCounter.addAndGet(FrameReceiver.HEADER_SIZE + frameInfoBytes.length);

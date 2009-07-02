@@ -19,6 +19,7 @@ import com.google.dataconnector.protocol.FrameSender;
 import com.google.dataconnector.protocol.FramingException;
 import com.google.dataconnector.protocol.proto.SdcFrame.FrameInfo;
 import com.google.dataconnector.protocol.proto.SdcFrame.RegistrationInfo;
+import com.google.dataconnector.protocol.proto.SdcFrame.ServerSuppliedConf;
 import com.google.dataconnector.util.RegistrationException;
 
 import com.google.inject.Inject;
@@ -58,9 +59,10 @@ public class Registration {
    * 
    * @param frameReceiver the frame receiver to use to receive registration response.
    * @param frameSender the frame sender to use to send the registration response.
+   * @returns the server provided configuration.
    * @throws RegistrationException if registration fails or there is a communication error.
    */
-  public void register(FrameReceiver frameReceiver, FrameSender frameSender) 
+  public ServerSuppliedConf register(FrameReceiver frameReceiver, FrameSender frameSender) 
       throws RegistrationException {
     
     try {
@@ -81,8 +83,9 @@ public class Registration {
         throw new RegistrationException("Registration failed: " + 
             responseRegistrationFrame.getStatusMessage());
       }
+      
       LOG.info("registration successful");
-      return;
+      return responseRegistrationFrame.getServerSuppliedConf();
     } catch (JSONException e) {
       throw new RegistrationException(e);
     } catch (ResourceException e) {

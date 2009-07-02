@@ -102,6 +102,7 @@ public class FrameReceiver {
     try {
       // Read start byte.
       int startIndicator = inputStream.read();
+      LOG.debug("Start byte: " + startIndicator);
       if ((byte) startIndicator != FRAME_START) {
         throw new FramingException("Unexpected frame start read"); 
       }
@@ -110,6 +111,7 @@ public class FrameReceiver {
       byte[] magic = new byte[MAGIC.length];
       readBytes(magic, MAGIC.length);
       String magicString = new String(magic);
+      LOG.debug("Magic: " + magicString);
       if (!new String(magic).equals(new String(MAGIC))) {
         throw new FramingException("Unexpected frame magic read"); 
       }
@@ -117,6 +119,7 @@ public class FrameReceiver {
 
       // Read sequence, verify and increment.
       long readSequence = dataInputStream.readLong();
+      LOG.debug("sequence: " + readSequence);
       if (readSequence == sequence) {
         sequence++;
       } else {
@@ -126,6 +129,7 @@ public class FrameReceiver {
 
       // Read and verify payload length.
       int payloadLength = dataInputStream.readInt();
+      LOG.debug("payload length: " + payloadLength);
       if (payloadLength < 0 || payloadLength > MAX_FRAME_SIZE) {
         throw new FramingException("Payload length invalid.");
       }
@@ -141,9 +145,12 @@ public class FrameReceiver {
         byteCounter.addAndGet(HEADER_SIZE + payloadLength);
       }
       
+      LOG.debug("payload: " + payload);
       // Parse the payload into a FrameInfo and return it.
       try {
-        return  FrameInfo.parseFrom(payload);
+        FrameInfo frameInfo = FrameInfo.parseFrom(payload);
+        LOG.debug("frame:\n" + frameInfo.toString());
+        return  frameInfo;
       } catch (InvalidProtocolBufferException e) {
         throw new FramingException(e);
       }

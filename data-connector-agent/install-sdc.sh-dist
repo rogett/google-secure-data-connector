@@ -60,7 +60,7 @@ chmod -R 755 ${BINPREFIX}
 
 
 # lib
-for jar in "registration-v3.jar" "agent.jar" "protocol.jar"; do
+for jar in "agent.jar" "protocol-generated.jar"; do
   echo installing ${jar} 
   install -m 644 build/${jar} ${LIBPREFIX}/${jar}
 done

@@ -14,14 +14,17 @@
  */ 
 package com.google.dataconnector.client;
 
+import com.google.dataconnector.client.HealthCheckHandler.FailCallback;
 import com.google.dataconnector.protocol.FrameReceiver;
 import com.google.dataconnector.protocol.FrameSender;
 import com.google.dataconnector.protocol.FramingException;
 import com.google.dataconnector.protocol.proto.SdcFrame.AuthorizationInfo;
 import com.google.dataconnector.protocol.proto.SdcFrame.FrameInfo;
+import com.google.dataconnector.protocol.proto.SdcFrame.ServerSuppliedConf;
 import com.google.dataconnector.registration.v3.Registration;
 import com.google.dataconnector.util.ConnectionException;
 import com.google.dataconnector.util.LocalConf;
+import com.google.gdata.util.common.base.Preconditions;
 import com.google.inject.Inject;
 import com.google.protobuf.InvalidProtocolBufferException;
 
@@ -46,7 +49,7 @@ import javax.security.cert.X509Certificate;
  * 
  * @author rayc@google.com (Ray Colline)
  */
-public class SdcConnection {
+public class SdcConnection implements FailCallback {
 
   // Logging instance
   private static final Logger LOG = Logger.getLogger(SdcConnection.class);
@@ -67,7 +70,11 @@ public class SdcConnection {
   private FrameReceiver frameReceiver;
   private FrameSender frameSender;
   private Registration registration;
-  private SocksDataHandler socketDataHandler;
+  private SocksDataHandler socksDataHandler;
+  private HealthCheckHandler healthCheckHandler;
+  
+  // Fields
+  private SSLSocket socket;
   
   /**
    * Sets up a Secure Data connection to a Secure Link server with the supplied configuration.
@@ -82,13 +89,15 @@ public class SdcConnection {
       FrameReceiver frameReceiver, 
       FrameSender frameSender, 
       Registration registration, 
-      SocksDataHandler socketDataHandler) {
+      SocksDataHandler socksDataHandler,
+      HealthCheckHandler healthCheckHandler) {
     this.localConf = localConf;
     this.sslSocketFactory = sslSocketFactory;
     this.frameReceiver = frameReceiver;
     this.frameSender = frameSender;
     this.registration = registration;
-    this.socketDataHandler = socketDataHandler;
+    this.socksDataHandler = socksDataHandler;
+    this.healthCheckHandler = healthCheckHandler;
   }
 
   /**
@@ -103,7 +112,7 @@ public class SdcConnection {
 
     try {
       // Setup SSL connection and verify.
-      SSLSocket socket = (SSLSocket) sslSocketFactory.createSocket();
+      socket = (SSLSocket) sslSocketFactory.createSocket();
       socket.setEnabledCipherSuites(SECURE_CIPHER_SUITE);
       // wait for 30 sec to connect. is that too long?
       socket.connect(new InetSocketAddress(localConf.getSdcServerHost(),
@@ -129,13 +138,22 @@ public class SdcConnection {
       if (!authorize()) {
         throw new ConnectionException("Authorization failed");
       }
-      
       LOG.info("Successful login");
       
       // Register 
-      registration.register(frameReceiver, frameSender);
-      socketDataHandler.setFrameSender(frameSender);
-      frameReceiver.registerDispatcher(FrameInfo.Type.SOCKET_DATA, socketDataHandler);
+      ServerSuppliedConf serverSuppliedConf = registration.register(frameReceiver, frameSender);
+      
+      // Setup Healthcheck
+      healthCheckHandler.setFrameSender(frameSender);
+      healthCheckHandler.setFailCallback(this);
+      healthCheckHandler.setServerSuppliedConf(serverSuppliedConf);
+      frameReceiver.registerDispatcher(FrameInfo.Type.HEALTH_CHECK, healthCheckHandler);
+      healthCheckHandler.start();
+      
+      // Setup Socket Data.
+      socksDataHandler.setFrameSender(frameSender);
+      frameReceiver.registerDispatcher(FrameInfo.Type.SOCKET_DATA, socksDataHandler);
+      
       frameReceiver.startDispatching();
     } catch (IOException e) {
       throw new ConnectionException(e);
@@ -227,6 +245,20 @@ public class SdcConnection {
 
     } catch (InvalidNameException e) {
       throw new ConnectionException(e);
+    }
+  }
+
+  /**
+   * Closes underlying socket for this SDC connection.  Which shuts down the SDC agent. 
+   */
+  @Override
+  public void handleFailure() {
+    Preconditions.checkNotNull(socket, "Socket should not be null when handleFailure is called.");
+    try {
+      LOG.error("Closing SDC connection due to health check failure.");
+      socket.close();
+    } catch (IOException e) {
+      LOG.fatal("Could not close socket upon health check failure!");
     }
   }
 }

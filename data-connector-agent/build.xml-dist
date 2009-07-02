@@ -150,8 +150,7 @@ Build File for Secure Data Connector client and reference server.
     <jar jarfile="${agent.jarfile}">
       <fileset dir="${classes}">
         <include name="**"/>
-        <exclude name="com/google/dataconnector/registration/**"/>
-        <exclude name="com/google/dataconnector/protocol/**"/>
+        <exclude name="com/google/dataconnector/protocol/proto/**"/>
       </fileset>
       <manifest>
         <attribute name="Implementation-Title" value="Secure Data Connector"/>
@@ -162,19 +161,12 @@ Build File for Secure Data Connector client and reference server.
       </manifest>
     </jar>
 
-    <jar jarfile="${registration.jarfile}">
-      <fileset dir="${classes}" includes="com/google/dataconnector/registration/**"/>
+    <jar jarfile="${generated.protocol.jarfile}">
+      <fileset dir="${classes}">
+        <include name="com/google/dataconnector/protocol/proto/**"/>
+      </fileset>
       <manifest>
-        <attribute name="Implementation-Title" value="Secure Data Connector Registration Utils"/>
-        <attribute name="Implementation-Version" value="SDC ${version} Built: ${buildstamp}"/>
-        <attribute name="Implementation-Vendor" value="Google"/>
-      </manifest>
-    </jar>
-
-    <jar jarfile="${protocol.jarfile}">
-      <fileset dir="${classes}" includes="com/google/dataconnector/protocol/**"/>
-      <manifest>
-        <attribute name="Implementation-Title" value="Secure Data Connector Protocol"/>
+        <attribute name="Implementation-Title" value="Secure Data Connector Protocol Generated Files"/>
         <attribute name="Implementation-Version" value="SDC ${version} Built: ${buildstamp}"/>
         <attribute name="Implementation-Vendor" value="Google"/>
       </manifest>
@@ -188,33 +180,6 @@ Build File for Secure Data Connector client and reference server.
       </fileset>
       <manifest>
         <attribute name="Implementation-Title" value="Secure Data Connector"/>
-        <attribute name="Implementation-Version" value="SDC ${version} Built: ${buildstamp}"/>
-        <attribute name="Implementation-Vendor" value="Google"/>
-      </manifest>
-    </jar>
-
-    <tstamp/>
-    <jar jarfile="${protocol-src.jarfile}">
-      <fileset dir="${src}"> 
-        <include name="com/google/dataconnector/protocol/**" />
-      </fileset>
-      <fileset dir="${src-generated}"> 
-        <include name="com/google/dataconnector/protocol/**" />
-      </fileset>
-      <manifest>
-        <attribute name="Implementation-Title" value="Secure Data Connector Protocol"/>
-        <attribute name="Implementation-Version" value="SDC ${version} Built: ${buildstamp}"/>
-        <attribute name="Implementation-Vendor" value="Google"/>
-      </manifest>
-    </jar>
-
-    <tstamp/>
-    <jar jarfile="${registration-src.jarfile}">
-      <fileset dir="${src}"> 
-        <include name="com/google/dataconnector/registration/**" />
-      </fileset>
-      <manifest>
-        <attribute name="Implementation-Title" value="Secure Data Connector Registration Utils"/>
         <attribute name="Implementation-Version" value="SDC ${version} Built: ${buildstamp}"/>
         <attribute name="Implementation-Vendor" value="Google"/>
       </manifest>
@@ -237,8 +202,7 @@ Build File for Secure Data Connector client and reference server.
   <path id="classpath.test">
     <pathelement location="${testClasses.home}" />
     <pathelement location="${agent.jarfile}" />
-    <pathelement location="${protocol.jarfile}" />
-    <pathelement location="${registration.jarfile}" />
+    <pathelement location="${generated.protocol.jarfile}" />
     <fileset dir="third-party">
       <include name="**/*.jar"/>
     </fileset>
