@@ -32,7 +32,7 @@ Build File for Secure Data Connector client and reference server.
 
   <!-- PROPERTIES -->
   <property name="version" value="1.0"/>
-  <property name="release" value="1"/>
+  <property name="release" value="2"/>
   <property name="name" value="google-secure-data-connector"/>
   <property name="sourcedir" value="distribute/dist/"/>
   <property name="projects.dir" value=".." />
