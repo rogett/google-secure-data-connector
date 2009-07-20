@@ -51,7 +51,7 @@ public class FrameReceiver {
   // Local fields
   private boolean dispatching;
   private long sequence = 0;
-  private static ConcurrentMap<FrameInfo.Type, Dispatchable> dispatchMap = 
+  private ConcurrentMap<FrameInfo.Type, Dispatchable> dispatchMap = 
       new ConcurrentHashMap<FrameInfo.Type, Dispatchable>();
   private DataInputStream dataInputStream; // used for byte to primitives conversion.
   
