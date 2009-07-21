@@ -14,8 +14,6 @@
  */ 
 package com.google.dataconnector.client;
 
-import com.google.dataconnector.registration.v3.ResourceRule;
-import com.google.dataconnector.registration.v3.ResourceRuleUtil;
 import com.google.dataconnector.util.LocalConf;
 import com.google.dataconnector.util.Rfc1929SdcAuthenticator;
 import com.google.inject.Inject;
@@ -26,11 +24,8 @@ import net.sourceforge.jsocks.socks.ProxyServer;
 
 import org.apache.log4j.Logger;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.List;
 import java.util.Properties;
 
 /**
@@ -58,13 +53,12 @@ public class JsocksStarter extends Thread {
    * Configures the SOCKS User/Password authenticator based on the rules provided
    *
    * @param localConfiguration the local configuration object.   
-   * @param resourceRules the rule sets.
    * @param rfc1929SdcAuthenticator the 
    * @param socksProperties 
    */
   @Inject
-  public JsocksStarter(LocalConf localConfiguration, List<ResourceRule> resourceRules,
-      ResourceRuleUtil resourceRuleUtil, Rfc1929SdcAuthenticator rfc1929SdcAuthenticator, 
+  public JsocksStarter(LocalConf localConfiguration, 
+      Rfc1929SdcAuthenticator rfc1929SdcAuthenticator, 
       @Named("Socks Properties") Properties socksProperties) {
     this.localConfiguration = localConfiguration;
     this.rfc1929SdcAuthenticator = rfc1929SdcAuthenticator;

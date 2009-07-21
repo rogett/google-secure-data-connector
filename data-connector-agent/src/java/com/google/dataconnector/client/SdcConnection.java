@@ -14,6 +14,7 @@
  */ 
 package com.google.dataconnector.client;
 
+import com.google.common.base.Preconditions;
 import com.google.dataconnector.client.HealthCheckHandler.FailCallback;
 import com.google.dataconnector.protocol.FrameReceiver;
 import com.google.dataconnector.protocol.FrameSender;
@@ -24,7 +25,7 @@ import com.google.dataconnector.protocol.proto.SdcFrame.ServerSuppliedConf;
 import com.google.dataconnector.registration.v3.Registration;
 import com.google.dataconnector.util.ConnectionException;
 import com.google.dataconnector.util.LocalConf;
-import com.google.gdata.util.common.base.Preconditions;
+import com.google.dataconnector.util.SSLSocketFactoryInit;
 import com.google.inject.Inject;
 import com.google.protobuf.InvalidProtocolBufferException;
 
@@ -65,34 +66,38 @@ public class SdcConnection implements FailCallback {
      SdcConnection.class.getPackage().getImplementationVersion() + "\n";
 
   // Dependencies.
-  private LocalConf localConf;
-  private SSLSocketFactory sslSocketFactory;
-  private FrameReceiver frameReceiver;
-  private FrameSender frameSender;
-  private Registration registration;
-  private SocksDataHandler socksDataHandler;
-  private HealthCheckHandler healthCheckHandler;
+  private final LocalConf localConf;
+  private final SSLSocketFactoryInit sslSocketFactoryInit;
+  private final FrameReceiver frameReceiver;
+  private final FrameSender frameSender;
+  private final Registration registration;
+  private final SocksDataHandler socksDataHandler;
+  private final HealthCheckHandler healthCheckHandler;
   
   // Fields
   private SSLSocket socket;
   
-  /**
-   * Sets up a Secure Data connection to a Secure Link server with the supplied configuration.
-   * @param frameReceiver 
-   * @param frameSender 
-   * @param registration 
-   * @param socketDataHandler 
-   */
+ /**
+  *  Sets up a Secure Data connection to a Secure Link server with the supplied configuration.
+  *  
+  * @param localConf
+  * @param sslSocketFactoryInit
+  * @param frameReceiver
+  * @param frameSender
+  * @param registration
+  * @param socksDataHandler
+  * @param healthCheckHandler
+  */
   @Inject
   public SdcConnection(LocalConf localConf,
-      SSLSocketFactory sslSocketFactory, 
+      SSLSocketFactoryInit sslSocketFactoryInit, 
       FrameReceiver frameReceiver, 
       FrameSender frameSender, 
       Registration registration, 
       SocksDataHandler socksDataHandler,
       HealthCheckHandler healthCheckHandler) {
     this.localConf = localConf;
-    this.sslSocketFactory = sslSocketFactory;
+    this.sslSocketFactoryInit = sslSocketFactoryInit;
     this.frameReceiver = frameReceiver;
     this.frameSender = frameSender;
     this.registration = registration;
@@ -108,10 +113,12 @@ public class SdcConnection implements FailCallback {
    * @throws ConnectionException if and error occurs with authorization or registration.
    */
   public void connect() throws ConnectionException {
-    LOG.info("Connecting to server");
+    LOG.info("Connecting to SDC server");
 
     try {
       // Setup SSL connection and verify.
+      LOG.debug("setting up SSLSocket with customized SSLSocketFacory");
+      SSLSocketFactory sslSocketFactory = sslSocketFactoryInit.getSslSocketFactory(localConf);
       socket = (SSLSocket) sslSocketFactory.createSocket();
       socket.setEnabledCipherSuites(SECURE_CIPHER_SUITE);
       // wait for 30 sec to connect. is that too long?

@@ -56,11 +56,11 @@ public class SocksDataHandler implements Dispatchable {
   public static Logger LOG = Logger.getLogger(SocksDataHandler.class);
 
   // Injected dependencies
-  private SocketFactory socketFactory;
-  private LocalConf localConf;
-  private InetAddress localHostAddress;
-  private ThreadPoolExecutor threadPoolExecutor;
-  private Injector injector; 
+  private final SocketFactory socketFactory;
+  private final LocalConf localConf;
+  private final InetAddress localHostAddress;
+  private final ThreadPoolExecutor threadPoolExecutor;
+  private final Injector injector; 
   
   // Runtime dependencies
   private FrameSender frameSender;

@@ -14,6 +14,7 @@
  */ 
 package com.google.dataconnector.registration.v3;
 
+import com.google.dataconnector.client.ResourceRuleProcessor;
 import com.google.dataconnector.protocol.FrameReceiver;
 import com.google.dataconnector.protocol.FrameSender;
 import com.google.dataconnector.protocol.FramingException;
@@ -21,14 +22,11 @@ import com.google.dataconnector.protocol.proto.SdcFrame.FrameInfo;
 import com.google.dataconnector.protocol.proto.SdcFrame.RegistrationInfo;
 import com.google.dataconnector.protocol.proto.SdcFrame.ServerSuppliedConf;
 import com.google.dataconnector.util.RegistrationException;
-
 import com.google.inject.Inject;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import org.apache.log4j.Logger;
 import org.json.JSONException;
-
-import java.util.List;
 
 /**
  * Handles registration for SDC agent.  Prepares the resource rules into a {@link RegistrationInfo}
@@ -44,13 +42,13 @@ public class Registration {
   private static final Logger LOG = Logger.getLogger(Registration.class);
   
   private RegistrationRequest registrationRequest;
-  private List<ResourceRule> resourceRules;
+  private ResourceRuleProcessor resourceRuleProcessor;
 
   @Inject
   public Registration(RegistrationRequest registrationRequest, 
-      List<ResourceRule> resourceRules) {
+      ResourceRuleProcessor resourceRuleProcessor) {
     this.registrationRequest = registrationRequest;
-    this.resourceRules = resourceRules;
+    this.resourceRuleProcessor = resourceRuleProcessor;
   }
    
   /**
@@ -68,7 +66,7 @@ public class Registration {
     try {
       // TODO(rayc) Remove need for registrationRequest v2 stuff.  Directly use the protobuf.
       // Prepare reg request.
-      registrationRequest.populateFromResources(resourceRules);
+      registrationRequest.populateFromResources(resourceRuleProcessor.getResourceRules());
       RegistrationInfo registrationFrame = RegistrationInfo.newBuilder()
           .setXml(registrationRequest.toJson().toString()).build();
       
@@ -84,7 +82,8 @@ public class Registration {
             responseRegistrationFrame.getStatusMessage());
       }
       
-      LOG.info("registration successful");
+      LOG.info("registration successful. Received config info from the SDC server\n" +
+          responseRegistrationFrame.getServerSuppliedConf().toString());
       return responseRegistrationFrame.getServerSuppliedConf();
     } catch (JSONException e) {
       throw new RegistrationException(e);

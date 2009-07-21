@@ -15,6 +15,9 @@
 
 package com.google.dataconnector.util;
 
+import com.google.gdata.util.common.base.Preconditions;
+import com.google.inject.Inject;
+
 import net.sourceforge.jsocks.socks.ProxyMessage;
 import net.sourceforge.jsocks.socks.server.ServerAuthenticator;
 import net.sourceforge.jsocks.socks.server.ServerAuthenticatorNone;
@@ -27,15 +30,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
 /**
  * This class implements both authentication and Layer 4 IP rule enforcement for incoming SOCKS5 
  * connections.  It uses the RFC1929 specification however the user name is a JSON packet used a 
  * log vehicle, while the password is used a key that only allows access to the specified rule 
  * sets in the configuration.
+ * 
+ * this extends {@link ServerAuthenticatorNone} because all we really want from the superclass
+ * is one single method {@link ServerAuthenticatorNone#selectSocks5Authentication}.
  * 
  * @author rayc@google.com (Ray Colline)
  */
@@ -45,54 +48,29 @@ public class Rfc1929SdcAuthenticator extends ServerAuthenticatorNone {
    
    // RFC1929 Method ID
    static final int METHOD_ID = 2;
-
-   // HashMap that stores all the layer 4 rules associated with their unique key.
-   private HashMap<String,List<IpPortPair>> rulesMap;
-   
+  
    private String passKey; // RFC1929 password used to lookup rule set in the map.
    private String serverMetaData; // Raw JSON string from server
+   
+   /** the following are defined in the superclass {@link ServerAuthenticatorNone}
+    * but there are declared with new names because this class doesn't have access to 
+    * in, out members of the superclass.
+    */
+   private InputStream inStream;
+   private OutputStream outStream;
+   
+   /** injected dependency */
+   private final SdcKeysManager keyManager;
+   
+   /** 
+    * a constructor solely for Guice injection use and to get {@link SdcKeysManager}
+    * initialized.
+    */
+   @Inject
+   public Rfc1929SdcAuthenticator(SdcKeysManager keyManager) {
+     this.keyManager = keyManager;
+   }
 
-   /**
-    * Used to create instances returned from startSession in JSOCKS server..
-    * 
-    * @param in InputStream of socks connection.
-    * @param out OutputStream of socks connection.
-    * @param passKey the password provided by the client for this connection
-    * @param rulesMap the list of rules that are allowed for this server config.
-    */
-   Rfc1929SdcAuthenticator(InputStream in,OutputStream out, String passKey, 
-       HashMap<String,List<IpPortPair>> rulesMap, String userLogLine) {
-     super(in,out);
-     this.passKey = passKey;
-     this.rulesMap = rulesMap;   
-     this.serverMetaData = userLogLine;
-   }
-   
-   /**
-    * Initialize passkey map.
-    */
-   public Rfc1929SdcAuthenticator(){
-      rulesMap = new HashMap<String,List<IpPortPair>>();
-   }
-   
-  /**
-   * Adds a rule to the authenticator associating a password with an IP port pair.
-   * 
-   * @param key the key/password to associate with this rule
-   * @param ip a dotted-quad IP address.
-   * @param port an integer representing the allowed port.
-   */
-  public synchronized void add(String key, String ip, Integer port) {
-      IpPortPair ipPortPair = new IpPortPair(ip, port);
-    if (rulesMap.containsKey(key)) {
-      rulesMap.get(key).add(ipPortPair);
-    } else {
-      List<IpPortPair> ipPortPairList = new ArrayList<IpPortPair>();
-      ipPortPairList.add(ipPortPair);
-      rulesMap.put(key, ipPortPairList);
-    }
-  }
-  
   /**
    * Checks the destination IP and port specified in the {@link ProxyMessage} against the allowed 
    * IP:Port pair for this connection.  If its valid allow the connection to continue.  Reject all
@@ -103,6 +81,7 @@ public class Rfc1929SdcAuthenticator extends ServerAuthenticatorNone {
    */
   @Override
   public boolean checkRequest(ProxyMessage msg) {
+    Preconditions.checkNotNull(keyManager);
 
     // This shouldn't happen but we should check anyways.
     if (msg.version != 5) {
@@ -122,21 +101,11 @@ public class Rfc1929SdcAuthenticator extends ServerAuthenticatorNone {
     }
 
     // Is this a valid "secret key"
-    List<IpPortPair> ipPortPairList = rulesMap.get(passKey);
-    if (ipPortPairList == null) {
-      LOG.warn(msg.getConnectionId() + " Auth failed to " + msg.host + ":" + msg.port + 
-          " for rule ");
-      return false;
+    boolean rslt = keyManager.checkKeyIpPort(passKey, msg.host, msg.port);
+    if (!rslt) {
+      LOG.info("No key found. Rejecting access to " + msg.host + ":" + msg.port);
     }
-
-    // Check to see if the connection is allowed via IP rule set for this "secret key".
-    for (IpPortPair ipPortPair: ipPortPairList) {
-      if ((msg.host.equals(ipPortPair.getIp()) && (msg.port == ipPortPair.getPort()))) {
-        LOG.info(msg.getConnectionId() + " Authentication successful");
-        return true;
-      } 
-    }
-    return false;
+    return rslt;
   }
   
   /**
@@ -147,32 +116,19 @@ public class Rfc1929SdcAuthenticator extends ServerAuthenticatorNone {
    */
   @Override
   public ServerAuthenticator startSession(Socket s) throws IOException {
-    InputStream in = s.getInputStream();
-    OutputStream out = s.getOutputStream();
+    this.inStream = s.getInputStream();
+    this.outStream = s.getOutputStream();
 
-    if(in.read() != 5) return null; //Drop non version 5 messages.
-
-    if(!selectSocks5Authentication(in,out,METHOD_ID)) 
+    if(this.inStream.read() != 5) {
+      LOG.debug("received non-version 5 Socks msg. ignoring it.");
       return null;
-    if(!doUserPasswordAuthentication(s,in,out))
-      return null;
+    }
 
-    return new Rfc1929SdcAuthenticator(in, out, passKey, rulesMap, serverMetaData);
-  }
-  
-  /** 
-   * Get String representation of the PerPasswordIpAuthenticator including current key and rulesMap.
-   */
-  @Override
-  public String toString() {
-     String s = "Given Passkey: " + passKey + "\n";
-     
-     for (String key : rulesMap.keySet()) {
-       for (IpPortPair ipPortPair : rulesMap.get(key)) {
-         s += "Key: " + key + " Dest: " + ipPortPair.getIp() + ":" + ipPortPair.getPort() + "\n";
-       }
-     }
-     return s;
+    if(!selectSocks5Authentication(this.inStream, this.outStream, METHOD_ID) ||  
+       !doUserPasswordAuthentication(s, this.inStream, this.outStream)) {
+      return null;
+    }
+    return this;
   }
 
   /**
@@ -206,52 +162,29 @@ public class Rfc1929SdcAuthenticator extends ServerAuthenticatorNone {
     passKey = new String(password);
     
     // Verify passKey exists.
-    if (rulesMap.containsKey(passKey)) {
+    if (keyManager == null) {
+      LOG.debug("SDC server hasn't sent the keys yet. reject the request.");
+      return false;
+    }
+    if (keyManager.containsKey(passKey)) {
       // we have a passkey that matches, we will check the dest later
       out.write(new byte[]{1,0});
     } else {
       // failed auth, we have no passwords that match
+      LOG.debug("the key " + passKey + " is not recognized.");
       out.write(new byte[]{1,1});
       return false;
     }
     return true;
   }
 
-  /**
-   * Class to represent a the ip port pair.
-   * 
-   * @author rayc@google.com (Ray Colline)
-   */
-  public class IpPortPair {
-    // IP address in dot form most likely
-    private String ip;
+  @Override
+  public InputStream getInputStream() {
+    return inStream;
+  }
 
-    // Port
-    private int port;
-
-    /**
-     * Simple constructor 
-     * 
-     * @param ip a string representing a DNS name or dotted IP address
-     * @param port an int representing a TCP port.
-     */
-    public IpPortPair(String ip, int port) {
-      this.ip = ip;
-      this.port = port;
-    }
-
-    /**
-     * Returns the ip associated with this pair.
-     */
-    public String getIp() {
-      return this.ip;
-    }
-
-    /**
-     * Returns the port associated with this pair.
-     */
-    public int getPort() {
-      return this.port;
-    }
+  @Override
+  public OutputStream getOutputStream() {
+    return outStream;
   }
 }

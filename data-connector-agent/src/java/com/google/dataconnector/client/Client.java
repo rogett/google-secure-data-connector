@@ -14,12 +14,15 @@
  */ 
 package com.google.dataconnector.client;
 
-import com.google.dataconnector.registration.v3.ResourceRule;
+import com.google.dataconnector.registration.v3.ResourceException;
 import com.google.dataconnector.util.ClientGuiceModule;
 import com.google.dataconnector.util.ConnectionException;
 import com.google.dataconnector.util.HealthCheckRequestHandler;
 import com.google.dataconnector.util.LocalConf;
-import com.google.inject.Guice;
+import com.google.dataconnector.util.LocalConfException;
+import com.google.dataconnector.util.LocalConfValidator;
+import com.google.feedserver.util.BeanCliHelper;
+import com.google.feedserver.util.ConfigurationBeanException;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
@@ -27,11 +30,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
-import java.io.IOException;
-import java.util.List;
 import java.util.Properties;
-
-import javax.net.ssl.SSLSocketFactory;
 
 /**
  * Entry point class for starting the Secure Data Connector.  There are three components to the
@@ -48,78 +47,94 @@ import javax.net.ssl.SSLSocketFactory;
 public class Client {
   
   // Logging instance
-  private static final Logger LOG = Logger.getLogger(Client.class);
+  private static final Logger log = Logger.getLogger(Client.class);
+
+  private static final int ABNORMAL_EXIT = -1;
 
   /* Dependencies */
-  private LocalConf localConfiguration;
-  private SdcConnection secureDataConnection;
-  private JsocksStarter jsocksStarter;
+  private final LocalConf localConf;
+  private final SdcConnection secureDataConnection;
+  private final JsocksStarter jsocksStarter;
+  private final HealthCheckRequestHandler healthCheckRequestHandler;
+  private final ResourceRuleProcessor resourceRuleProcessor;
   
+ 
   /**
    * Creates a new client from the populated client configuration object.
-   * 
-   * @param localConfiguration the local configuration object.
-   * @param resourceRules runtime configured resource rules.
-   * @param sslSocketFactory 
-   * @param secureDataConnection
    */
   @Inject
-  public Client(LocalConf localConfiguration, List<ResourceRule> resourceRules, 
-      SSLSocketFactory sslSocketFactory, SdcConnection secureDataConnection,
-      JsocksStarter jsocksStarter) {
-    this.localConfiguration = localConfiguration;
+  public Client(LocalConf localConf, SdcConnection secureDataConnection,
+      JsocksStarter jsocksStarter, HealthCheckRequestHandler healthCheckRequestHandler,
+      ResourceRuleProcessor resourceRuleProcessor) {
+    this.localConf = localConf;
     this.secureDataConnection = secureDataConnection;
     this.jsocksStarter = jsocksStarter;
+    this.healthCheckRequestHandler = healthCheckRequestHandler;
+    this.resourceRuleProcessor = resourceRuleProcessor;
   }
   
+
   /**
-   * Starts 2 components in separate threads.
-   * 
-   * @throws IOException if any socket communication issues occur.
-   * @throws ConnectionException if login is incorrect or other Woodstock connection errors.
+   * This method starts the Client initialization.
    */
-  public void startUp() throws IOException, ConnectionException {
+  public void startup(String[] args, Injector injector) {
     
-    // Set log4j properties and watch for changes every min (default)
-    PropertyConfigurator.configureAndWatch(localConfiguration.getLog4jPropertiesFile());
-    if (localConfiguration.getDebug()) {
-	  Logger.getRootLogger().setLevel(Level.DEBUG);
+    // validate the localConf.xml file and the input args
+    try {
+      validateLocalConf(args);
+    } catch (LocalConfException e) {
+      log.fatal("Configuration error", e);
+      return;
+    } catch (ConfigurationBeanException e) {
+      log.fatal("Configuration error", e);
+      return;
     }
     
+    // Set log4j properties and watch for changes every minute (default)
+    PropertyConfigurator.configureAndWatch(localConf.getLog4jPropertiesFile());
+    if (localConf.getDebug()) {
+      Logger.getRootLogger().setLevel(Level.DEBUG);
+    }
+    
+    // start the healthcheck service
+    healthCheckRequestHandler.init();
+    
+    /* 
+     * process resource rules to make sure they are good.
+     */
     try {
-      jsocksStarter.startJsocksProxy();
+      resourceRuleProcessor.process();
+    } catch (ResourceException e) {
+      log.fatal("Configuration error", e);
+      return;
+    }
+    
+    // start jsocks thread
+    jsocksStarter.startJsocksProxy();
+    
+    // start main processing thread - to initiate connection/registration with the SDC server
+    try {
       secureDataConnection.connect();
     } catch (ConnectionException e) {
-      LOG.debug(e);
-      LOG.info("Connection exception: " + e.getMessage());
-    } finally {
-      LOG.info("Exiting agent.");
-      System.exit(1);
+      log.fatal("Startup error", e);
+      // the following is necessary because frameSender thread seems to be hanging around
+      // don't want to make that a daemon because it is shared by the server.
+      System.exit(ABNORMAL_EXIT);
     }
   }
-  
+
   /**
-   * Entry point for the Secure Data Connector binary.  Sets up logging, parses flags and
-   * creates ClientConf.
-   * 
-   * @param args
+   * validate the localConf.xml file and the input args
+   * @throws ConfigurationBeanException 
+   * @throws LocalConfException 
    */
-  public static void main(String[] args) {
-    // Bootstrap logging system
-    PropertyConfigurator.configure(getBootstrapLoggingProperties());
-    ClientGuiceModule.setArgs(args);
-    Injector injector = new ClientGuiceModule.InjectorProvider().get();
-    
-    try {
-      // start the healthcheck service before we do anything else.
-      injector.getInstance(HealthCheckRequestHandler.class).init();
-      // Create the client instance and start services
-      injector.getInstance(Client.class).startUp();
-    } catch (IOException e) {
-      LOG.fatal("Connection error.", e);
-    } catch (ConnectionException e) {
-      LOG.fatal("Client connection failure.", e);
-    }
+  private void validateLocalConf(String[] args) 
+      throws ConfigurationBeanException, LocalConfException {        
+    // Load configuration file and command line flags into beans
+    BeanCliHelper beanCliHelper = new BeanCliHelper();
+    beanCliHelper.register(localConf);
+    beanCliHelper.parse(args);
+    new LocalConfValidator().validate(localConf);
   }
   
   /**
@@ -135,5 +150,20 @@ public class Client {
     props.setProperty("log4j.appender.A.layout", "org.apache.log4j.PatternLayout");
     props.setProperty("log4j.appender.A.layout.ConversionPattern", "%d [%t] %-5p %c %x - %m%n");
     return props;
+  }
+  
+  
+  /**
+   * Entry point for the Secure Data Connector binary.  Sets up logging, parses flags and
+   * creates ClientConf.
+   * 
+   * @param args
+   */
+  public static void main(String[] args) {
+    // Bootstrap logging system
+    PropertyConfigurator.configure(getBootstrapLoggingProperties());
+    
+    Injector injector = ClientGuiceModule.getInjector();
+    injector.getInstance(Client.class).startup(args, injector);
   }
 }

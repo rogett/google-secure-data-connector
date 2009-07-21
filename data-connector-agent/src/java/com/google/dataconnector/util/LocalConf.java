@@ -16,12 +16,14 @@ package com.google.dataconnector.util;
 
 import com.google.feedserver.util.ConfigFile;
 import com.google.feedserver.util.Flag;
+import com.google.inject.Singleton;
 
 /**
  * Bean representing all the startup configuration for the agent.
  * 
  * @author rayc@google.com (Ray Colline)
  */
+@Singleton
 public class LocalConf {
   
   private static final String DEFAULT_GOOGLE_SDC_HOST = "apps-secure-data-connector.google.com";

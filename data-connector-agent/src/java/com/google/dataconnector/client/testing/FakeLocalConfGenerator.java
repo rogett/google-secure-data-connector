@@ -88,7 +88,7 @@ public class FakeLocalConfGenerator {
   }
   
   public static final String CONFIG_XML =  "<entity>\n" +
-    "<name>" + NAME +"</name>\n" +
+    "<ruleNum>" + NAME +"</ruleNum>\n" +
     "<rulesFile>" + RULES_FILE + "</rulesFile>\n" +
     "<sdcServerHost>" + SDC_SERVER_HOST + "</sdcServerHost>\n" +
     "<sdcServerPort>" + SDC_SERVER_PORT + "</sdcServerPort>\n" +
@@ -98,10 +98,7 @@ public class FakeLocalConfGenerator {
     "<sslKeyStorePassword>" + SSL_KEY_STORE_PASSWORD + "</sslKeyStorePassword>\n" +
     "<sslKeyStoreFile>" + SSL_KEY_STORE_FILE +"</sslKeyStoreFile>\n" +
     "<agentId>" + AGENT_ID + "</agentId>\n" +
-    "<sshd>\n" + SSHD + "</sshd>\n" +
-    "<httpProxyBindHost>" + HTTP_PROXY_BIND_HOST + "</httpProxyBindHost>\n" +
     "<socksServerPort>" + SOCKS_SERVER_PORT + "</socksServerPort>\n" +
-    "<socksdBindHost>" + SOCKSD_BIND_HOST + "</socksdBindHost>\n" +
     // We hard code socks properties and log properties because they are not used in our tests.
     "<socksProperties>\n" +
     "iddleTimeout    = 600000   # 10 minutes\n" +

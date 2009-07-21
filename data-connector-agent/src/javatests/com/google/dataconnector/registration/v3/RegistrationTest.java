@@ -14,6 +14,7 @@
  */ 
 package com.google.dataconnector.registration.v3;
 
+import com.google.dataconnector.client.ResourceRuleProcessor;
 import com.google.dataconnector.protocol.FrameReceiver;
 import com.google.dataconnector.protocol.FrameSender;
 import com.google.dataconnector.protocol.FramingException;
@@ -49,6 +50,7 @@ public class RegistrationTest extends TestCase {
   private FrameReceiver frameReceiver;
   private List<ResourceRule> resourceRules;
   private RegistrationRequest registrationRequest;
+  private ResourceRuleProcessor mockProcessResourceRules;
   
   private RegistrationInfo expectedRegistrationInfo;
   private RegistrationInfo expectedRegistrationResponseInfo;
@@ -84,11 +86,15 @@ public class RegistrationTest extends TestCase {
         .setPayload(expectedRegistrationResponseInfo.toByteString())
         .build());
     EasyMock.replay(frameReceiver);
+
+    mockProcessResourceRules = EasyMock.createMock(ResourceRuleProcessor.class);
+    EasyMock.expect(mockProcessResourceRules.getResourceRules()).andReturn(resourceRules);
+    EasyMock.replay(mockProcessResourceRules);
   }
   
   public void testSuccessfulRegistration() throws Exception {
     // Execute
-    Registration registration = new Registration(registrationRequest, resourceRules);
+    Registration registration = new Registration(registrationRequest, mockProcessResourceRules);
     // Will throw exceptions if there are any errors.
     registration.register(frameReceiver, frameSender);
     
@@ -112,7 +118,7 @@ public class RegistrationTest extends TestCase {
     EasyMock.replay(frameReceiver);
     
     // Execute
-    Registration registration = new Registration(registrationRequest, resourceRules);
+    Registration registration = new Registration(registrationRequest, mockProcessResourceRules);
     // Will throw exceptions if there are any errors.
     try {
       registration.register(frameReceiver, frameSender);
@@ -132,7 +138,7 @@ public class RegistrationTest extends TestCase {
     EasyMock.replay(frameReceiver);
     
     // Execute
-    Registration registration = new Registration(registrationRequest, resourceRules);
+    Registration registration = new Registration(registrationRequest, mockProcessResourceRules);
     // Will throw exceptions if there are any errors.
     try {
       registration.register(frameReceiver, frameSender);

@@ -29,7 +29,7 @@ public class HealthCheckRequestHandler extends Thread {
   
   public static Logger LOG = Logger.getLogger(HealthCheckRequestHandler.class.getName());
   
-  private ServerSocket serverSocket;
+  private final ServerSocket serverSocket;
   private boolean quit = false;
 
   @Inject
@@ -52,10 +52,8 @@ public class HealthCheckRequestHandler extends Thread {
   
   /**
    * Initializes the HealthCheckRequestHandler in a separate thread after opneing a ServerSocket
-   * 
-   * @throws IOException propagated from ServerSocket creation, if any exception
    */
-  public void init() throws IOException {
+  public void init() {
     
     // make this a daemon thread, so it quits when non-daemon threads exit.
     // TODO: make all daemon threads non-daemons and make them quit when they are told to,

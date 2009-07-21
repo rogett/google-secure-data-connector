@@ -202,11 +202,6 @@ sed -i ${template} -e 's^__USER__^'${USER}'^'
 sed -i ${template} -e 's^__GROUP__^'${GROUP}'^'
 chmod 755 $template
 
-# Edit build.xml
-template=build.xml
-cp build.xml-dist ${template}
-echo Generating ${template}
-
 # Create resourceRules.xml since we don't need to edit this file.
 cp config/resourceRules.xml-dist config/resourceRules.xml
 

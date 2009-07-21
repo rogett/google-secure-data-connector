@@ -14,8 +14,8 @@
  */ 
 package com.google.dataconnector.protocol;
 
+import com.google.common.base.Preconditions;
 import com.google.dataconnector.protocol.proto.SdcFrame.FrameInfo;
-import com.google.dataconnector.util.Preconditions;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import org.apache.log4j.Logger;

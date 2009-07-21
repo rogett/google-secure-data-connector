@@ -15,6 +15,8 @@
 package com.google.dataconnector.util;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -87,5 +89,15 @@ public class FileUtil {
   public void deleteFileOnExit(String filename) {
     File file = new File(filename); 
     file.deleteOnExit();
+  }
+  
+  /**
+   * returns a FileInputStream
+   * @param filename
+   * @return FileInputStream for the given file
+   * @throws FileNotFoundException 
+   */
+  public FileInputStream getFileInputStream(String filename) throws FileNotFoundException {
+    return new FileInputStream(filename);
   }
 }
