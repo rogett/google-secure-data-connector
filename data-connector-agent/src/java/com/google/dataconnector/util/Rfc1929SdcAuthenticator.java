@@ -31,7 +31,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.HashMap;
-import java.util.List;
 
 /**
  * This class implements both authentication and Layer 4 IP rule enforcement for incoming SOCKS5 
