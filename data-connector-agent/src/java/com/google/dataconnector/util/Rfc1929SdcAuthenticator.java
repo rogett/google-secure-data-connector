@@ -30,6 +30,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * This class implements both authentication and Layer 4 IP rule enforcement for incoming SOCKS5 
@@ -52,13 +54,6 @@ public class Rfc1929SdcAuthenticator extends ServerAuthenticatorNone {
    private String passKey; // RFC1929 password used to lookup rule set in the map.
    private String serverMetaData; // Raw JSON string from server
    
-   /** the following are defined in the superclass {@link ServerAuthenticatorNone}
-    * but there are declared with new names because this class doesn't have access to 
-    * in, out members of the superclass.
-    */
-   private InputStream inStream;
-   private OutputStream outStream;
-   
    /** injected dependency */
    private final SdcKeysManager keyManager;
    
@@ -71,6 +66,17 @@ public class Rfc1929SdcAuthenticator extends ServerAuthenticatorNone {
      this.keyManager = keyManager;
    }
 
+   /**
+    * Used to create instances returned from startSession in JSOCKS server..
+    */
+   Rfc1929SdcAuthenticator(InputStream in,OutputStream out, String passKey, 
+       SdcKeysManager keyManager, String userLogLine) {
+     super(in,out);
+     this.passKey = passKey;
+     this.keyManager = keyManager;   
+     this.serverMetaData = userLogLine;
+   }
+   
   /**
    * Checks the destination IP and port specified in the {@link ProxyMessage} against the allowed 
    * IP:Port pair for this connection.  If its valid allow the connection to continue.  Reject all
@@ -116,19 +122,17 @@ public class Rfc1929SdcAuthenticator extends ServerAuthenticatorNone {
    */
   @Override
   public ServerAuthenticator startSession(Socket s) throws IOException {
-    this.inStream = s.getInputStream();
-    this.outStream = s.getOutputStream();
+    InputStream in = s.getInputStream();
+    OutputStream out = s.getOutputStream();
 
-    if(this.inStream.read() != 5) {
-      LOG.debug("received non-version 5 Socks msg. ignoring it.");
-      return null;
-    }
+    if(in.read() != 5) return null; //Drop non version 5 messages.
 
-    if(!selectSocks5Authentication(this.inStream, this.outStream, METHOD_ID) ||  
-       !doUserPasswordAuthentication(s, this.inStream, this.outStream)) {
+    if(!selectSocks5Authentication(in,out,METHOD_ID)) 
       return null;
-    }
-    return this;
+    if(!doUserPasswordAuthentication(s,in,out))
+      return null;
+
+    return new Rfc1929SdcAuthenticator(in, out, passKey, keyManager, serverMetaData);
   }
 
   /**
@@ -176,15 +180,5 @@ public class Rfc1929SdcAuthenticator extends ServerAuthenticatorNone {
       return false;
     }
     return true;
-  }
-
-  @Override
-  public InputStream getInputStream() {
-    return inStream;
-  }
-
-  @Override
-  public OutputStream getOutputStream() {
-    return outStream;
   }
 }
