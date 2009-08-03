@@ -42,8 +42,12 @@ import javax.xml.parsers.ParserConfigurationException;
 public class ResourceRuleUtil {
 
   private static final String TOP_LEVEL_ELEMENT = "resourceRules";
-  private static final String ENTITY = "rule";
+  private static final String RULE = "rule";
   private static final String ALL = "all";
+  
+  // for old style resourceRules.xml, the following are used while parsing resourceRules.xml.
+  private static final String TOP_LEVEL_ELEMENT_FEED = "feed";
+  private static final String ENTITY = "entity";
 
   // Dependencies
   private XmlUtil xmlUtil;
@@ -84,11 +88,11 @@ public class ResourceRuleUtil {
       String myClientId) {
     List<ResourceRule> removalList = new ArrayList<ResourceRule>();
     for (ResourceRule resourceRule : resourceRules) {
-      if (!resourceRule.getClientId().equals(ALL) && 
-          !resourceRule.getClientId().equals(myClientId)) {
+      if (!resourceRule.getAgentId().equals(ALL) && 
+          !resourceRule.getAgentId().equals(myClientId)) {
         removalList.add(resourceRule);
       } else {
-        resourceRule.setClientId(myClientId);
+        resourceRule.setAgentId(myClientId);
       }
     }
     // Delete out the entries not for this client.
@@ -164,18 +168,45 @@ public class ResourceRuleUtil {
    * @return a list of {@link ResourceRule}.
    * @throws ResourceException if any XML parsing or conversion errors occur.
    */
-  @SuppressWarnings("unchecked")
   public List<ResourceRule> getResourceRules(String xmlFeedText) throws ResourceException {
+    List<ResourceRule> resourceRules = parseRules(xmlFeedText, TOP_LEVEL_ELEMENT);
+    
+    // if there are no resources found, maybe the resourcesfile has old style rules
+    //   i.e., the top level element being "feed" not "resourceRules".
+    if (resourceRules.size() == 0) {
+      resourceRules = parseRules(xmlFeedText, TOP_LEVEL_ELEMENT_FEED);
+    }
+    return resourceRules;
+  }
+  
+  // suppress type-safety warnings due to XmlUtil returning Objects when XML is parsed
+  @SuppressWarnings("unchecked")
+  public List<ResourceRule> parseRules(String xmlFeedText, String rootElement) 
+      throws ResourceException {
     List<ResourceRule> resourceRules = new ArrayList<ResourceRule>();
     try {
-      Map<String,Object> entities = xmlUtil.convertXmlToProperties(xmlFeedText, TOP_LEVEL_ELEMENT);
-      if (entities.containsKey(ENTITY)) {
-        if (entities.get(ENTITY) instanceof Object[]) { 
-          for (Object ruleProperties :  (Object[]) entities.get(ENTITY)) {
-            if (ruleProperties instanceof HashMap) {
-              ResourceRule resourceRule = new ResourceRule();  
-              beanUtil.convertPropertiesToBean((HashMap) ruleProperties, resourceRule);
-              resourceRules.add(resourceRule);
+      Map<String,Object> entities = xmlUtil.convertXmlToProperties(xmlFeedText, rootElement);
+      if (entities.containsKey(ENTITY) || entities.containsKey(RULE)) {
+        if (entities.get(ENTITY) instanceof Object[] || entities.get(RULE) instanceof Object[]) {
+          // parse "rule" objects
+          if (entities.containsKey(RULE)) {
+            for (Object ruleProperties :  (Object[]) entities.get(RULE)) {
+              if (ruleProperties instanceof HashMap) {
+                ResourceRule resourceRule = new ResourceRule();  
+                beanUtil.convertPropertiesToBean((HashMap) ruleProperties, resourceRule);
+                resourceRules.add(resourceRule);
+              }
+            }
+          }
+          
+          // parse old-style resource rule "entity" objects, if any
+          if (entities.containsKey(ENTITY)) {
+            for (Object ruleProperties :  (Object[]) entities.get(ENTITY)) {
+              if (ruleProperties instanceof HashMap) {
+                ResourceRule resourceRule = new ResourceRule();  
+                beanUtil.convertPropertiesToBean((HashMap) ruleProperties, resourceRule);
+                resourceRules.add(resourceRule);
+              }
             }
           }
         }
@@ -280,22 +311,5 @@ public class ResourceRuleUtil {
     healthCheckRule.setPatternType(ResourceRule.URLEXACT);
     systemRules.add(healthCheckRule);
     return systemRules;
-  }
-  
-  /**
-   * For legacy clients, sets rule number from deprecated name. 
-   * TODO(rayc) remove when we deprecate TT2 and older clients.
-   */
-  @Deprecated
-  public void setRuleNumFromName(List<ResourceRule> resourceRules) throws ResourceException {
-    for (ResourceRule resourceRule : resourceRules) {
-      if (resourceRule.getName() != null) {
-        try {
-          resourceRule.setRuleNum(Integer.valueOf(resourceRule.getName()));
-        } catch (NumberFormatException e) {
-          throw new ResourceException(e);
-        }
-      }
-    }
   }
 }

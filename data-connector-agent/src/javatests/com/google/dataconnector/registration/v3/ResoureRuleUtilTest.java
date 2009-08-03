@@ -88,6 +88,35 @@ public class ResoureRuleUtilTest extends TestCase {
     verifyCommonResourceParams(expected, actual);
   }
   
+  public void testGetResourceRulesOldStyle() throws ResourceException {
+    List<ResourceRule> resourceRules = resourceRuleUtil.getResourceRules(
+        FakeResourceRuleConfig.CONFIG_RESOURCE_RULES_XML_OLDSTYLE);
+    
+    // Check Http Runtime - rule 0
+    ResourceRule expected = fakeResourceRuleConfig.getRuntimeHttpResourceRule();
+    ResourceRule actual = resourceRules.get(0);
+    assertEquals(expected.getRuleNum(), actual.getRuleNum());
+    assertEquals(expected.getPattern(), actual.getPattern());
+    assertEquals(expected.getHttpProxyPort(), actual.getHttpProxyPort());
+    verifyCommonResourceParams(expected, actual);
+    
+    // Socket Runtime - rule 1
+    expected = fakeResourceRuleConfig.getRuntimeSocketResourceRule();
+    actual = resourceRules.get(1);
+    assertEquals(expected.getRuleNum(), actual.getRuleNum());
+    assertEquals(expected.getPattern(), actual.getPattern());
+    assertNull(expected.getHttpProxyPort());
+    verifyCommonResourceParams(expected, actual);
+    
+    // URLEXACT Runtime - rule 2
+    expected = fakeResourceRuleConfig.getRuntimeUrlExactResourceRule();
+    actual = resourceRules.get(2);
+    assertEquals(expected.getRuleNum(), actual.getRuleNum());
+    assertEquals(expected.getPattern(), actual.getPattern());
+    assertEquals(expected.getHttpProxyPort(), actual.getHttpProxyPort());
+    verifyCommonResourceParams(expected, actual);
+  }
+  
   public void testGetResourceRuleFromEntityXml() throws ResourceException {
     ResourceRule actual = resourceRuleUtil.getResourceRuleFromEntityXml(
         FakeResourceRuleConfig.RUNTIME_RESOURCE_ENTITY_XML);

@@ -86,6 +86,11 @@ public class ResourceRuleProcessor {
       resourceRules = resourceRuleUtil.getResourceRules(
           new FileUtil().readFile(localConf.getRulesFile()));
       
+      if (resourceRules.size() == 0) {
+        // no resource rules? not good
+        throw new ResourceException("no resources found in the file: " + localConf.getRulesFile());
+      }
+      
       // Add System resource rules to the list
       LOG.info("Adding system resource rules");
       List<ResourceRule> systemRules = resourceRuleUtil.createSystemRules(localConf.getUser(),

@@ -226,56 +226,48 @@ public class FakeResourceRuleConfig {
     "</rule>\n" +
     "</resourceRules>\n" ;
   
-  public static final String RUNTIME_RESOURCE_RULES_XML = "<feed>\n" +
-    "<entity repeatable='true'>\n" +
-    "  <ruleNum>" + HTTP_RULE_NUM + "</ruleNum>\n" +
-    "  <clientId>" + AGENT_ID + "</clientId>\n" +
-    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
-    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
-    "  <apps repeatable='true'><container>" + APPID[0].getContainer() + "</container><appId>" + APPID[0].getAppId() + "</appId></apps>\n" +
-    "  <apps repeatable='true'><container>" + APPID[1].getContainer() + "</container><appId>" + APPID[1].getAppId() + "</appId></apps>\n" +
-    "  <pattern>" + HTTP_PATTERN + "</pattern>\n" +
-    "  <patternType>" + ResourceRule.HOSTPORT + "</patternType>\n" +
-    "  <socksServerPort>" + SOCKS_SERVER_PORT + "</socksServerPort>\n" +
-    "  <secretKey>" + SECRET_KEY +"</secretKey>\n" +
-    "</entity>\n" +
-    "<entity>\n" +
-    "  <ruleNum>" + SOCKET_RULE_NUM + "</ruleNum>\n" +
-    "  <clientId>" + AGENT_ID + "</clientId>\n" +
-    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
-    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
-    "  <apps repeatable='true'><container>" + APPID[0].getContainer() + "</container><appId>" + APPID[0].getAppId() + "</appId></apps>\n" +
-    "  <apps repeatable='true'><container>" + APPID[1].getContainer() + "</container><appId>" + APPID[1].getAppId() + "</appId></apps>\n" +
-    "  <pattern>" + SOCKET_PATTERN + "</pattern>\n" +
-    "  <patternType>" + ResourceRule.HOSTPORT + "</patternType>\n" +
-    "  <socksServerPort>" + SOCKS_SERVER_PORT + "</socksServerPort>\n" +
-    "  <secretKey>" + SECRET_KEY +"</secretKey>\n" +
-    "</entity>\n" +
-    "<entity>\n" +
-    "  <ruleNum>" + URL_EXACT_RULE_NUM + "</ruleNum>\n" +
-    "  <clientId>" + AGENT_ID + "</clientId>\n" +
-    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
-    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
-    "  <apps repeatable='true'><container>" + APPID[0].getContainer() + "</container><appId>" + APPID[0].getAppId() + "</appId></apps>\n" +
-    "  <apps repeatable='true'><container>" + APPID[1].getContainer() + "</container><appId>" + APPID[1].getAppId() + "</appId></apps>\n" +
-    "  <pattern>" + URL_EXACT_PATTERN + "</pattern>\n" +
-    "  <patternType>" + ResourceRule.URLEXACT + "</patternType>\n" +
-    "  <socksServerPort>" + SOCKS_SERVER_PORT + "</socksServerPort>\n" +
-    "  <secretKey>" + SECRET_KEY +"</secretKey>\n" +
-    "</entity>\n" +
-    "<entity>\n" +
-    "  <ruleNum>" + HTTPS_RULE_NUM + "</ruleNum>\n" +
-    "  <clientId>" + AGENT_ID + "</clientId>\n" +
-    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
-    "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
-    "  <apps repeatable='true'><container>" + APPID[0].getContainer() + "</container><appId>" + APPID[0].getAppId() + "</appId></apps>\n" +
-    "  <apps repeatable='true'><container>" + APPID[1].getContainer() + "</container><appId>" + APPID[1].getAppId() + "</appId></apps>\n" +
-    "  <pattern>" + HTTPS_PATTERN + "</pattern>\n" +
-    "  <patternType>" + ResourceRule.HOSTPORT + "</patternType>\n" +
-    "  <socksServerPort>" + SOCKS_SERVER_PORT + "</socksServerPort>\n" +
-    "  <secretKey>" + SECRET_KEY +"</secretKey>\n" +
-    "</entity>\n" +
-    "</feed>\n" ;
+  public static final String CONFIG_RESOURCE_RULES_XML_OLDSTYLE = "<feed>\n" +
+  "<entity repeatable='true'>\n" +
+  "  <ruleNum>" + HTTP_RULE_NUM + "</ruleNum>\n" +
+  "  <clientId>" + AGENT_ID + "</clientId>\n" +
+  "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
+  "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
+  "  <apps repeatable='true'><container>" + APPID[0].getContainer() + "</container><appId>" + APPID[0].getAppId() + "</appId></apps>\n" +
+  "  <apps repeatable='true'><container>" + APPID[1].getContainer() + "</container><appId>" + APPID[1].getAppId() + "</appId></apps>\n" +
+  "  <pattern>" + HTTP_PATTERN + "</pattern>\n" +
+  "  <patternType>" + ResourceRule.HOSTPORT + "</patternType>\n" +
+  "</entity>\n" +
+  "<entity>\n" +
+  "  <ruleNum>" + SOCKET_RULE_NUM + "</ruleNum>\n" +
+  "  <clientId>" + AGENT_ID + "</clientId>\n" +
+  "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
+  "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
+  "  <apps repeatable='true'><container>" + APPID[0].getContainer() + "</container><appId>" + APPID[0].getAppId() + "</appId></apps>\n" +
+  "  <apps repeatable='true'><container>" + APPID[1].getContainer() + "</container><appId>" + APPID[1].getAppId() + "</appId></apps>\n" +
+  "  <pattern>" + SOCKET_PATTERN + "</pattern>\n" +
+  "  <patternType>" + ResourceRule.HOSTPORT + "</patternType>\n" +
+  "</entity>\n" +
+  "<entity>\n" +
+  "  <ruleNum>" + URL_EXACT_RULE_NUM + "</ruleNum>\n" +
+  "  <clientId>" + AGENT_ID + "</clientId>\n" +
+  "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
+  "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
+  "  <apps repeatable='true'><container>" + APPID[0].getContainer() + "</container><appId>" + APPID[0].getAppId() + "</appId></apps>\n" +
+  "  <apps repeatable='true'><container>" + APPID[1].getContainer() + "</container><appId>" + APPID[1].getAppId() + "</appId></apps>\n" +
+  "  <pattern>" + URL_EXACT_PATTERN + "</pattern>\n" +
+  "  <patternType>" + ResourceRule.URLEXACT + "</patternType>\n" +
+  "</entity>\n" +
+  "<entity>\n" +
+  "  <ruleNum>" + HTTPS_RULE_NUM + "</ruleNum>\n" +
+  "  <agentId>" + AGENT_ID + "</agentId>\n" +
+  "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[0] + "</allowedEntities>\n" +
+  "  <allowedEntities repeatable='true'>" + ALLOWED_ENTITY[1] + "</allowedEntities>\n" +
+  "  <apps repeatable='true'><container>" + APPID[0].getContainer() + "</container><appId>" + APPID[0].getAppId() + "</appId></apps>\n" +
+  "  <apps repeatable='true'><container>" + APPID[1].getContainer() + "</container><appId>" + APPID[1].getAppId() + "</appId></apps>\n" +
+  "  <pattern>" + HTTPS_PATTERN + "</pattern>\n" +
+  "  <patternType>" + ResourceRule.HOSTPORT + "</patternType>\n" +
+  "</entity>\n" +
+  "</feed>\n" ;
   
   public static final String RUNTIME_RESOURCE_ENTITY_XML =
     "<entity repeatable='true'>\n" +

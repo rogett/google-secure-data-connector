@@ -33,46 +33,16 @@ public class ResourceRule implements Comparable<ResourceRule> {
   @Deprecated
   public static final String REGEX = "REGEX";
   
-  @Deprecated
-  private String name; 
   private int ruleNum;
-  
-  @Deprecated
-  private String clientId;
   private String agentId;
-  
-  @Deprecated
-  private String[] allowedEntities;
   private String[] viewerEmail;
-  
   private boolean allowDomainViewers;
-  
   private AppTag[] apps;
-  
-  @Deprecated
-  private String pattern;
   private String url;
-  
-  @Deprecated
-  private String patternType;
   private String urlMatch;
-  
   private Integer httpProxyPort;
-  
   private Integer socksServerPort;
-  
   private Long secretKey;
-  
-  // getters and setters
-  @Deprecated
-  public String getName() {
-    return name;
-  }
-
-  @Deprecated
-  public void setName(String name) {
-    this.name = name;
-  }
 
   public int getRuleNum() {
     return ruleNum;
