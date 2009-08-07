@@ -2,10 +2,10 @@
 
 %preun
 
-%pre 
+%pre
 
-%prep 
-#%setup -c -n %{name}-%{version} 
+%prep
+#%setup -c -n %{name}-%{version}
 rm -rf $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT
 mkdir -p $RPM_BUILD_ROOT/source
@@ -15,13 +15,12 @@ tar -xzf $RPM_SOURCE_DIR/%{name}-%{version}-%{release}-src.tar.gz -C $RPM_BUILD_
 cd $RPM_BUILD_ROOT/source/data-connector-agent
 
 ./configure.sh \
-  --lsb \
   --noverify \
   --user=securedataconnector \
   --group=securedataconnector \
   --javahome=/usr
 
-ant 
+ant
 
 cd distribute
 ant binary-distro
@@ -65,7 +64,7 @@ mv $RPM_BUILD_ROOT/opt/%{name}/third-party $RPM_BUILD_ROOT/opt/%{name}/lib
 # Removing source config directory
 rm -rf $RPM_BUILD_ROOT/opt/%{name}/config
 
-%post 
+%post
 set -e
 CLIENT_USER=securedataconnector
 CLIENT_GROUP=securedataconnector
@@ -139,14 +138,14 @@ echo "Removing User Accounts.."
 userdel -r woodstock || true
 userdel -r securedataconnector || true
 
-%clean                               
+%clean
 rm -rf $RPM_BUILD_ROOT
 
 %files
-%defattr(-,root,root) 
+%defattr(-,root,root)
 %config /etc/opt/%{name}/resourceRules.xml
 %config /etc/opt/%{name}/localConfig.xml
 /etc/opt/%{name}/*
-/opt/%{name}/*  
+/opt/%{name}/*
 
 

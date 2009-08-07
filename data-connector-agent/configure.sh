@@ -16,60 +16,99 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+# $Id$
 
-# OPTIONS
-# -prefix Secure Data Connector install location
+VENDOR="google"
+PACKAGE="secure-data-connector"
+VERSION=1.1
+FULLNAME="${VENDOR}-${PACKAGE}-${VERSION}"
 
-PACKAGE="google-secure-data-connector"
-PREFIX="/usr/local"
-ETCPREFIX=
-VARPREFIX=
+# Instructions for managing ${RELEASE}:
+# - If ${VERSION} changes, reset this to zero.
+# - If something in the packaging or build infrastructure changes, please
+#   increment this value.
+RELEASE=2
+
+# Install into locations ascertained by ${PREFIX} only.
+BY_PREFIX_ONLY="false"
+
+
+# The pace where the runtime binaries for the package are to be installed.
+BINDIR=
+
+# Used to hardcode the initscript path into a few targets.
+INITSCRIPT=
+# Get it from the environment
+JAVAHOME=${JAVAHOME}
+# The place where vendor and third-party JARs are to be installed.
+LIBDIR=
+# The place where local state information---e.g., data spools or generated
+# information---should reside.  This defaults to /var, since according to the
+# Linux FHS it is to be writable at all times, unlike /opt which makes no
+# guarantees---hence the why this is not assumed from ${PREFIX} by default.
+LOCALSTATEDIR="/var/opt/${VENDOR}/${PACKAGE}/${VERSION}/lib"
+# See definition for ${LOCALSTATEDIR}.
+LOGDIR="/var/opt/${VENDOR}/${PACKAGE}/${VERSION}/log"
 MODULESDIR=
-PROTOC=
-JAVAHOME=${JAVAHOME}  # Get it from the environment
+PREFIX="/opt/${VENDOR}/${PACKAGE}/${VERSION}"
+PROTOC=$(which protoc)
+RUNDIR="/var/opt/${VENDOR}/${PACKAGE}/${VERSION}/run"
+SYSCONFDIR="/etc/opt/${VENDOR}/${PACKAGE}/${VERSION}"
+if [ -d "/etc/rc.d" ]; then
+  # Who uses rc.d anymore?
+  SYSV_INIT_SCRIPT_DIRECTORY=/etc/rc.d
+else
+  SYSV_INIT_SCRIPT_DIRECTORY=/etc/init.d
+fi
+
 USER=daemon
 GROUP=daemon
-LSB="false"
+
 NOVERIFY="false"
 
+CONFIGURATION_SHLIB="configuration.sh"
+
 # Save last run config options to config.status
-echo $(pwd)/configure.sh $* > config.status
+echo $(pwd)/configure.sh "${*}" > config.status
 chmod 755 config.status
 
 # Check for getopt gnu util
 [ -x "$(which getopt)" ] || { echo "gnu getopt binary not found." ; exit 1; }
 
 # Command line arguments
-OPTS=$(getopt -o h --long lsb,noverify,prefix:,etcprefix::,varprefix::,binprefix::,protoc::,javahome::,user::,group:: -n 'configure' -- "$@") 
-if [ $? != 0 ] || [ $# = 0 ]; then 
+OPTS=$(getopt -o h --long noverify,by_prefix_only,prefix:,sysconfdir::,localstatedir::,bindir::,protoc::,javahome::,user::,group::,libdir::,bindir:: -n 'configure' -- "$@")
+if [ $? != 0 ]; then
   echo -e "\nUsage:
-    --lsb) use LSB defaults no other PREFIX options are neccessary
-    --prefix) binary prefix
-    --etcprefix) etc prefix.  defaults to $PREFIX/etc
-    --varprefix) var prefix. defaults to $PREFIX/var
+    --prefix) installation prefix.
+    --by_prefix_only) Use for all paths to be derived from --prefix.
+    --sysconfdir) etc prefix.  defaults to ${SYSCONFDIR}
+    --localstatedir) var prefix. defaults to ${LOCALSTATEDIR}
     --protoc) location of protocol buffer compiler.
     --user) user to run SDC as. Default is 'daemon'
     --group) group to run SDC as. Default is 'daemon'
     --javahome) system java location.
     --noverify) do not perform configure validation steps.
+
+    See README for more information.
   " >&2
-  exit 1 
+  exit 1
 fi
 
-eval set -- "$OPTS"
+eval set -- "${OPTS}"
 
 while true; do
-  case "$1" in
-    --lsb) LSB="true" ; shift 1 ;;
-    --noverify) NOVERIFY="true" ; shift 1 ;; 
+  case "${1}" in
+    --by_prefix_only) BY_PREFIX_ONLY="true" ; shift 1 ;;
+    --noverify) NOVERIFY="true" ; shift 1 ;;
     --prefix) PREFIX=$2 ; shift 2 ;;
-    --etcprefix) ETCPREFIX=$2; shift 2 ;;
-    --varprefix) VARPREFIX=$2; shift 2 ;;
-    --binprefix) BINPREFIX=$2; shift 2 ;;
+    --sysconfdir) SYSCONFDIR=$2; shift 2 ;;
+    --localstatedir) LOCALSTATEDIR=$2; shift 2 ;;
+    --bindir) BINDIR=$2; shift 2 ;;
     --protoc) PROTOC=$2 ; shift 2 ;;
     --javahome) JAVAHOME=$2 ; shift 2 ;;
     --user) USER=$2 ; shift 2 ;;
     --group) GROUP=$2 ; shift 2 ;;
+    --libdir) LIBDIR=$2 ; shift 2 ;;
     --) shift ; break ;;
     *) echo "Error!" ; exit 1 ;;
   esac
@@ -79,22 +118,43 @@ done
 ### Argument logic - set other prefixes
 #
 
-if [ -z ${ETCPREFIX} ]; then
-  ETCPREFIX=${PREFIX}/etc
+if [ -z "${PREFIX}" ]; then
+  echo '${PREFIX} is undefined; you probably do not want this!' >&2
+  echo "This may be useful for rootless installs that run from a local" >&2
+  echo "directory.  It shall be set to './'" >&2
+
+  sleep 5
 fi
 
-if [ -z ${VARPREFIX} ]; then
-  VARPREFIX=${PREFIX}/var
-fi
+# If instructed, use the ${PREFIX} if the desired variable is undefined
+# or if instructed to forcibly use ${PREFIX}.
+#
+# Arguments:
+# - $1 --- Variable name.
+# - $2 --- Default suffix.
+set_by_prefix_if_undefined() {
+  if [ "${BY_PREFIX_ONLY}" = "true" ] || [ -z "${!1}" ]; then
+    if [ -n "${PREFIX}" ]; then
+      eval "${1}=${PREFIX}/${2}"
+    else
+      eval "${1}=./${2}"
+    fi
+  fi
+}
 
-# Set LSB. 
-if [ ${LSB} = "true" ]; then
-  PREFIX=/opt/${PACKAGE}
-  ETCPREFIX=/etc/opt/${PACKAGE}
-  VARPREFIX=/var/opt/${PACKAGE}
-fi
+# Override if the user wants the PREFIX to govern.
+set_by_prefix_if_undefined "SYSV_INIT_SCRIPT_DIRECTORY" "etc/init.d"
 
-# Infer java binary location from JAVA_HOME env, JAVAHOME env 
+INITSCRIPT="${SYSV_INIT_SCRIPT_DIRECTORY}/${FULLNAME}"
+
+set_by_prefix_if_undefined "SYSCONFDIR" "etc"
+set_by_prefix_if_undefined "LOCALSTATEDIR" "var"
+set_by_prefix_if_undefined "LIBDIR" "lib"
+set_by_prefix_if_undefined "BINDIR" "bin"
+set_by_prefix_if_undefined "RUNDIR" "var/run"
+set_by_prefix_if_undefined "LOGDIR" "var/log"
+
+# Infer java binary location from JAVA_HOME env, JAVAHOME env
 # or --javabin setting.
 if [ ${JAVA_HOME} ]; then
   JAVABIN=${JAVA_HOME}/bin/java
@@ -105,20 +165,12 @@ else # Try to figure it out.
 fi
 
 # look for protoc
-if [ -e "${PROTOC}" ]; then
-  if [ ! -x "${PROTOC}" ]; then
-    echo "protoc: ${PROTOC} not found"
-  fi
-else 
-  type protoc > /dev/null 2>&1 # try to find it in our path.
-  if [ $? != 0 ]; then
-    echo "You do not have protoc installed, however, we ship pregenerated sources" 
-    echo "but you will not be able to edit any .proto files"
-    PROTOC="$(pwd)/src/no-op-protoc.sh" 
-  else
-    echo "Found protoc in your path, using that."
-    PROTOC="protoc"
-  fi
+if [ ! -x "${PROTOC}" ]; then
+  echo "You do not have protoc installed, however, we ship pregenerated sources"
+  echo "but you will not be able to edit any .proto files"
+  PROTOC="$(pwd)/src/no-op-protoc.sh"
+else
+  echo "Found protoc in your path, using that: ${PROTOC}."
 fi
 
 #
@@ -149,14 +201,13 @@ if [ ${NOVERIFY} = "false" ]; then
     if [ $? = 0 ]; then
       echo "User ${USER} is not enabled. Either enable the user or specify a different user account."
       exit 1
-    fi 
-  
+    fi
+
     getent passwd ${USER} |grep ${USER} | grep bin/nologin
     if [ $? = 0 ]; then
       echo "User ${USER} is not enabled. Either enable the user or specify a different user account."
       exit 1
     fi
-
   fi
 
   # verify java binary.
@@ -173,60 +224,97 @@ if [ ${NOVERIFY} = "false" ]; then
     echo "Java could not be found at $JAVABIN"
     exit 1
   fi
-
 fi
 
 #
 ### Setup files
 #
 
-# Edit build.properties
-template=build.properties
-cp build.properties-dist ${template}
-echo Generating ${template}
-sed -i ${template} -e 's^__PREFIX__^'${PREFIX}'^'
-sed -i ${template} -e 's^__ETCPREFIX__^'${ETCPREFIX}'^'
-sed -i ${template} -e 's^__VARPREFIX__^'${VARPREFIX}'^'
-sed -i ${template} -e 's^__USER__^'${USER}'^'
-sed -i ${template} -e 's^__GROUP__^'${GROUP}'^'
-sed -i ${template} -e 's^__PROTOC__^'${PROTOC}'^'
+echo "Generating configuration shlib..."
 
-# Edit install-sdc.sh
-template="install-sdc.sh"
-cp "install-sdc.sh-dist" ${template}
-echo Generating ${template}
-sed -i ${template} -e 's^__PREFIX__^'${PREFIX}'^'
-sed -i ${template} -e 's^__ETCPREFIX__^'${ETCPREFIX}'^'
-sed -i ${template} -e 's^__VARPREFIX__^'${VARPREFIX}'^'
-sed -i ${template} -e 's^__USER__^'${USER}'^'
-sed -i ${template} -e 's^__GROUP__^'${GROUP}'^'
-chmod 755 $template
+if [ -f "${CONFIGURATION_SHLIB}" ]; then
+  rm "${CONFIGURATION_SHLIB}"
+fi
+
+echo "# This file is auto-generated and will be deleted when " >> "${CONFIGURATION_SHLIB}"
+echo "# configure.sh is invoked."  >> "${CONFIGURATION_SHLIB}"
+
+# Arguments:
+# $1 --- The variable name to dump.
+dump_variable_to_shlib() {
+  # http://tldp.org/LDP/abs/html/bashver2.html#EX78
+  # x=y
+  # y=1
+  # echo ${!x}
+  # => 1
+  echo "${1}=${!1}" >> "${CONFIGURATION_SHLIB}"
+}
+
+dump_variable_to_shlib BINDIR
+dump_variable_to_shlib FULLNAME
+dump_variable_to_shlib GROUP
+dump_variable_to_shlib INITSCRIPT
+dump_variable_to_shlib JAVABIN
+dump_variable_to_shlib LIBDIR
+dump_variable_to_shlib LOCALSTATEDIR
+dump_variable_to_shlib LOGDIR
+dump_variable_to_shlib PREFIX
+dump_variable_to_shlib PROTOC
+dump_variable_to_shlib RELEASE
+dump_variable_to_shlib RUNDIR
+dump_variable_to_shlib SYSCONFDIR
+dump_variable_to_shlib SYSV_INIT_SCRIPT_DIRECTORY
+dump_variable_to_shlib USER
+dump_variable_to_shlib VERSION
+
+# Arguments:
+# $1 --- The file to edit.
+# $2 --- The variable to dump.
+substitute_macro() {
+  sed -i "${1}" -e 's^__'${2}'__^'${!2}'^'
+}
+
+# Arguments:
+# $1 --- File to edit.
+rewrite_template() {
+  cp "${1}-dist" "${1}"
+
+  substitute_macro "${1}" BINDIR
+  substitute_macro "${1}" FULLNAME
+  substitute_macro "${1}" GROUP
+  substitute_macro "${1}" INITSCRIPT
+  substitute_macro "${1}" JAVABIN
+  substitute_macro "${1}" LIBDIR
+  substitute_macro "${1}" LOCALSTATEDIR
+  substitute_macro "${1}" LOGDIR
+  substitute_macro "${1}" PREFIX
+  substitute_macro "${1}" PROTOC
+  substitute_macro "${1}" RELEASE
+  substitute_macro "${1}" RUNDIR
+  substitute_macro "${1}" SYSCONFDIR
+  substitute_macro "${1}" SYSV_INIT_SCRIPT_DIRECTORY
+  substitute_macro "${1}" USER
+  substitute_macro "${1}" VERSION
+}
+
+rewrite_template "build.properties"
+rewrite_template "build.xml"
+rewrite_template "distribute/build.xml"
+rewrite_template "distribute/debian/securedataconnector.postinst"
+rewrite_template "distribute/debian/securedataconnector.postrm"
+rewrite_template "initscript"
+rewrite_template "runclient.sh"
+rewrite_template "start.sh"
+rewrite_template "stop.sh"
+
+cp "initscript" "distribute/debian/${FULLNAME}"
 
 # Create resourceRules.xml since we don't need to edit this file.
-cp config/resourceRules.xml-dist config/resourceRules.xml
+cp config/resourceRules.xml{-dist,}
 
 # Edit localConf.xml-dist
-template=config/localConfig.xml
-cp config/localConfig.xml-dist ${template}
+cp config/localConfig.xml{-dist,}
 
-# start.sh
-template=start.sh
-cp start.sh-dist start.sh
-echo Generating ${template}
-sed -i ${template} -e 's^_PREFIX_^'${PREFIX}'^'
-sed -i ${template} -e 's^_VARPREFIX_^'${VARPREFIX}'^'
+echo "Done!"
 
-# stop.sh
-template=start.sh
-cp stop.sh-dist stop.sh
-
-# Runclient
-template=runclient.sh
-cp runclient.sh-dist runclient.sh
-echo Generating ${template}
-sed -i ${template} -e 's^_PREFIX_^'${PREFIX}'^'
-sed -i ${template} -e 's^_ETCPREFIX_^'${ETCPREFIX}'^'
-sed -i ${template} -e 's^_JAVABIN_^'${JAVABIN}'^'
-sed -i ${template} -e 's^_USER_^'${USER}'^'
-sed -i ${template} -e 's^_GROUP_^'${GROUP}'^'
-
+exit 0

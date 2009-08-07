@@ -14,14 +14,64 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# 
+#
 # Starts runclient.sh in background and log stdout and stderr to file.
+#
+# $Id$
 
-if [ $UID != 0 ] ; then
- echo You should run this script as root or via sudo
+# For local modifications, please set these variables here.
+OVERRIDE_BINDIR=
+OVERRIDE_FULLNAME=
+OVERRIDE_LOCALSTATEDIR=
+OVERRIDE_LOGDIR=
+OVERRIDE_RUNDIR=
+
+# These variables are determined by configure.sh.
+BINDIR=${OVERRIDE_BINDIR:-__BINDIR__}
+FULLNAME=${OVERRIDE_FULLNAME:-__FULLNAME__}
+LOCALSTATEDIR=${OVERRIDE_LOCALSTATEDIR:-__LOCALSTATEDIR__}
+LOGDIR=${OVERRIDE_LOGDIR:-__LOGDIR__}
+RUNDIR=${OVERRIDE_RUNDIR:-__RUNDIR__}
+
+PERSISTENT_STORAGE=${LOCALSTATEDIR}/lib
+
+# Arguments:
+# - $1 - The variable name that holds the directory to be made.
+create_directory_if_absent() {
+  directory="${!1}"
+
+  if [ ! -d "${directory}" ]; then
+    mkdir -p "${directory}"
+  fi
+}
+
+if (( ${UID} != 0 )); then
+  echo You should run this script as root or via sudo. >&2
 else
- nohup _PREFIX_/bin/runclient.sh $* >>_VARPREFIX_/log/agent 2>&1 &
- echo Please review log _VARPREFIX_/log/agent for details
+
+  create_directory_if_absent LOCALSTATEDIR
+  create_directory_if_absent LOGDIR
+  create_directory_if_absent PERSISTENT_STORAGE
+  create_directory_if_absent RUNDIR
+
+  runfile="${RUNDIR}/${FULLNAME}"
+
+  if [ -f "${runfile}" ]; then
+    other_pid=$(< "${runfile}")
+    if ps -p ${other_pid} -o comm,args 2>/dev/null | tail -1 | grep -q runclient.sh; then
+      echo "Runner already managing jobs at PID ${other_pid}."
+      exit 1
+    fi
+  fi
+
+  # Ensure that no race condition shenanigans have occurred.
+  rm -f "${runfile}"
+
+  runner_pid=$("${BINDIR}/runclient.sh" "${@}" >>"${LOGDIR}/agent" 2>&1 & echo $!)
+
+  echo ${runner_pid} > "${runfile}"
+
+  echo Please review log "${LOGDIR}/agent" for details. >&2
 fi
 
 

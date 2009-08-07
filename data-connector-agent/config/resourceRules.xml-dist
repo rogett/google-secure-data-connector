@@ -1,4 +1,6 @@
 <resourceRules>
+  <!-- $Id$ -->
+
   <rule repeatable="true">
     <ruleNum>1</ruleNum>
     <agentId>all</agentId>

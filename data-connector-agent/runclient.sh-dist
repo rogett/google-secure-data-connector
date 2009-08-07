@@ -15,31 +15,50 @@
 # limitations under the License.
 #
 # Runs agent with appropriate class path.
+#
+# $Id$
 
-WOODSTOCK_HOME=_PREFIX_
-WOODSTOCK_LIB=${WOODSTOCK_HOME}/lib
-ETCPREFIX=_ETCPREFIX_
-CONFIGFILE=${ETCPREFIX}/localConfig.xml
-RULESFILE=${ETCPREFIX}/resourceRules.xml
-LOG4JPROPERTIESFILE=${ETCPREFIX}/log4j.properties
+# For local modifications, please set these variables here.
+OVERRIDE=USER=
+OVERRIDE_GROUP=
+OVERRIDE_JAVABIN=
+OVERRIDE_LIBDIR=
+OVERRIDE_RUNDIR=
+OVERRIDE_SYSCONFDIR=
+
+# These variables are determined by configure.sh.
+GROUP=${OVERRIDE_GROUP:-__GROUP__}
+JAVABIN=${OVERRIDE_JAVABIN:-__JAVABIN__}
+LIBDIR=${OVERRIDE_LIBDIR:-__LIBDIR__}
+RUNDIR=${OVERRIDE_RUNDIR:-__RUNDIR__}
+SYSCONFDIR=${OVERRIDE_SYSCONFDIR:-__SYSCONFDIR__}
+USER=${OVERRIDE_USER:-__USER__}
+
+CONFIGFILE=${SYSCONFDIR}/localConfig.xml
+RULESFILE=${SYSCONFDIR}/resourceRules.xml
+LOG4JPROPERTIESFILE=${SYSCONFDIR}/log4j.properties
+
 JVM_ARGS="-Djava.net.preferIPv4Stack=true"
-GROUP=_GROUP_
-USER=_USER_
 DEBUG=""
 NOVERIFY="false"
+ENTRYPOINT=com.google.dataconnector.client.Client
+
 # Dynamically generate classpath from lib directory.
-jarfiles=$(find ${WOODSTOCK_LIB} -type f -a -name \*.jar)
-for jar in ${jarfiles}; do
-  CLASSPATH=${CLASSPATH}:${jar}
-done
+CLASSPATH=${CLASSPATH}:$(find ${LIBDIR} -type f -a -iname '*.jar' | tr '\n' ':')
 export CLASSPATH
+
+on_sighup() {
+  echo "Caught SIGHUP; ignored. $(date)" >&2
+}
+
+trap on_sighup SIGHUP
 
 # Create flags for local config file.
 OPTS=$(getopt -o dnf:r:j: --long debug,noverify,localConfigFile::,rulesFile::,jvm_args:: -n 'runagent' -- "$@")
 if [ $? != 0 ]; then
   echo -e "\nUsage:
     -d|--debug) Place into debug mode
-    -n|--noverify) Skip file permission checks.  
+    -n|--noverify) Skip file permission checks.
     -f|--localConfigFile) Local configuration file
     -r|--rulesFile) Resource rules file.
     -j|--jvm-args) Override default jvmargs with these.
@@ -48,7 +67,7 @@ if [ $? != 0 ]; then
 fi
 
 # Parse command line
-eval set -- "${OPTS}"  
+eval set -- "${OPTS}"
 while true; do
   case "$1" in
     -d|--debug) DEBUG="--debug"; shift 1 ;;
@@ -61,13 +80,13 @@ while true; do
     *) echo "Error!" ; exit 1 ;;
   esac
 done
-  
+
 # Make sure we are the only one who can read any generated files.
 umask 0077
 
 # Check file permissions
 
-# Checks to see if the file has the supplied permissions and ownership. 
+# Checks to see if the file has the supplied permissions and ownership.
 # exits the script if its incorrect.
 #
 # $1 filename
@@ -81,72 +100,75 @@ if [ ${NOVERIFY} = "false" ]; then
 
   file=$1
   if [ -e ${file} ]; then
-    filegroup=$(stat -c "%G" ${file})
-    fileowner=$(stat -c "%U" ${file})
-    filemode=$(stat -c "%a" ${file})
+    filegroup=$(stat -c "%G" "${file}")
+    fileowner=$(stat -c "%U" "${file}")
+    filemode=$(stat -c "%a" "${file}")
 
     if [ ${fileowner} != "$2" -o  \
         ${filegroup} != "$3" -o \
         ${filemode} != "$4" ]; then
       echo $file has incorrect permissions should be $2:$3 $4
-      exit
+      exit 1
     fi
   else
-    echo $file does not exist!
-    exit
+    echo "${file}" does not exist!
+    exit 1
   fi
 fi
 }
 
 function migrate {
-
-  local_config_file=$1
-  resource_rules_file=$2
+  local local_config_file=$1
+  local resource_rules_file=$2
 
   # Local Config
-  egrep -q '<clientId' ${local_config_file}
+  egrep -q '<clientId' "${local_config_file}"
 
   if [ $? = 0 ]; then
     echo "Migrating ${local_config_file}"
-    sed -i ${local_config_file} -e 's^clientId>^agentId>^g'
+    sed -i "${local_config_file}" -e 's^clientId>^agentId>^g'
   fi
 
   # Resource Rules
   egrep -q '<feed|<entity|<allowedEntities|<clientId|<pattern|<patternType' \
-      ${resource_rules_file}
+    ${resource_rules_file}
 
   if [ $? = 0 ]; then
     echo "Migrating ${resource_rules_file}"
-    sed -i ${resource_rules_file} -e 's^feed>^resourceRules>^g'
+    sed -i "${resource_rules_file}" -e 's^feed>^resourceRules>^g'
     # repeatable
-    sed -i ${resource_rules_file} -e 's^<entity^<rule^g'
-    sed -i ${resource_rules_file} -e 's^entity>^rule>^g'
+    sed -i "${resource_rules_file}" -e 's^<entity^<rule^g'
+    sed -i "${resource_rules_file}" -e 's^entity>^rule>^g'
     # repeatable
-    sed -i ${resource_rules_file} -e 's^<allowedEntities^<viewerEmail^g'
-    sed -i ${resource_rules_file} -e 's^allowedEntities>^viewerEmail>^g'
-    sed -i ${resource_rules_file} -e 's^clientId>^agentId>^g'
-    sed -i ${resource_rules_file} -e 's^pattern>^url>^g'
-    sed -i ${resource_rules_file} -e 's^patternType>^urlMatch>^g'
+    sed -i "${resource_rules_file}" -e 's^<allowedEntities^<viewerEmail^g'
+    sed -i "${resource_rules_file}" -e 's^allowedEntities>^viewerEmail>^g'
+    sed -i "${resource_rules_file}" -e 's^clientId>^agentId>^g'
+    sed -i "${resource_rules_file}" -e 's^pattern>^url>^g'
+    sed -i "${resource_rules_file}" -e 's^patternType>^urlMatch>^g'
   fi
 }
 
-if [ ${NOVERIFY} = "false" ]; then 
+if [ ${NOVERIFY} = "false" ]; then
   # Check current file permissions and refuse to run if they arent correct.
-  checkfile ${CONFIGFILE} root ${GROUP} 640
-  checkfile ${RULESFILE} root ${GROUP} 640
-  checkfile ${ETCPREFIX}/localConfig.xml root ${GROUP} 640
-  checkfile ${ETCPREFIX}/resourceRules.xml root ${GROUP} 640
+  checkfile "${CONFIGFILE}" ${USER} ${GROUP} 640
+  checkfile "${RULESFILE}" ${USER} ${GROUP} 640
+  checkfile "${CONFIGFILE}" ${USER} ${GROUP} 640
+  checkfile "${RULESFILE}" ${USER} ${GROUP} 640
 fi
 
-migrate ${CONFIGFILE} ${RULESFILE}
+migrate "${CONFIGFILE}" "${RULESFILE}"
+
+jobs_log="${RUNDIR}/list-of-children"
 
 while /bin/true; do
-  su ${USER} -c "_JAVABIN_ ${JVM_ARGS} com.google.dataconnector.client.Client \
+  su ${USER} -c "${JAVABIN} ${JVM_ARGS} ${ENTRYPOINT} \
     ${DEBUG} \
     -localConfigFile \"${CONFIGFILE}\" \
     -rulesFile \"${RULESFILE}\" \
     -log4jPropertiesFile \"${LOG4JPROPERTIESFILE}\" \
-    $*"
+    ${@}" &
+  echo "$!" > "${jobs_log}"
+  wait
   sleep 5
   echo "RECONNECTING..."
 done

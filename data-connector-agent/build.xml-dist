@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- Copyright 2007 Google Inc. 
+<!-- Copyright 2007 Google Inc.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -15,17 +15,19 @@
  limitations under the License.
 
 NOTE: configure.sh edits the outputted build.xml make changes to build.xml-dist.
-  
+
 Build File for Secure Data Connector client and reference server.
 
   Interesting targets:
    -all: builds distros
    -compile: creates all the jars.
    -install: builds jars and runs setup.sh
+
+$Id$
 -->
 
-<project 
-    name="secure-data-connector" 
+<project
+    name="secure-data-connector"
     default="compile"
     basedir=".">
 
@@ -51,31 +53,38 @@ Build File for Secure Data Connector client and reference server.
     </tstamp>
   </target>
 
-  <target name="init" depends="buildstamp, timestamp">    
+  <target name="init" depends="buildstamp, timestamp">
     <mkdir dir="${build}" />
     <mkdir dir="${classes}" />
   </target>
 
-  <target 
-      name="clean" 
+  <target
+      name="clean"
       description="Deletes all build files." >
     <delete dir="${build}" />
     <delete dir="${bin}" />
   </target>
 
-  <target 
-      name="dist-clean" 
+  <target
+      name="dist-clean"
       description="Deletes all files to pre configured state.">
-    <delete file="build.xml"/>
+    <delete dir="${build}"/>
     <delete file="build.properties"/>
+    <delete file="build.xml"/>
     <delete file="config.status"/>
+    <delete file="config/localConfig.xml"/>
+    <delete file="config/resourceRules.xml"/>
+    <delete dir="distribute/dist"/>
+    <delete file="config.status"/>
+    <delete file="configuration.sh"/>
+    <delete file="distribute/build.xml" />
+    <delete file="distribute/debian/__FULLNAME__" />
+    <delete file="distribute/debian/securedataconnector.postinst"/>
+    <delete file="distribute/debian/securedataconnector.postrm"/>
+    <delete file="initscript"/>
     <delete file="runclient.sh"/>
     <delete file="start.sh"/>
     <delete file="stop.sh"/>
-    <delete file="install-sdc.sh"/>
-    <delete file="config/localConfig.xml"/>
-    <delete file="config/resourceRules.xml"/>
-    <delete dir="${build}"/>
   </target>
 
   <!-- Protocol Buffer compiler steps -->
@@ -99,8 +108,8 @@ Build File for Secure Data Connector client and reference server.
 
   <target name="compile" depends="init, protoc-all-protos" >
 
-    <javac 
-        srcdir="${src-generated}" 
+    <javac
+        srcdir="${src-generated}"
         destdir="${classes}"
         debug="${COMPILE_DEBUG_FLAG}"
         debuglevel="${COMPILE_DEBUG_LEVEL}"
@@ -111,8 +120,8 @@ Build File for Secure Data Connector client and reference server.
       </classpath>
     </javac>
 
-    <javac 
-        srcdir="${src}" 
+    <javac
+        srcdir="${src}"
         destdir="${classes}"
         debug="${COMPILE_DEBUG_FLAG}"
         debuglevel="${COMPILE_DEBUG_LEVEL}"
@@ -165,7 +174,7 @@ Build File for Secure Data Connector client and reference server.
     <!-- Source Jars -->
     <tstamp/>
     <jar jarfile="${agent-src.jarfile}">
-      <fileset dir="${src}"> 
+      <fileset dir="${src}">
         <include name="com/google/dataconnector/**" />
       </fileset>
       <manifest>
@@ -197,7 +206,7 @@ Build File for Secure Data Connector client and reference server.
       <include name="**/*.jar"/>
     </fileset>
   </path>
-  
+
   <target name="test" depends="compile,cleanTests,compileTests">
       <mkdir dir="${testOutput.home}"/>
       <junit haltonfailure="yes" printsummary="yes">
@@ -213,16 +222,16 @@ Build File for Secure Data Connector client and reference server.
 
   <target name="compileTests" depends="cleanTests" description="Compile Tests">
     <mkdir dir="${testClasses.home}"/>
-    <javac 
+    <javac
         srcdir="${testSrc.home}"
         destdir="${testClasses.home}"
         classpathref="classpath.test"
-        debug="true" 
+        debug="true"
         debuglevel="lines,vars,source">
     </javac>
   </target>
 
-  <target 
+  <target
       name="cleanTests"
       description="Delete old build and dist directories">
     <delete dir="${testClasses.home}"/>

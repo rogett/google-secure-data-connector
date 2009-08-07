@@ -1,25 +1,41 @@
+$Id$
+
 Secure Data Connector Install Instructions (brief).
 
 Prerequisites:
 
-You must install the Google Protocol Buffer compiler and make sure its in the path.  It can be 
-downloaded here:
+You must install the Google Protocol Buffer compiler and make sure its in the
+path.  It can be downloaded from here:
   - http://code.google.com/p/protobuf/downloads/list
   - follow the README to install.
-  - We include the generated protocol buffer classes should protoc not be available.
+  - We include the generated protocol buffer classes should protoc be
+    unavailable.
 
-1) sh configure.sh.
+1) bash configure.sh.
 
 Options:
-    --lsb) use LSB defaults no other PREFIX options are neccessary
-    --prefix) binary prefix
-    --etcprefix) etc prefix.  defaults to /usr/local/etc
-    --varprefix) var prefix. defaults to /usr/local/var
+    --prefix) General installation prefix.
+              Normally the majority of the files are tucked away under
+              /opt/google/secure-data-connector/${version}; but some of them
+              respect tenets of the FHS and LSB, so they are installed under
+              /etc/init.d, /etc/opt/google/secure-data-connector/${version}, and
+              /var/opt/google/secure-data-connector/${version}/{lib,log,run}.
+    --by_prefix_only) Force all installation paths to follow the --prefix
+                      designation.  If --prefix is '', then prefix becomes ./.
+    --sysconfdir) The configuration file storage location.  This defaults to
+                  /etc/opt/google/secure-data-connector/${version}
+    --localstatedir) A place for read-write operations to occur and persistent
+                     storage.  This defaults to
+                     /var/opt/google/secure-data-connector/${version}.
+    --bindir) A place for binary files to go.  This defaults to ${PREFIX}/bin.
+    --libdir) A place for library files to go.  This defaults to ${PREFIX}/lib.
+    --user) A username for the daemon to run as.  This defaults to daemon.
+    --group) A group for the daemon to run as.  The defaults to daemon.
     --javahome) system java location. Will look in the default path too.
 
-Generally only --prefix, The rest is for tuning to your platform. 
+Generally only --prefix, The rest is for tuning to your platform.
 
-2) ant 
+2) ant
 
 This compiles all the source into jars.
 

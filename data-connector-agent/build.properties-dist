@@ -18,7 +18,7 @@
 version=1.0
 projects.dir=..
 
-# Compile Properties 
+# Compile Properties
 COMPILE_DEBUG_FLAG=true
 COMPILE_DEBUG_LEVEL=source,lines,vars
 build=build
@@ -31,10 +31,10 @@ protoc=__PROTOC__
 
 # Install Properties
 install.prefix=__PREFIX__
-install.etc.prefix=__ETCPREFIX__
-install.var.prefix=__VARPREFIX__
-install.lib.prefix=${install.prefix}/lib
-install.bin.prefix=${install.prefix}/bin
+install.sysconfdir=__SYSCONFDIR__
+install.localstatedir=__LOCALSTATEDIR__
+install.libdir=__LIBDIR__
+install.bindir=__BINDIR__
 install.user=__USER__
 install.group=__GROUP__
 agent.jarfile=${build}/agent.jar

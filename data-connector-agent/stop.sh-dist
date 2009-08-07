@@ -14,15 +14,61 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# 
+#
 # Stops secure-data-connector running in the background.
+#
+# $Id$
 
+# For local modifications, please set these variables here.
+OVERRIDE_FULLNAME=
+OVERRIDE_RUNDIR=
 
-if [ $UID != 0 ] ; then
- echo You should run this script as root or via sudo
+# These variables are determined by configure.sh.
+FULLNAME=${OVERRIDE_FULLNAME:-__FULLNAME__}
+RUNDIR=${OVERRIDE_RUNDIR:-__RUNDIR__}
+
+if (( ${UID} != 0 )); then
+  echo You should run this script as root or via sudo. >&2
 else
- # Kill the wrapper runclient.sh before stopping java process so it is not restarted
- ps -ef |grep runclient.sh |grep -v grep | awk '{ print $2 }' | xargs kill
- ps -ef |grep .*java.*resourceRules.xml | awk '{ print $2 }' | xargs kill          
-fi
+  runfile="${RUNDIR}/${FULLNAME}"
 
+  if [ ! -f "${runfile}" ]; then
+    echo "The runner is not managing jobs right now." >&2
+    exit 1
+  fi
+
+  other_pid=$(< "${runfile}")
+
+  if ps -p ${other_pid} -o comm,args | tail -1 | grep -q runclient.sh; then
+    pgid=$(ps -p "${other_pid}" -o pgid | tail -1)
+
+    jobs_log="${RUNDIR}/list-of-children"
+    sub_jobs=
+
+    if [ -f "${jobs_log}" ]; then
+      sub_jobs=$(< "${jobs_log}")
+    fi
+
+    # We like to be paranoid.
+
+    for i in $(seq 1 3); do
+      kill -TERM ${other_pid} 2>/dev/null
+      kill -TERM -${pgid} 2>/dev/null
+
+      if [ -n "${sub_jobs}" ]; then
+        kill -TERM ${sub_jobs} 2>/dev/null
+      fi
+
+      sleep 1
+    done
+
+    kill -KILL ${other_pid} 2>/dev/null
+    kill -KILL -${pgid} 2>/dev/null
+
+    if [ -n "${sub_jobs}" ]; then
+      kill -KILL ${sub_jobs} 2>/dev/null
+    fi
+  fi
+
+  rm "${runfile}"
+fi

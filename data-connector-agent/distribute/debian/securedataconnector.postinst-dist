@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright 2008 Google Inc.
 #
@@ -13,45 +13,51 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#   
+#
+# $Id$
 
 set -e
 
-PKG_NAME="google-secure-data-connector"
-LOGDIR="/var/opt/$PKG_NAME/log"
-RULES_DIR="/var/opt/$PKG_NAME"
-CLIENT_USER=securedataconnector
-CLIENT_GROUP=securedataconnector
+# TODO: Much of this stuff could be more properly managed with real Debian
+#       packaging.
+
+LOGDIR=__LOGDIR__
+RULES_DIR=__LOCALSTATEDIR__
+SYSCONFDIR=__SYSCONFDIR__
+USER=__USER__
+GROUP=__GROUP__
 
 if [ "$1" = "configure" ]; then
   # Set up the user to access the client
-  adduser --system --quiet --group --home /home/$CLIENT_USER --no-create-home \
-   --shell /bin/bash $CLIENT_USER || :
+  adduser --system --quiet --group --home "/home/${USER}" --no-create-home \
+   --shell /bin/bash "${USER}" || :
 
-  # Set up the logfile for $PKG_NAME
-  if [ ! -d $LOGDIR ]; then
-    mkdir -p $LOGDIR
+  if [ ! -d ${LOGDIR} ]; then
+    mkdir -p ${LOGDIR}
   fi
-  chown root:$CLIENT_GROUP $LOGDIR
-  chmod 770 $LOGDIR
+  chown ${USER}:${GROUP} ${LOGDIR}
+  chmod 770 "${LOGDIR}"
   for filename in "agent"; do
-    logfile="$LOGDIR/$filename"
-    if [ ! -f $logfile ]; then
-      touch $logfile
+    logfile="${LOGDIR}/$filename"
+    if [ ! -f "${logfile}" ]; then
+      touch "${logfile}"
     fi
-    chown root:$CLIENT_USER $logfile
-    chmod 660 $logfile
+    chown ${USER}:${USER} "${logfile}"
+    chmod 660 "${logfile}"
   done
 
-  chmod 750 /etc/opt/$PKG_NAME
-  chown -R root:$CLIENT_USER /etc/opt/$PKG_NAME
-  chown -R root:$CLIENT_USER /opt/$PKG_NAME
+  if [ ! -d "${SYSCONFDIR}" ]; then
+    mkdir -vp "${SYSCONFDIR}"
+  fi
 
-  chown -R root:$CLIENT_GROUP /etc/opt/$PKG_NAME
-  chown -R root:$CLIENT_GROUP /etc/opt/$PKG_NAME/localConfig.xml
-  chown -R root:$CLIENT_GROUP /etc/opt/$PKG_NAME/resourceRules.xml
-  chmod 640 /etc/opt/$PKG_NAME/localConfig.xml
-  chmod 640 /etc/opt/$PKG_NAME/resourceRules.xml 
+  chown ${USER}:${GROUP} "${SYSCONFDIR}"
+
+  chmod 750 "${SYSCONFDIR}"
+
+  chown ${USER}:${GROUP} ${SYSCONFDIR}/localConfig.xml
+  chown ${USER}:${GROUP} ${SYSCONFDIR}/resourceRules.xml
+  chmod 0640 ${SYSCONFDIR}/localConfig.xml
+  chmod 0640 ${SYSCONFDIR}/resourceRules.xml
 
   # Check for java
   echo "Checking for Java..."
@@ -68,26 +74,17 @@ if [ "$1" = "configure" ]; then
     if [ $? != 0 ]; then
       echo "Java found at ${JAVABIN} might not suitable."
       echo "Secure Data Connector requires JRE 1.6 or higher"
-      exit 0
+      exit 1
     else
       echo "Found java at ${JAVABIN}"
     fi
   else
     echo "Java could not be found."
     echo "Please install Java JRE 1.6 or higher before using the Secure Data Connector."
-    exit 0
+    exit 1
   fi
 fi
 
 installinit_error() {
   exit $?
 }
-
-# if [ -x "/etc/init.d/$PKG_NAME" ]; then
-#  update-rc.d $PKG_NAME defaults 50 15 >/dev/null
-#  if [ -x "`which invoke-rc.d 2>/dev/null`" ]; then
-#    invoke-rc.d $PKG_NAME start || installinit_error
-#  else
-#    /etc/init.d/$PKG_NAME start || installinit_error
-#  fi
-#fi

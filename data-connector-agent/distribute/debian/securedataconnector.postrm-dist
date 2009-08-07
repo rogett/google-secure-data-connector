@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Copyright 2008 Google Inc.
 #
@@ -13,9 +13,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#   
+#
+# $Id$
 
 set -e
+
+FULLNAME=__FULLNAME__
+LOCALSTATEDIR=__LOCALSTATEDIR__
+SYSCONFDIR=__SYSCONFDIR__
+USER=__USER__
+GROUP=__GROUP__
 
 PKG_NAME="google-secure-data-connector"
 
@@ -25,7 +32,13 @@ installinit_error() {
 
 echo $PKG_NAME --- package name
 
-if [ "$1" = "purge" ]; then
-  deluser --system --quiet woodstock || true
-  deluser --system --quiet securedataconnector || true
+if [ "${1}" = "purge" ]; then
+  echo "You may want to consider deleting user:group ${USER}:${GROUP}"
+  echo "if appropriate."
+  echo "Please inspect ${LOCALSTATEDIR} and ${SYSCONFDIR} for trailing"
+  echo "artifacts."
+
+  update-rc.d -f ${FULLNAME} remove
+
+  sleep 1
 fi
