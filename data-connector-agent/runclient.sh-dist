@@ -19,12 +19,12 @@
 # $Id$
 
 # For local modifications, please set these variables here.
-OVERRIDE=USER=
-OVERRIDE_GROUP=
-OVERRIDE_JAVABIN=
-OVERRIDE_LIBDIR=
-OVERRIDE_RUNDIR=
-OVERRIDE_SYSCONFDIR=
+# OVERRIDE=USER=
+# OVERRIDE_GROUP=
+# OVERRIDE_JAVABIN=
+# OVERRIDE_LIBDIR=
+# OVERRIDE_RUNDIR=
+# OVERRIDE_SYSCONFDIR=
 
 # These variables are determined by configure.sh.
 GROUP=${OVERRIDE_GROUP:-__GROUP__}

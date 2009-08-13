@@ -1,0 +1,5 @@
+__DEBIAN_PACKAGE_NAME__ (__VERSION__-__RELEASE__) stable; urgency=low
+
+  * Package version __VERSION__ with release __RELEASE__.
+
+ -- Matt T. Proud <mtp@google.com>  Fri, 07 Aug 2009 11:40:33 -0700

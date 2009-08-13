@@ -20,8 +20,8 @@
 # $Id$
 
 # For local modifications, please set these variables here.
-OVERRIDE_FULLNAME=
-OVERRIDE_RUNDIR=
+# OVERRIDE_FULLNAME=
+# OVERRIDE_RUNDIR=
 
 # These variables are determined by configure.sh.
 FULLNAME=${OVERRIDE_FULLNAME:-__FULLNAME__}

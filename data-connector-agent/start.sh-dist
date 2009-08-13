@@ -20,11 +20,11 @@
 # $Id$
 
 # For local modifications, please set these variables here.
-OVERRIDE_BINDIR=
-OVERRIDE_FULLNAME=
-OVERRIDE_LOCALSTATEDIR=
-OVERRIDE_LOGDIR=
-OVERRIDE_RUNDIR=
+# OVERRIDE_BINDIR=
+# OVERRIDE_FULLNAME=
+# OVERRIDE_LOCALSTATEDIR=
+# OVERRIDE_LOGDIR=
+# OVERRIDE_RUNDIR=
 
 # These variables are determined by configure.sh.
 BINDIR=${OVERRIDE_BINDIR:-__BINDIR__}
@@ -58,7 +58,7 @@ else
 
   if [ -f "${runfile}" ]; then
     other_pid=$(< "${runfile}")
-    if ps -p ${other_pid} -o comm,args 2>/dev/null | tail -1 | grep -q runclient.sh; then
+    if ps -p ${other_pid} -o comm,args 2>/dev/null | tail -1 | grep -q runclent.sh; then
       echo "Runner already managing jobs at PID ${other_pid}."
       exit 1
     fi

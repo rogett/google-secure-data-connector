@@ -31,9 +31,9 @@ $Id$
 -->
 
 <project
-    name="google-secure-data-connector"
-    default="all"
-    basedir="..">
+   name="google-secure-data-connector"
+   default="all"
+   basedir="..">
 
   <!-- PROPERTIES -->
   <property name="version" value="__VERSION__"/>
@@ -90,11 +90,11 @@ $Id$
       <arg value="--noverify"/>
       <arg value="--javahome=/usr"/>
     </exec>
-   <ant
-        antfile="build.xml"
-        dir="."
-        inheritAll="false"/>
-   </target>
+    <ant
+       antfile="build.xml"
+       dir="."
+       inheritAll="false"/>
+  </target>
 
   <target name="cfgdeb" depends="init,clean">
     <exec dir="." executable="./configure.sh">
@@ -102,34 +102,37 @@ $Id$
       <arg value="--user=securedataconnector"/>
       <arg value="--group=securedataconnector"/>
       <arg value="--javahome=/usr"/>
+      <arg value="--suffix_version_to_debian_package_name"/>
     </exec>
-   <ant
-        antfile="build.xml"
-        dir="."
-        inheritAll="false"/>
-   </target>
+    <ant
+       antfile="build.xml"
+       dir="."
+       inheritAll="false"/>
+    <gzip src="distribute/debian/changelog.Debian"
+          destfile="distribute/debian/changelog.Debian.gz" />
+  </target>
 
   <target name="cfgrpm" depends="init,clean">
-   <mkdir dir="/rpm" />
-   <exec dir="." executable="./configure.sh">
+    <mkdir dir="/rpm" />
+    <exec dir="." executable="./configure.sh">
       <arg value="--noverify"/>
       <arg value="--user=securedataconnector"/>
       <arg value="--group=securedataconnector"/>
       <arg value="--javahome=/usr"/>
     </exec>
-   <ant
-        antfile="build.xml"
-        dir="."
-        inheritAll="false"/>
-   </target>
+    <ant
+       antfile="build.xml"
+       dir="."
+       inheritAll="false"/>
+  </target>
 
   <target name="source-distro" depends="timestamp">
     <mkdir dir="${dist}" />
     <tar
-        destfile="${dist}/${name}-${version}-${release}-src.tar.gz"
-        longfile="gnu"
-        compression="gzip"
-        excludes="third-party/jsch/com/**,tmp/**, third-party/*/docs/**">
+       destfile="${dist}/${name}-${version}-${release}-src.tar.gz"
+       longfile="gnu"
+       compression="gzip"
+       excludes="third-party/jsch/com/**,tmp/**, third-party/*/docs/**">
       <tarfileset dir="." prefix="data-connector-agent">
         <include name="*-dist"/>
         <include name="src/**"/>
@@ -143,7 +146,7 @@ $Id$
       </tarfileset>
       <tarfileset dir="." mode="755" prefix="data-connector-agent">
       	<include name="third-party/java-service-wrapper/linux/googlesdc.sh"/>
-	<include name="third-party/java-service-wrapper/linux/bin/*"/>
+	      <include name="third-party/java-service-wrapper/linux/bin/*"/>
         <include name="configure.sh"/>
       </tarfileset>
     </tar>
@@ -199,40 +202,40 @@ $Id$
     <fileset dir="third-party/ant-deb" includes="ant-deb-0.0.1.jar"/>
   </path>
 
- <taskdef resource="ant_deb_task.properties" classpathref="deb-classpath"/>
+  <taskdef resource="ant_deb_task.properties" classpathref="deb-classpath"/>
 
   <target name="deb" depends="cfgdeb">
     <mkdir dir="${dist}"/>
 
     <deb todir="${dist}"
-         package="google-secure-data-connector"
+         package="__DEBIAN_PACKAGE_NAME__"
          section="net"
          architecture="all"
          postinst="distribute/debian/securedataconnector.postinst"
          prerm="distribute/debian/securedataconnector.prerm"
          postrm="distribute/debian/securedataconnector.postrm">
-         <version upstream="${version}" debian="${release}"/>
+      <version upstream="${version}" debian="${release}"/>
       <maintainer name="Sebastian Welsh"
                   email="sebastian.welsh@gmail.com"/>
       <description synopsis="The Google secure dataconnector client package.">
-Google secure dataconnector is used to connect from Google Apps to internal network resources. The client is a java application that
-- connects to the Google Apps termination service
-- registers the resources published to Apps
-- registers the groups able to access the resources
-- provides a proxy to the internal resources for those groups.
+        Google secure dataconnector is used to connect from Google Apps to internal network resources. The client is a java application that
+        - connects to the Google Apps termination service
+        - registers the resources published to Apps
+        - registers the groups able to access the resources
+        - provides a proxy to the internal resources for those groups.
 
-The current implementation permits access to HTTP and socket services.
+        The current implementation permits access to HTTP and socket services.
 
-http://code.google.com/
+        http://code.google.com/
       </description>
       <conffiles dir="config" prefix="__SYSCONFDIR__"
-          filemode="644" dirmode="755">
+                 filemode="644" dirmode="755">
         <include name="resourceRules.xml"/>
       	<include name="localConfig.xml"/>
       	<include name="log4j.properties"/>
       </conffiles>
       <tarfileset dir="build" prefix="__LIBDIR__"
-        filemode="644" dirmode="755">
+                  filemode="644" dirmode="755">
         <include name="agent.jar"/>
         <include name="protocol-generated.jar"/>
       </tarfileset>
@@ -250,16 +253,19 @@ http://code.google.com/
       <tarfileset dir="distribute/debian" prefix="__SYSV_INIT_SCRIPT_DIRECTORY__" filemode="755">
         <include name="__FULLNAME__" />
       </tarfileset>
-  </deb>
+      <tarfileset dir="distribute/debian" prefix="/usr/share/doc/__FULL_PACKAGE__">
+        <include name="changelog.Debian.gz"/>
+      </tarfileset>
+    </deb>
   </target>
-<!--
- Need to make the target all build deb and rpm as well. Have a dependacy and configureation
- issue that needs fixed fist.
+  <!--
+     Need to make the target all build deb and rpm as well. Have a dependacy and configureation
+     issue that needs fixed fist.
 
- In the mean time we can run ant deb and ant rpm separately and then all for tarballs.
--->
+     In the mean time we can run ant deb and ant rpm separately and then all for tarballs.
+    -->
 
-	  <target name="all" depends="clean-distro-all,source-distro,rpm,deb"/>
+	<target name="all" depends="clean-distro-all,source-distro,rpm,deb"/>
 
 </project>
 

@@ -21,6 +21,7 @@
 VENDOR="google"
 PACKAGE="secure-data-connector"
 VERSION=1.1
+FULL_PACKAGE="${VENDOR}-${PACKAGE}"
 FULLNAME="${VENDOR}-${PACKAGE}-${VERSION}"
 
 # Instructions for managing ${RELEASE}:
@@ -68,6 +69,9 @@ NOVERIFY="false"
 
 CONFIGURATION_SHLIB="configuration.sh"
 
+SUFFIX_VERSION_TO_DEBIAN_PACKAGE_NAME="false"
+DEBIAN_PACKAGE_NAME="${VENDOR}-${PACKAGE}"
+
 # Save last run config options to config.status
 echo $(pwd)/configure.sh "${*}" > config.status
 chmod 755 config.status
@@ -76,7 +80,7 @@ chmod 755 config.status
 [ -x "$(which getopt)" ] || { echo "gnu getopt binary not found." ; exit 1; }
 
 # Command line arguments
-OPTS=$(getopt -o h --long noverify,by_prefix_only,prefix:,sysconfdir::,localstatedir::,bindir::,protoc::,javahome::,user::,group::,libdir::,bindir:: -n 'configure' -- "$@")
+OPTS=$(getopt -o h --long noverify,by_prefix_only,suffix_version_to_debian_package_name,prefix:,sysconfdir::,localstatedir::,bindir::,protoc::,javahome::,user::,group::,libdir::,bindir:: -n 'configure' -- "$@")
 if [ $? != 0 ]; then
   echo -e "\nUsage:
     --prefix) installation prefix.
@@ -88,6 +92,9 @@ if [ $? != 0 ]; then
     --group) group to run SDC as. Default is 'daemon'
     --javahome) system java location.
     --noverify) do not perform configure validation steps.
+    --suffix_version_to_debian_package_name) Append the version to the Debian
+                                             package name to prevent namespace
+                                             collisions.
 
     See README for more information.
   " >&2
@@ -109,6 +116,10 @@ while true; do
     --user) USER=$2 ; shift 2 ;;
     --group) GROUP=$2 ; shift 2 ;;
     --libdir) LIBDIR=$2 ; shift 2 ;;
+    --suffix_version_to_debian_package_name)
+      SUFFIX_VERSION_TO_DEBIAN_PACKAGE_NAME="true"
+      shift 1
+      ;;
     --) shift ; break ;;
     *) echo "Error!" ; exit 1 ;;
   esac
@@ -153,6 +164,13 @@ set_by_prefix_if_undefined "LIBDIR" "lib"
 set_by_prefix_if_undefined "BINDIR" "bin"
 set_by_prefix_if_undefined "RUNDIR" "var/run"
 set_by_prefix_if_undefined "LOGDIR" "var/log"
+
+# Since by default the package installs files into locations partitioned by
+# package version, it makes sense to enable packages that do not conflict with
+# one another to exist.
+if [ "${SUFFIX_VERSION_TO_DEBIAN_PACKAGE_NAME}" = "true" ]; then
+  DEBIAN_PACKAGE_NAME="${DEBIAN_PACKAGE_NAME}${VERSION}"
+fi
 
 # Infer java binary location from JAVA_HOME env, JAVAHOME env
 # or --javabin setting.
@@ -251,13 +269,16 @@ dump_variable_to_shlib() {
 }
 
 dump_variable_to_shlib BINDIR
+dump_variable_to_shlib DEBIAN_PACKAGE_NAME
 dump_variable_to_shlib FULLNAME
+dump_variable_to_shlib FULL_PACKAGE
 dump_variable_to_shlib GROUP
 dump_variable_to_shlib INITSCRIPT
 dump_variable_to_shlib JAVABIN
 dump_variable_to_shlib LIBDIR
 dump_variable_to_shlib LOCALSTATEDIR
 dump_variable_to_shlib LOGDIR
+dump_variable_to_shlib PACKAGE
 dump_variable_to_shlib PREFIX
 dump_variable_to_shlib PROTOC
 dump_variable_to_shlib RELEASE
@@ -280,13 +301,16 @@ rewrite_template() {
   cp "${1}-dist" "${1}"
 
   substitute_macro "${1}" BINDIR
+  substitute_macro "${1}" DEBIAN_PACKAGE_NAME
   substitute_macro "${1}" FULLNAME
+  substitute_macro "${1}" FULL_PACKAGE
   substitute_macro "${1}" GROUP
   substitute_macro "${1}" INITSCRIPT
   substitute_macro "${1}" JAVABIN
   substitute_macro "${1}" LIBDIR
   substitute_macro "${1}" LOCALSTATEDIR
   substitute_macro "${1}" LOGDIR
+  substitute_macro "${1}" PACKAGE
   substitute_macro "${1}" PREFIX
   substitute_macro "${1}" PROTOC
   substitute_macro "${1}" RELEASE
@@ -300,6 +324,7 @@ rewrite_template() {
 rewrite_template "build.properties"
 rewrite_template "build.xml"
 rewrite_template "distribute/build.xml"
+rewrite_template "distribute/debian/changelog.Debian"
 rewrite_template "distribute/debian/securedataconnector.postinst"
 rewrite_template "distribute/debian/securedataconnector.postrm"
 rewrite_template "initscript"
