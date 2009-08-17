@@ -166,7 +166,7 @@ while /bin/true; do
     -localConfigFile \"${CONFIGFILE}\" \
     -rulesFile \"${RULESFILE}\" \
     -log4jPropertiesFile \"${LOG4JPROPERTIESFILE}\" \
-    ${@}" &
+    ${*}" &
   echo "$!" > "${jobs_log}"
   wait
   sleep 5
