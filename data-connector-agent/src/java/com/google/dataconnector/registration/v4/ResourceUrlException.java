@@ -11,30 +11,41 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
-package com.google.dataconnector.registration.v3;
+ */
+package com.google.dataconnector.registration.v4;
 
 /**
- * Exception for errors during protocol communications with Secure Link Server.
- * 
- * @author rayc@google.com (Ray Colline)
+ * Exception for errors during parsing of Resource Url
+ *
+ * @author vnori@google.com (Vasu Nori)
  */
-public class ResourceException extends Exception {
+public class ResourceUrlException extends Exception {
 
   /**
    * Creates the exception with the specified error message.
-   * 
+   *
    * @param msg the error message.
    */
-  public ResourceException(String msg) {
+  public ResourceUrlException(String msg) {
     super(msg);
   }
-  
-  public ResourceException(Throwable cause) {
+
+  /**
+   * Creates the exception with the specified throwable
+   *
+   * @param cause the throwable object to be wrapped this exception obj
+   */
+  public ResourceUrlException(Throwable cause) {
     super(cause);
   }
-  
-  public ResourceException(String message, Throwable cause) {
-    super(message, cause);
+
+  /**
+   * Creates the exception with the specified error message and cause.
+   *
+   * @param msg the error message.
+   * @param cause the underlying cause.
+   */
+  public ResourceUrlException(String msg, Throwable cause) {
+    super(msg, cause);
   }
 }

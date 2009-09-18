@@ -21,8 +21,7 @@ import com.google.dataconnector.protocol.FrameSender;
 import com.google.dataconnector.protocol.FramingException;
 import com.google.dataconnector.protocol.proto.SdcFrame.AuthorizationInfo;
 import com.google.dataconnector.protocol.proto.SdcFrame.FrameInfo;
-import com.google.dataconnector.protocol.proto.SdcFrame.ServerSuppliedConf;
-import com.google.dataconnector.registration.v3.Registration;
+import com.google.dataconnector.registration.v4.Registration;
 import com.google.dataconnector.util.ConnectionException;
 import com.google.dataconnector.util.LocalConf;
 import com.google.dataconnector.util.SSLSocketFactoryInit;
@@ -49,6 +48,7 @@ import javax.security.cert.X509Certificate;
  * registers and sets up socket forwarding over the existing channel. 
  * 
  * @author rayc@google.com (Ray Colline)
+ * @author vnori@google.com (Vasu Nori)
  */
 public class SdcConnection implements FailCallback {
 
@@ -62,7 +62,7 @@ public class SdcConnection implements FailCallback {
     "TLS_RSA_WITH_AES_128_CBC_SHA"
   };
   
-  public static final String INITIAL_HANDSHAKE_MSG = "v3.0 " + 
+  public static final String INITIAL_HANDSHAKE_MSG = "v4.0 " + 
      SdcConnection.class.getPackage().getImplementationVersion() + "\n";
 
   // Dependencies.
@@ -73,6 +73,7 @@ public class SdcConnection implements FailCallback {
   private final Registration registration;
   private final SocksDataHandler socksDataHandler;
   private final HealthCheckHandler healthCheckHandler;
+  private final ResourcesFileWatcher resourcesFileWatcher;
   
   // Fields
   private SSLSocket socket;
@@ -95,7 +96,8 @@ public class SdcConnection implements FailCallback {
       FrameSender frameSender, 
       Registration registration, 
       SocksDataHandler socksDataHandler,
-      HealthCheckHandler healthCheckHandler) {
+      HealthCheckHandler healthCheckHandler,
+      ResourcesFileWatcher resourcesFileWatcher) {
     this.localConf = localConf;
     this.sslSocketFactoryInit = sslSocketFactoryInit;
     this.frameReceiver = frameReceiver;
@@ -103,6 +105,7 @@ public class SdcConnection implements FailCallback {
     this.registration = registration;
     this.socksDataHandler = socksDataHandler;
     this.healthCheckHandler = healthCheckHandler;
+    this.resourcesFileWatcher = resourcesFileWatcher;
   }
 
   /**
@@ -147,19 +150,28 @@ public class SdcConnection implements FailCallback {
       }
       LOG.info("Successful login");
       
-      // Register 
-      ServerSuppliedConf serverSuppliedConf = registration.register(frameReceiver, frameSender);
+      // send registration info to the SDC server
+      registration.sendRegistrationInfo(frameSender);
+      
+      // setup to start receiving and processing registration response 
+      frameReceiver.registerDispatcher(FrameInfo.Type.REGISTRATION, registration);
       
       // Setup Healthcheck
       healthCheckHandler.setFrameSender(frameSender);
       healthCheckHandler.setFailCallback(this);
-      healthCheckHandler.setServerSuppliedConf(serverSuppliedConf);
       frameReceiver.registerDispatcher(FrameInfo.Type.HEALTH_CHECK, healthCheckHandler);
       healthCheckHandler.start();
       
       // Setup Socket Data.
       socksDataHandler.setFrameSender(frameSender);
       frameReceiver.registerDispatcher(FrameInfo.Type.SOCKET_DATA, socksDataHandler);
+      
+      // a thread to watch for changes in the resources.xml file
+      // make this thread a daemon - so it can't hold up the process from exiting
+      LOG.info("starting a thread to watch resources file");
+      resourcesFileWatcher.setDaemon(true);
+      resourcesFileWatcher.setFrameSender(frameSender);
+      resourcesFileWatcher.start();
       
       frameReceiver.startDispatching();
     } catch (IOException e) {

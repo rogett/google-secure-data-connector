@@ -29,7 +29,7 @@ message SocketDataInfo {
   required State state = 2;
   optional bytes segment = 3;
 }
-  
+
 message AuthorizationInfo {
 
   enum ResultCode {
@@ -38,17 +38,17 @@ message AuthorizationInfo {
     ACCESS_DENIED_CAPTCHA_REQUIRED_TO_UNLOCK = 3;
     SERVER_ERROR = 4;
   }
-  
+
   enum AuthType {
     PASSWORD = 1;
   }
-  
+
   // request
   optional string email = 1;
   optional AuthType authType = 2;
   optional string password = 3;
-  
-  // response 
+
+  // response
   optional ResultCode result = 5;
   optional string statusMessage = 6;
 }
@@ -65,37 +65,64 @@ message RegistrationInfo {
     OK = 1;
     FAILED = 2;
   }
-  
-  // request 
+
+  // request
   optional string xml = 1;
-  
+
   // response.
   optional string statusMessage = 2;
-  optional ResultCode result = 3;  
+  optional ResultCode result = 3;
   optional ServerSuppliedConf serverSuppliedConf = 4;
-  
+
 }
 
 message ServerSuppliedConf {
   optional int32 healthCheckTimeout = 4;
   optional int32 healthCheckWakeUpInterval = 5;
-} 
+}
 
 message HealthCheckInfo {
-  
+
   enum Source {
     CLIENT = 1;
     SERVER = 2;
   }
-  
+
   enum Type {
     REQUEST = 1;
     RESPONSE = 2;
   }
-  
+
   optional int64 timeStamp = 1;
-  
+
   // server provided configuration parameters.
   optional Source source = 2;
   optional Type type = 3;
+}
+
+// registration request for v4 agents
+message RegistrationRequestV4 {
+  required string agentId = 1;
+  required int32 socksServerPort = 2;
+  required int32 healthCheckPort = 3;
+  repeated string healthCheckGadgetUser = 4;
+  repeated ResourceKey resourceKey = 5;
+  required string resourcesXml = 6;
+}
+
+// registration response for V4 agents
+message RegistrationResponseV4 {
+
+  enum ResultCode {
+    OK = 1;
+    // if any errors in the registration request, this error is returned by the SDC server
+    ERRORS_IN_REQUEST = 2;
+    // if server encounters some temporary system failure, this error is returned.
+    // If the registration request is retried after a while, it should succeed.
+    SERVER_ERROR = 3;
+  }
+
+  optional string statusMessage = 1;
+  required ResultCode result = 2;
+  optional ServerSuppliedConf serverSuppliedConf = 3;
 }

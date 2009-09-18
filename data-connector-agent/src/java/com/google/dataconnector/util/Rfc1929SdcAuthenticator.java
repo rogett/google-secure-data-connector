@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.util.HashMap;
 
 /**
  * This class implements both authentication and Layer 4 IP rule enforcement for incoming SOCKS5 
@@ -42,6 +41,7 @@ import java.util.HashMap;
  * is one single method {@link ServerAuthenticatorNone#selectSocks5Authentication}.
  * 
  * @author rayc@google.com (Ray Colline)
+ * @author vnori@google.com (Vasu Nori)
  */
 public class Rfc1929SdcAuthenticator extends ServerAuthenticatorNone {
 

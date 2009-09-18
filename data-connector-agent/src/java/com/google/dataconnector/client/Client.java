@@ -14,7 +14,6 @@
  */ 
 package com.google.dataconnector.client;
 
-import com.google.dataconnector.registration.v3.ResourceException;
 import com.google.dataconnector.util.ClientGuiceModule;
 import com.google.dataconnector.util.ConnectionException;
 import com.google.dataconnector.util.HealthCheckRequestHandler;
@@ -56,7 +55,6 @@ public class Client {
   private final SdcConnection secureDataConnection;
   private final JsocksStarter jsocksStarter;
   private final HealthCheckRequestHandler healthCheckRequestHandler;
-  private final ResourceRuleProcessor resourceRuleProcessor;
   
  
   /**
@@ -64,13 +62,11 @@ public class Client {
    */
   @Inject
   public Client(LocalConf localConf, SdcConnection secureDataConnection,
-      JsocksStarter jsocksStarter, HealthCheckRequestHandler healthCheckRequestHandler,
-      ResourceRuleProcessor resourceRuleProcessor) {
+      JsocksStarter jsocksStarter, HealthCheckRequestHandler healthCheckRequestHandler) {
     this.localConf = localConf;
     this.secureDataConnection = secureDataConnection;
     this.jsocksStarter = jsocksStarter;
     this.healthCheckRequestHandler = healthCheckRequestHandler;
-    this.resourceRuleProcessor = resourceRuleProcessor;
   }
   
 
@@ -98,16 +94,6 @@ public class Client {
     
     // start the healthcheck service
     healthCheckRequestHandler.init();
-    
-    /* 
-     * process resource rules to make sure they are good.
-     */
-    try {
-      resourceRuleProcessor.process();
-    } catch (ResourceException e) {
-      log.fatal("Configuration error", e);
-      return;
-    }
     
     // start jsocks thread
     jsocksStarter.startJsocksProxy();

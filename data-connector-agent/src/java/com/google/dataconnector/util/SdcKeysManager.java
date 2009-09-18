@@ -28,7 +28,8 @@ import java.util.Map;
 
 /**
  * Manage SDC keys
- * @author vnori@google.com (Your Name Here)
+ * 
+ * @author vnori@google.com (Vasu Nori)
  */
 @Singleton
 public class SdcKeysManager {

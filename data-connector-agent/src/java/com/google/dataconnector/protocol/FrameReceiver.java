@@ -150,6 +150,7 @@ public class FrameReceiver {
       try {
         FrameInfo frameInfo = FrameInfo.parseFrom(payload);
         LOG.debug("frame:\n" + frameInfo.toString());
+        LOG.debug("frame type recevd: " + frameInfo.getType());
         return  frameInfo;
       } catch (InvalidProtocolBufferException e) {
         throw new FramingException(e);

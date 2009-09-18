@@ -11,7 +11,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ */
 package com.google.dataconnector.util;
 
 import com.google.feedserver.util.ConfigFile;
@@ -20,19 +20,19 @@ import com.google.inject.Singleton;
 
 /**
  * Bean representing all the startup configuration for the agent.
- * 
+ *
  * @author rayc@google.com (Ray Colline)
  */
 @Singleton
 public class LocalConf {
-  
+
   private static final String DEFAULT_GOOGLE_SDC_HOST = "apps-secure-data-connector.google.com";
   private static final int DEFAULT_GOOGLE_SDC_PORT = 443;
   private static final String DEFAULT_SSL_KEYSTORE_PASSWORD = "woodstock";
   private static boolean DEBUG = false;
   public static final String HTTPD_CONF_TEMPLATE_FILE = "httpd.conf-template";
   public static final String DEFAULT_SOCKS_BIND_HOST = "127.0.0.1";
-  
+
   private String name;
 
   @ConfigFile(required = true)
@@ -46,12 +46,12 @@ public class LocalConf {
   private Integer sdcServerPort = DEFAULT_GOOGLE_SDC_PORT;
   @Flag(help = "Google Apps domain to associate agent with.")
   private String domain;
-  
+
   @Flag(help = "Any valid admin user on the domain. This is only used for authentication.")
   private String user;
   @Flag(help = "Password.")
   private String password;
-  
+
   @Flag(help = "Keystore password if using external keystore file")
   private String sslKeyStorePassword = DEFAULT_SSL_KEYSTORE_PASSWORD;
   @Flag(help = "External keystore to use.  Default only allows verified certs per java default " +
@@ -72,14 +72,17 @@ public class LocalConf {
   private String healthCheckGadgetUsers;
   @Flag(help = "log4j properties File")
   private String log4jPropertiesFile;
-  
+
+  @Flag(help = "Resources File Watcher Thread sleep timer. default is 1 min")
+  private int fileWatcherThreadSleepTimer = 1;
+
   // Config File Only
-  private String socksProperties = 
+  private String socksProperties =
       "iddleTimeout = 60000\n" + // 10 minutes
       "acceptTimeout = 60000\n" + // 1 minutes
       "udpTimeout = 600000\n" + // 10 minutes
       "log = -\n"; // stdout.
-  
+
   // getters and setters
   public String getName() {
     return name;
@@ -96,7 +99,7 @@ public class LocalConf {
   public void setLocalConfigFile(String configFile) {
     this.localConfigFile = configFile;
   }
-  
+
   public void setRulesFile(String rulesFile) {
     this.rulesFile = rulesFile;
   }
@@ -144,7 +147,7 @@ public class LocalConf {
   public void setPassword(String password) {
     this.password = password;
   }
-  
+
   public String getSslKeyStorePassword() {
     return sslKeyStorePassword;
   }
@@ -192,7 +195,7 @@ public class LocalConf {
   public void setSocksProperties(String socksProperties) {
     this.socksProperties = socksProperties;
   }
-  
+
   public Boolean getDebug() {
     return debug;
   }
@@ -208,7 +211,7 @@ public class LocalConf {
   public Boolean getAllowUnverifiedCertificates() {
     return allowUnverifiedCertificates;
   }
-    
+
   public String getHealthCheckGadgetUsers() {
     return healthCheckGadgetUsers;
   }
@@ -223,5 +226,13 @@ public class LocalConf {
 
   public void setLog4jPropertiesFile(String log4jPropertiesFile) {
     this.log4jPropertiesFile = log4jPropertiesFile;
+  }
+
+  public int getFileWatcherThreadSleepTimer() {
+    return fileWatcherThreadSleepTimer;
+  }
+
+  public void setFileWatcherThreadSleepTimer(int fileWatcherThreadSleepTimer) {
+    this.fileWatcherThreadSleepTimer = fileWatcherThreadSleepTimer;
   }
 }

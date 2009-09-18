@@ -20,7 +20,7 @@
 
 VENDOR="google"
 PACKAGE="secure-data-connector"
-VERSION=1.1
+VERSION=2.0
 FULL_PACKAGE="${VENDOR}-${PACKAGE}"
 FULLNAME="${VENDOR}-${PACKAGE}-${VERSION}"
 
@@ -28,7 +28,7 @@ FULLNAME="${VENDOR}-${PACKAGE}-${VERSION}"
 # - If ${VERSION} changes, reset this to zero.
 # - If something in the packaging or build infrastructure changes, please
 #   increment this value.
-RELEASE=2
+RELEASE=0
 
 # Install into locations ascertained by ${PREFIX} only.
 BY_PREFIX_ONLY="false"

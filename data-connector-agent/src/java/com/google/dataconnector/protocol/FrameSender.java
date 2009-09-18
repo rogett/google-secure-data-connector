@@ -113,6 +113,7 @@ public class FrameSender extends Thread {
     outputStream.write(frameInfoBytes);
     LOG.debug("payload: " + frameInfoBytes);
     LOG.debug("frame:\n" + frameInfo.toString());
+    LOG.debug("sending frame type: " + frameInfo.getType());
     // Update bytes sent counter if one has been supplied.
     if (byteCounter != null) {
       byteCounter.addAndGet(FrameReceiver.HEADER_SIZE + frameInfoBytes.length);
