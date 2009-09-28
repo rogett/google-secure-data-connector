@@ -11,7 +11,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ *
+ * $Id$
+ */
 package com.google.dataconnector.protocol;
 
 import com.google.common.base.Preconditions;
@@ -27,21 +29,21 @@ import java.io.InputStream;
 /**
  * Reads bytes off the supplied {@link InputStream}, creates the SocketDataInfo and sends them
  * using the supplied {@link FrameSender}.  If it detects and inputstream close, it will fire
- * off a CLOSE SocketDataInfo informing the otherside. 
- * 
+ * off a CLOSE SocketDataInfo informing the otherside.
+ *
  * @author rayc@google.com (Ray Colline)
  */
 public class InputStreamConnector extends Thread {
-  
+
   private static final Logger LOG = Logger.getLogger(InputStreamConnector.class);
-  
+
   private InputStream inputStream;
   private int connectionId;
   private FrameSender frameSender;
   private ConnectorStateCallback connectorStateCallback;
-   
+
   /**
-   * Reads bytes from the input stream and whatever is returned packages into a 
+   * Reads bytes from the input stream and whatever is returned packages into a
    * {@link SocketDataInfo} and sends using the supplied FrameReceiver.  If it detects
    * a close on the input stream it will fire the {@link ConnectorStateCallback}.
    */
@@ -49,7 +51,7 @@ public class InputStreamConnector extends Thread {
   public void run() {
     Preconditions.checkNotNull(inputStream, "must set inputStream before calling start()");
     Preconditions.checkNotNull(connectionId, "must set connectionId before calling start()");
-    
+
       try {
         byte[] buffer = new byte[65536];
         while (true) {
@@ -78,11 +80,11 @@ public class InputStreamConnector extends Thread {
             .setConnectionId(connectionId)
             .setState(SocketDataInfo.State.CLOSE)
             .build().toByteString());
-      } 
+      }
     connectorStateCallback.close(connectionId);
     LOG.debug("removed connectionId " + connectionId);
   }
-  
+
   public void setInputStream(InputStream inputStream) {
     this.inputStream = inputStream;
   }
@@ -90,7 +92,7 @@ public class InputStreamConnector extends Thread {
   public void setConnectionId(int connectionId) {
     this.connectionId = connectionId;
   }
-  
+
   public void setFrameSender(FrameSender frameSender) {
     this.frameSender = frameSender;
   }

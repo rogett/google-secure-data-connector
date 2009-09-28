@@ -11,7 +11,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ *
+ * $Id$
+ */
 package com.google.dataconnector.client.testing;
 
 import org.easymock.IArgumentMatcher;
@@ -20,7 +22,7 @@ import java.util.Arrays;
 
 /**
  * EasyMock matcher that compares two String arrays.
- * 
+ *
  * @author rayc@google.com (Ray Colline)
  */
 public class StringArrayMatcher implements IArgumentMatcher {
@@ -47,8 +49,8 @@ public class StringArrayMatcher implements IArgumentMatcher {
    */
   public boolean matches(Object actual) {
     if (!(actual instanceof String[])) {
-      return false; 
+      return false;
     }
-    return Arrays.equals(expected, (String[]) actual); 
+    return Arrays.equals(expected, (String[]) actual);
   }
 }

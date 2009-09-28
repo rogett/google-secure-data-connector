@@ -11,37 +11,39 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ *
+ * $Id$
+ */
 package com.google.dataconnector.util;
 
 /**
  * Exception for all connection related errors.
- * 
+ *
  * @author rayc@google.com (Ray Colline)
  */
 public class ConnectionException extends Exception {
 
   /**
    * Creates the exception with the specified error message.
-   * 
+   *
    * @param msg the error message.
    */
   public ConnectionException(String msg) {
     super(msg);
   }
-  
+
   /**
    * Creates the exception with the specified underlying cause.
-   * 
+   *
    * @param cause the underlying cause.
    */
   public ConnectionException(Throwable cause) {
     super(cause);
   }
-  
+
   /**
    * Creates the exception with the specified error message and cause.
-   * 
+   *
    * @param msg the error message.
    * @param cause the underlying cause.
    */

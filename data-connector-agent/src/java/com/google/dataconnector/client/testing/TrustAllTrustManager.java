@@ -11,7 +11,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ *
+ * $Id$
+ */
 package com.google.dataconnector.client.testing;
 
 import java.security.cert.CertificateException;
@@ -22,7 +24,7 @@ import javax.net.ssl.X509TrustManager;
 
 /**
  * Used for testing, this trust manager allows all certs.  Only use for testing!
- * 
+ *
  * @author rayc@google.com (Ray Colline)
  */
 public class TrustAllTrustManager implements TrustManager, X509TrustManager {
@@ -35,12 +37,12 @@ public class TrustAllTrustManager implements TrustManager, X509TrustManager {
   }
   public boolean isClientTrusted(X509Certificate[] certs) {
     return true;
-  } 
-  public void checkServerTrusted(X509Certificate[] certs, String authType) 
+  }
+  public void checkServerTrusted(X509Certificate[] certs, String authType)
       throws CertificateException {
     return;
   }
-  public void checkClientTrusted(X509Certificate[] certs, String authType) 
+  public void checkClientTrusted(X509Certificate[] certs, String authType)
       throws CertificateException {
     return;
   }

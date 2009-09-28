@@ -11,7 +11,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ *
+ * $Id$
+ */
 package com.google.dataconnector.client.testing;
 
 import com.google.dataconnector.util.LocalConf;
@@ -36,7 +38,7 @@ public class FakeLocalConfGenerator {
 
   /** The fake properties file we generate the config from */
   private LocalConf fakeLocalConf;
-  
+
   /* conf values */
   public static final String NAME = "localConf";
   public static final String SDC_SERVER_HOST = "test.apps-secure-data-connector.google.com";
@@ -52,9 +54,9 @@ public class FakeLocalConfGenerator {
   public static final Integer SOCKS_SERVER_PORT = 1080;
   public static final String SOCKSD_BIND_HOST = "127.0.0.1";
   public static final String RULES_FILE = "/tmp/rulesConf.xml";
-  
+
   /**
-   * Creates a configuration beans from the fake hardcoded XML files.  
+   * Creates a configuration beans from the fake hardcoded XML files.
    */
   public FakeLocalConfGenerator() {
 
@@ -86,7 +88,7 @@ public class FakeLocalConfGenerator {
   public LocalConf getFakeLocalConf() {
     return fakeLocalConf;
   }
-  
+
   public static final String CONFIG_XML =  "<entity>\n" +
     "<ruleNum>" + NAME +"</ruleNum>\n" +
     "<rulesFile>" + RULES_FILE + "</rulesFile>\n" +

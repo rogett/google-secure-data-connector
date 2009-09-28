@@ -11,7 +11,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ *
+ * $Id$
+ */
 package com.google.dataconnector.util;
 
 import junit.framework.TestCase;
@@ -28,7 +30,7 @@ import java.net.Socket;
 
 /**
  * Tests for the {@link HealthCheckRequestHandler} class.
- * 
+ *
  * @author vnori@google.com (Vasu Nori)
  *
  */
@@ -36,7 +38,7 @@ public class HealthCheckRequestHandlerTest extends TestCase {
 
   /**
    * Creates mock socket from the input streams provided for use with the registration util.
-   * 
+   *
    * @param is pre populated input stream such as a {@link ByteArrayInputStream}
    * @param os pre populated output stram such as a {@link ByteArrayOutputStream}
    * @return configured mock socket.
@@ -49,9 +51,9 @@ public class HealthCheckRequestHandlerTest extends TestCase {
     EasyMock.replay(fakeSocket);
     return fakeSocket;
   }
-  
+
   public void testHealthCheckRequestHandlerProcessingRequest() throws IOException {
-    
+
     // Successful case.
     InputStream is = new ByteArrayInputStream(("GET /healthcheck\n").getBytes());
     OutputStream os = new ByteArrayOutputStream();
@@ -59,7 +61,7 @@ public class HealthCheckRequestHandlerTest extends TestCase {
     EasyMock.expect(mockServerSocket.accept()).andReturn(getFakeSocket(is, os));
     EasyMock.expect(mockServerSocket.accept()).andThrow(new IOException("test done"));
     EasyMock.replay(mockServerSocket);
-    HealthCheckRequestHandler testHealthCheckRequestHandler = 
+    HealthCheckRequestHandler testHealthCheckRequestHandler =
         new HealthCheckRequestHandler(mockServerSocket);
     try {
       testHealthCheckRequestHandler.run();

@@ -11,7 +11,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ *
+ * $Id$
+ */
 package com.google.dataconnector.registration.v4.testing;
 
 
@@ -25,7 +27,7 @@ public class FakeResourceRuleConfig {
   // Resource Values
   public static final String AGENT_ID = "all";
   public static final int HTTP_RULE_NUM = 1;
-  public static final String[] ALLOWED_ENTITY = 
+  public static final String[] ALLOWED_ENTITY =
       { "rcolline@test.joonix.net", "admin@test.joonix.net" };
   public static final String HTTP_PATTERN = "http://www.example.com";
   public static final int SOCKET_RULE_NUM = 2;
@@ -36,7 +38,7 @@ public class FakeResourceRuleConfig {
   public static final String URL_EXACT_PATTERN = "http://www.example.com/exact/path";
   public static final int HTTPS_RULE_NUM = 4;
   public static final String HTTPS_PATTERN = "https://www.example.com";
-  
+
   public static final String CONFIG_RESOURCE_RULES_XML = "<resourceRules>\n" +
     "<rule repeatable='true'>\n" +
     "  <agentId>" + AGENT_ID + "</agentId>" +
@@ -63,7 +65,7 @@ public class FakeResourceRuleConfig {
     "  <yadiyadayada>doesnt-matter<</yadiyadayada>" +
     "</rule>\n" +
     "</resourceRules>\n" ;
-  
+
   public static final String CONFIG_RESOURCE_RULES_XML_OLDSTYLE = "<feed>\n" +
   "<entity repeatable='true'>\n" +
   "  <clientId>" + AGENT_ID + "</clientId>\n" +
@@ -89,7 +91,7 @@ public class FakeResourceRuleConfig {
   "  <blah>foobar<</blah>" +
   "</entity>\n" +
   "</feed>\n" ;
-  
+
   public static final String RUNTIME_RESOURCE_ENTITY_XML =
     "<entity repeatable='true'>\n" +
     "  <clientId>" + AGENT_ID + "</clientId>\n" +

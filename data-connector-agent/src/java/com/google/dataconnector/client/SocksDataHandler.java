@@ -11,7 +11,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ *
+ * $Id$
+ */
 package com.google.dataconnector.client;
 
 import com.google.dataconnector.protocol.ConnectorStateCallback;
@@ -46,13 +48,13 @@ import java.util.concurrent.ThreadPoolExecutor;
 import javax.net.SocketFactory;
 
 /**
- * Handler for all incoming socket connections from the cloud.  Listens for new 
+ * Handler for all incoming socket connections from the cloud.  Listens for new
  * {@link SocketDataInfo} frames and handles plumbing connections to the local socks server.
- * 
+ *
  * @author rayc@google.com (Ray Colline)
  */
 public class SocksDataHandler implements Dispatchable {
-  
+
   public static Logger LOG = Logger.getLogger(SocksDataHandler.class);
 
   // Injected dependencies
@@ -60,36 +62,36 @@ public class SocksDataHandler implements Dispatchable {
   private final LocalConf localConf;
   private final InetAddress localHostAddress;
   private final ThreadPoolExecutor threadPoolExecutor;
-  private final Injector injector; 
-  
+  private final Injector injector;
+
   // Runtime dependencies
   private FrameSender frameSender;
-  
+
   // Local fields
   private ConcurrentMap<Integer, BlockingQueue<SocketDataInfo>> outputQueueMap;
 
   public interface ConnectionStateUpdatable {
      public void removeConnection(int connectionId);
   }
-     
+
   @Inject
-  public SocksDataHandler(LocalConf localConf, SocketFactory socketFactory, 
-      @Named("localhost") InetAddress localHostAddress, ThreadPoolExecutor threadPoolExecutor, 
+  public SocksDataHandler(LocalConf localConf, SocketFactory socketFactory,
+      @Named("localhost") InetAddress localHostAddress, ThreadPoolExecutor threadPoolExecutor,
       Injector injector) {
-    
+
     outputQueueMap = new ConcurrentHashMap<Integer, BlockingQueue<SocketDataInfo>>();
     this.localConf = localConf;
-    this.socketFactory = socketFactory; 
+    this.socketFactory = socketFactory;
     this.localHostAddress = localHostAddress;
     this.threadPoolExecutor = threadPoolExecutor;
     this.injector = injector;
   }
-  
+
   /**
    * Gets called by the frame receiver when a SocketDataInfo frame is received.  Depending
    * on the frame STATE, it will plumb a new connection to the socks server or send data
    * to an existing connection.
-   * 
+   *
    * @throws FramingException if any IO errors with plumbing, unparsable frames, or frames in
    * a bad state.
    */
@@ -99,7 +101,7 @@ public class SocksDataHandler implements Dispatchable {
     try {
       SocketDataInfo socketDataInfo = SocketDataInfo.parseFrom(frameInfo.getPayload());
       int connectionId = (int) socketDataInfo.getConnectionId();
-      
+
       // Handle incoming start request.
       if (socketDataInfo.getState() == SocketDataInfo.State.START) {
         LOG.info("Starting new connection. ID " + connectionId);
@@ -107,9 +109,9 @@ public class SocksDataHandler implements Dispatchable {
         socket.connect(new InetSocketAddress(localHostAddress, localConf.getSocksServerPort()));
 
         ConnectionRemover connectionRemoverCallback = new ConnectionRemover();
-        
+
         // TODO(rayc) Create a pool of connectors instead of making a new instance each time.
-        InputStreamConnector inputStreamConnector = 
+        InputStreamConnector inputStreamConnector =
             injector.getInstance(InputStreamConnector.class);
         inputStreamConnector.setConnectionId(connectionId);
         inputStreamConnector.setInputStream(socket.getInputStream());
@@ -118,7 +120,7 @@ public class SocksDataHandler implements Dispatchable {
         inputStreamConnector.setName("Inputconnector-" + connectionId);
 
         // TODO(rayc) Create a pool of connectors instead of making a new instance each time.
-        OutputStreamConnector outputStreamConnector = 
+        OutputStreamConnector outputStreamConnector =
             injector.getInstance(OutputStreamConnector.class);
         outputStreamConnector.setConnectionId(connectionId);
         outputStreamConnector.setOutputStream(socket.getOutputStream());
@@ -126,7 +128,7 @@ public class SocksDataHandler implements Dispatchable {
         outputStreamConnector.setName("Outputconnector-" + connectionId);
         outputQueueMap.put(connectionId, outputStreamConnector.getQueue());
 
-        // Start threads 
+        // Start threads
         threadPoolExecutor.execute(inputStreamConnector);
         threadPoolExecutor.execute(outputStreamConnector);
         LOG.debug("active thread count = " + Thread.activeCount());
@@ -138,7 +140,7 @@ public class SocksDataHandler implements Dispatchable {
         }
       // Unknown states.
       } else {
-        throw new FramingException("Unknown State: " + socketDataInfo.getState() + 
+        throw new FramingException("Unknown State: " + socketDataInfo.getState() +
             " received while dispatching");
       }
     } catch (InvalidProtocolBufferException e) {
@@ -150,7 +152,7 @@ public class SocksDataHandler implements Dispatchable {
     } catch (InterruptedException e) {
       throw new FramingException(e);
     } catch (RejectedExecutionException e){
-      LOG.warn("Out of threads, waiting for some to free up.  Total active " + 
+      LOG.warn("Out of threads, waiting for some to free up.  Total active " +
           threadPoolExecutor.getActiveCount() + " queue Map entries" + outputQueueMap.size());
       throw new FramingException("Out of threads!");
     }
@@ -159,15 +161,15 @@ public class SocksDataHandler implements Dispatchable {
   public void setFrameSender(FrameSender frameSender) {
     this.frameSender = frameSender;
   }
-  
+
   /**
    * Provides callback for InputStreamConnector and OutputStreamConnector for when connection state
    * changes on input or output streams.
-   * 
+   *
    * @author rayc@google.com (Ray Colline)
    */
   public class ConnectionRemover implements ConnectorStateCallback {
-    
+
     /**
      * Removes connection from the queueMap so its no longer tracked.
      */
@@ -185,4 +187,4 @@ public class SocksDataHandler implements Dispatchable {
       }
     }
   }
-} 
+}

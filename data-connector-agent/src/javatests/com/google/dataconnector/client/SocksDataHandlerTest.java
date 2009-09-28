@@ -11,7 +11,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ *
+ * $Id$
+ */
 package com.google.dataconnector.client;
 
 import com.google.dataconnector.client.SocksDataHandler.ConnectionRemover;
@@ -43,7 +45,7 @@ public class SocksDataHandlerTest extends TestCase {
   private static final String DATA= "byte data to be transferred";
 
   private static final int CONNECTION_ID = 1;
-  
+
   // Mocks
   private InputStreamConnector inputStreamConnector;
   private OutputStreamConnector outputStreamConnector;
@@ -53,19 +55,19 @@ public class SocksDataHandlerTest extends TestCase {
   private InetAddress localHostAddress;
   private Injector injector;
   private FrameSender frameSender;
-  
+
   // data
   private FrameInfo mockFrame;
   private SocketDataInfo mockSocketDataInfo;
   private LocalConf fakeLocalConf;
   private BlockingQueue<SocketDataInfo> queue;
-  
-  
+
+
   @SuppressWarnings("unchecked")
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    
+
     fakeLocalConf = new FakeLocalConfGenerator().getFakeLocalConf();
     // 2nd order dependency mocks that isnt important to define behavior
     socket = EasyMock.createNiceMock(Socket.class);
@@ -75,27 +77,27 @@ public class SocksDataHandlerTest extends TestCase {
     frameSender = EasyMock.createNiceMock(FrameSender.class);
     EasyMock.replay(frameSender);
     queue = new LinkedBlockingQueue<SocketDataInfo>();
-    
+
     // SocketFactory
     socketFactory = EasyMock.createMock(SocketFactory.class);
     socketFactory.createSocket();
     EasyMock.expectLastCall().andReturn(socket);
     EasyMock.replay(socketFactory);
-    
+
     // Input and Output Stream Connectors
     inputStreamConnector = EasyMock.createMock(InputStreamConnector.class);
     inputStreamConnector.setConnectionId(CONNECTION_ID);
     EasyMock.expectLastCall();
     inputStreamConnector.setInputStream(socket.getInputStream());
     EasyMock.expectLastCall();
-    inputStreamConnector.setFrameSender(frameSender); 
+    inputStreamConnector.setFrameSender(frameSender);
     EasyMock.expectLastCall();
     inputStreamConnector.setConnectorStateCallback(EasyMock.isA(ConnectionRemover.class));
     EasyMock.expectLastCall();
     inputStreamConnector.setName("Inputconnector-" + CONNECTION_ID);
     EasyMock.expectLastCall();
     EasyMock.replay(inputStreamConnector);
-    
+
     outputStreamConnector = EasyMock.createMock(OutputStreamConnector.class);
     outputStreamConnector.setConnectionId(CONNECTION_ID);
     EasyMock.expectLastCall();
@@ -108,7 +110,7 @@ public class SocksDataHandlerTest extends TestCase {
     outputStreamConnector.getQueue();
     EasyMock.expectLastCall().andReturn(queue);
     EasyMock.replay(outputStreamConnector);
-    
+
     // Injector
     injector = EasyMock.createMock(Injector.class);
     EasyMock.expect(injector.getInstance(InputStreamConnector.class))
@@ -116,7 +118,7 @@ public class SocksDataHandlerTest extends TestCase {
     EasyMock.expect(injector.getInstance(OutputStreamConnector.class))
         .andReturn(outputStreamConnector);
     EasyMock.replay(injector);
-    
+
     // ThreadPoolExecutor
     threadPoolExecutor = EasyMock.createMock(ThreadPoolExecutor.class);
     threadPoolExecutor.execute(inputStreamConnector);
@@ -124,10 +126,10 @@ public class SocksDataHandlerTest extends TestCase {
     threadPoolExecutor.execute(outputStreamConnector);
     EasyMock.expectLastCall();
     EasyMock.replay(threadPoolExecutor);
-     
-    
+
+
   }
-  
+
   public void testDispatchNewConnection() throws Exception {
     mockSocketDataInfo = SocketDataInfo.newBuilder()
         .setConnectionId(CONNECTION_ID)
@@ -138,18 +140,18 @@ public class SocksDataHandlerTest extends TestCase {
         .setSequence(1)
         .setPayload(mockSocketDataInfo.toByteString())
         .build();
-    
+
     SocksDataHandler socksDataHandler = new SocksDataHandler(fakeLocalConf,
         socketFactory, localHostAddress, threadPoolExecutor, injector);
     socksDataHandler.setFrameSender(frameSender);
     socksDataHandler.dispatch(mockFrame);
-    
-    EasyMock.verify(socketFactory, inputStreamConnector, outputStreamConnector, injector, 
+
+    EasyMock.verify(socketFactory, inputStreamConnector, outputStreamConnector, injector,
         threadPoolExecutor);
   }
-  
+
   public void testDispatchContinuingConnection() throws Exception {
-    
+
     // Setup
     mockSocketDataInfo = SocketDataInfo.newBuilder()
         .setConnectionId(CONNECTION_ID)
@@ -160,7 +162,7 @@ public class SocksDataHandlerTest extends TestCase {
         .setSequence(1)
         .setPayload(mockSocketDataInfo.toByteString())
         .build();
-    
+
     SocketDataInfo continuingSocketDataInfo = SocketDataInfo.newBuilder()
         .setConnectionId(CONNECTION_ID)
         .setState(SocketDataInfo.State.CONTINUE)
@@ -171,29 +173,29 @@ public class SocksDataHandlerTest extends TestCase {
         .setSequence(1)
         .setPayload(continuingSocketDataInfo.toByteString())
         .build();
-    
+
     // Execute.
     SocksDataHandler socksDataHandler = new SocksDataHandler(fakeLocalConf,
         socketFactory, localHostAddress, threadPoolExecutor, injector);
     socksDataHandler.setFrameSender(frameSender);
     socksDataHandler.dispatch(mockFrame);
     socksDataHandler.dispatch(continuingFrame);
-    
+
     // Verify
     SocketDataInfo actualSocketDataInfo = queue.take();
     assertEquals(continuingSocketDataInfo, actualSocketDataInfo);
-    
-    EasyMock.verify(socketFactory, inputStreamConnector, outputStreamConnector, injector, 
+
+    EasyMock.verify(socketFactory, inputStreamConnector, outputStreamConnector, injector,
         threadPoolExecutor);
   }
-  
+
   public void testDispatchInvalidProtocol() throws Exception {
     mockFrame = FrameInfo.newBuilder()
         .setType(FrameInfo.Type.SOCKET_DATA)
         .setSequence(1)
         .setPayload(ByteString.copyFrom(new byte[] { 0, 0, 0, 0, 0 })) // Invalid pb.
         .build();
-    
+
     SocksDataHandler socksDataHandler = new SocksDataHandler(null, null, null, null, null);
     socksDataHandler.setFrameSender(frameSender);
     try {
@@ -203,6 +205,6 @@ public class SocksDataHandlerTest extends TestCase {
       // expected
       return;
     }
-     
+
   }
 }

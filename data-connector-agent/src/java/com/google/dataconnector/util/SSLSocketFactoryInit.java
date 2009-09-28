@@ -11,7 +11,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ *
+ * $Id$
+ */
 
 package com.google.dataconnector.util;
 
@@ -37,41 +39,41 @@ import javax.net.ssl.TrustManagerFactory;
 
 /**
  * A helper class to set up own local SSL context.
- * 
+ *
  * @author vnori@google.com (Vasu Nori)
  */
 @Singleton
 public class SSLSocketFactoryInit {
   private static final Logger LOG = Logger.getLogger(SSLSocketFactoryInit.class);
-  
+
   /** injected dependencies */
   private final FileUtil fileUtil;
-  
+
   @Inject
   public SSLSocketFactoryInit(FileUtil fileUtil) {
     this.fileUtil = fileUtil;
   }
-  
+
   /**
-   * sets up our own local SSL context and returns a SSLSocketFactory 
+   * sets up our own local SSL context and returns a SSLSocketFactory
    * with keystore and password set by our flags.
-   * 
+   *
    * <p>A keystore contains the list of CAs that the agent accepts. If nothing
    * is specified, it will use the default Java keystore, which contains most
    * well-known CAs - these will be good for Google Tunnel Server.
-   * 
+   *
    * <p>
-   * 
+   *
    * @param localConf the configuration object for the client.
    * @return SSLSocketFactory configured for use.
    */
   public SSLSocketFactory getSslSocketFactory(LocalConf localConf) {
     LOG.info("Using SSL for client connections.");
-    
+
     // The following two are required ONLY if the certificate of the server
     // does not map to the default Java CAs. In practice, this will only happen, most
     // likely, when connecting with testing/staging servers with test certificates.
-    
+
     String keystorePath = localConf.getSslKeyStoreFile();
     char[] password = null;
     if (keystorePath != null) {
@@ -79,7 +81,7 @@ public class SSLSocketFactoryInit {
       // {@link LocalConfValidator} makes sure of that.
       password = localConf.getSslKeyStorePassword().toCharArray();
     }
-    
+
     try {
       SSLContext context = SSLContext.getInstance("TLSv1");
       if (keystorePath != null) { // The customer specified their own keystore.
@@ -113,7 +115,7 @@ public class SSLSocketFactoryInit {
    */
   private void initializeSslEngineWithCustomKeystore(LocalConf localConf, char[] password,
       String keystorePath, SSLContext context) throws KeyStoreException, IOException,
-      NoSuchAlgorithmException, CertificateException, FileNotFoundException, 
+      NoSuchAlgorithmException, CertificateException, FileNotFoundException,
       KeyManagementException {
     // Load with our trusted certs and setup the trust manager.
     if (!localConf.getAllowUnverifiedCertificates()) {

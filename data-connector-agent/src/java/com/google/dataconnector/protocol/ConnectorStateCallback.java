@@ -11,21 +11,23 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ *
+ * $Id$
+ */
 package com.google.dataconnector.protocol;
 
 /**
- * Interface that lets the {@link InputStreamConnector} and {@link OutputStreamConnector} 
- * notify its users that a connection state change has occurred.  Implement this to 
+ * Interface that lets the {@link InputStreamConnector} and {@link OutputStreamConnector}
+ * notify its users that a connection state change has occurred.  Implement this to
  * release resources if a given connection closes..
- * 
+ *
  * @author rayc@google.com (Ray Colline)
  */
 public interface ConnectorStateCallback {
-  
+
   /**
    * This is fired when the input or output streams are closed on the underlying streams.
-   * 
+   *
    * @param connectionId the connection id that this connector is managing.
    */
   public void close(int connectionId);

@@ -11,7 +11,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ *
+ * $Id$
+ */
 package com.google.dataconnector.client;
 
 import com.google.dataconnector.util.ClientGuiceModule;
@@ -33,18 +35,18 @@ import java.util.Properties;
 
 /**
  * Entry point class for starting the Secure Data Connector.  There are three components to the
- * Secure Data Connector: 
- * 
+ * Secure Data Connector:
+ *
  * 1) The "secure data connection" to the server which provides the transport from the server
  * side back to the client.  see {@link SdcConnection}
  * 2) The Socks 5 proxy which provides the network firewall to incoming network connections through
  * the secure data transport. see {@link JsocksStarter}
  * 3) The HTTP(S) proxy which provides the http firewall filtering for incoming http requests.
- * 
+ *
  * @author rayc@google.com (Ray Colline)
  */
 public class Client {
-  
+
   // Logging instance
   private static final Logger log = Logger.getLogger(Client.class);
 
@@ -55,8 +57,8 @@ public class Client {
   private final SdcConnection secureDataConnection;
   private final JsocksStarter jsocksStarter;
   private final HealthCheckRequestHandler healthCheckRequestHandler;
-  
- 
+
+
   /**
    * Creates a new client from the populated client configuration object.
    */
@@ -68,13 +70,13 @@ public class Client {
     this.jsocksStarter = jsocksStarter;
     this.healthCheckRequestHandler = healthCheckRequestHandler;
   }
-  
+
 
   /**
    * This method starts the Client initialization.
    */
   public void startup(String[] args, Injector injector) {
-    
+
     // validate the localConf.xml file and the input args
     try {
       validateLocalConf(args);
@@ -85,19 +87,19 @@ public class Client {
       log.fatal("Configuration error", e);
       return;
     }
-    
+
     // Set log4j properties and watch for changes every minute (default)
     PropertyConfigurator.configureAndWatch(localConf.getLog4jPropertiesFile());
     if (localConf.getDebug()) {
       Logger.getRootLogger().setLevel(Level.DEBUG);
     }
-    
+
     // start the healthcheck service
     healthCheckRequestHandler.init();
-    
+
     // start jsocks thread
     jsocksStarter.startJsocksProxy();
-    
+
     // start main processing thread - to initiate connection/registration with the SDC server
     try {
       secureDataConnection.connect();
@@ -111,22 +113,22 @@ public class Client {
 
   /**
    * validate the localConf.xml file and the input args
-   * @throws ConfigurationBeanException 
-   * @throws LocalConfException 
+   * @throws ConfigurationBeanException
+   * @throws LocalConfException
    */
-  private void validateLocalConf(String[] args) 
-      throws ConfigurationBeanException, LocalConfException {        
+  private void validateLocalConf(String[] args)
+      throws ConfigurationBeanException, LocalConfException {
     // Load configuration file and command line flags into beans
     BeanCliHelper beanCliHelper = new BeanCliHelper();
     beanCliHelper.register(localConf);
     beanCliHelper.parse(args);
     new LocalConfValidator().validate(localConf);
   }
-  
+
   /**
-   * Returns a base set of logging properties so we can log fatal errors before config parsing is 
+   * Returns a base set of logging properties so we can log fatal errors before config parsing is
    * done.
-   * 
+   *
    * @return Properties a basic console logging setup.
    */
   public static Properties getBootstrapLoggingProperties() {
@@ -137,18 +139,18 @@ public class Client {
     props.setProperty("log4j.appender.A.layout.ConversionPattern", "%d [%t] %-5p %c %x - %m%n");
     return props;
   }
-  
-  
+
+
   /**
    * Entry point for the Secure Data Connector binary.  Sets up logging, parses flags and
    * creates ClientConf.
-   * 
+   *
    * @param args
    */
   public static void main(String[] args) {
     // Bootstrap logging system
     PropertyConfigurator.configure(getBootstrapLoggingProperties());
-    
+
     Injector injector = ClientGuiceModule.getInjector();
     injector.getInstance(Client.class).startup(args, injector);
   }

@@ -23,7 +23,7 @@ Build File for Secure Data Connector client and reference server.
    -compile: creates all the jars.
    -install: builds jars and runs setup.sh
 
-$Id: build.xml-dist 446 2009-08-13 22:34:06Z matt.proud $
+$Id$
 -->
 
 <project

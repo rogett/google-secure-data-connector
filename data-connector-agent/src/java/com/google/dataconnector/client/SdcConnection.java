@@ -11,7 +11,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ *
+ * $Id$
+ */
 package com.google.dataconnector.client;
 
 import com.google.common.base.Preconditions;
@@ -45,8 +47,8 @@ import javax.security.cert.X509Certificate;
 
 /**
  * Implements a Secure Data Connector client.  Connects to Secure Data Connector Server, authorizes,
- * registers and sets up socket forwarding over the existing channel. 
- * 
+ * registers and sets up socket forwarding over the existing channel.
+ *
  * @author rayc@google.com (Ray Colline)
  * @author vnori@google.com (Vasu Nori)
  */
@@ -54,15 +56,15 @@ public class SdcConnection implements FailCallback {
 
   // Logging instance
   private static final Logger LOG = Logger.getLogger(SdcConnection.class);
-  
+
   public static final Integer DEFAULT_SOCKS_PORT = 1080;
 
   // TODO(rayc) Add in 256 cipher support if policy jars allow.
   private static final String[] SECURE_CIPHER_SUITE = {
     "TLS_RSA_WITH_AES_128_CBC_SHA"
   };
-  
-  public static final String INITIAL_HANDSHAKE_MSG = "v4.0 " + 
+
+  public static final String INITIAL_HANDSHAKE_MSG = "v4.0 " +
      SdcConnection.class.getPackage().getImplementationVersion() + "\n";
 
   // Dependencies.
@@ -74,13 +76,13 @@ public class SdcConnection implements FailCallback {
   private final SocksDataHandler socksDataHandler;
   private final HealthCheckHandler healthCheckHandler;
   private final ResourcesFileWatcher resourcesFileWatcher;
-  
+
   // Fields
   private SSLSocket socket;
-  
+
  /**
   *  Sets up a Secure Data connection to a Secure Link server with the supplied configuration.
-  *  
+  *
   * @param localConf
   * @param sslSocketFactoryInit
   * @param frameReceiver
@@ -91,10 +93,10 @@ public class SdcConnection implements FailCallback {
   */
   @Inject
   public SdcConnection(LocalConf localConf,
-      SSLSocketFactoryInit sslSocketFactoryInit, 
-      FrameReceiver frameReceiver, 
-      FrameSender frameSender, 
-      Registration registration, 
+      SSLSocketFactoryInit sslSocketFactoryInit,
+      FrameReceiver frameReceiver,
+      FrameSender frameSender,
+      Registration registration,
       SocksDataHandler socksDataHandler,
       HealthCheckHandler healthCheckHandler,
       ResourcesFileWatcher resourcesFileWatcher) {
@@ -142,37 +144,37 @@ public class SdcConnection implements FailCallback {
       frameReceiver.setInputStream(socket.getInputStream());
       frameSender.setOutputStream(socket.getOutputStream());
       frameSender.start();
-      
+
       LOG.info("Attemping login");
 
       if (!authorize()) {
         throw new ConnectionException("Authorization failed");
       }
       LOG.info("Successful login");
-      
+
       // send registration info to the SDC server
       registration.sendRegistrationInfo(frameSender);
-      
-      // setup to start receiving and processing registration response 
+
+      // setup to start receiving and processing registration response
       frameReceiver.registerDispatcher(FrameInfo.Type.REGISTRATION, registration);
-      
+
       // Setup Healthcheck
       healthCheckHandler.setFrameSender(frameSender);
       healthCheckHandler.setFailCallback(this);
       frameReceiver.registerDispatcher(FrameInfo.Type.HEALTH_CHECK, healthCheckHandler);
       healthCheckHandler.start();
-      
+
       // Setup Socket Data.
       socksDataHandler.setFrameSender(frameSender);
       frameReceiver.registerDispatcher(FrameInfo.Type.SOCKET_DATA, socksDataHandler);
-      
+
       // a thread to watch for changes in the resources.xml file
       // make this thread a daemon - so it can't hold up the process from exiting
       LOG.info("starting a thread to watch resources file");
       resourcesFileWatcher.setDaemon(true);
       resourcesFileWatcher.setFrameSender(frameSender);
       resourcesFileWatcher.start();
-      
+
       frameReceiver.startDispatching();
     } catch (IOException e) {
       throw new ConnectionException(e);
@@ -180,15 +182,15 @@ public class SdcConnection implements FailCallback {
       throw new ConnectionException(e);
     }
   }
-  
+
   /**
    * Creates authorization request and sends to server and awaits response.
-   * 
+   *
    * @returns true if successfully logged on or false otherwise.
    */
   boolean authorize() {
     try {
-      // Authenticate 
+      // Authenticate
       AuthorizationInfo authInfoRequest = AuthorizationInfo.newBuilder()
           .setEmail(localConf.getUser() + "@" + localConf.getDomain())
           .setPassword(localConf.getPassword())
@@ -200,7 +202,7 @@ public class SdcConnection implements FailCallback {
       frameSender.sendFrame(authReqRawFrame);
       FrameInfo authRespRawFrame = frameReceiver.readOneFrame();
       AuthorizationInfo authInfoResponse = AuthorizationInfo.parseFrom(
-          authRespRawFrame.getPayload()); 
+          authRespRawFrame.getPayload());
       if (authInfoResponse.getResult() != AuthorizationInfo.ResultCode.OK) {
         LOG.error("Auth Result: " + authInfoResponse.getResult().toString());
         LOG.error("Auth Error Message: " + authInfoResponse.getStatusMessage().toString());
@@ -208,20 +210,20 @@ public class SdcConnection implements FailCallback {
       }
       return true;
     } catch (FramingException e) {
-      LOG.warn("Frame error", e); 
+      LOG.warn("Frame error", e);
       return false;
     } catch (InvalidProtocolBufferException e) {
-      LOG.warn("AuthInfo protocol parse error", e); 
+      LOG.warn("AuthInfo protocol parse error", e);
       return false;
     }
   }
 
   /**
    * Verifies that the server certificate has the correct Subject DN name.
-   * Throws an exception otherwise, since the server may be impersonating a 
+   * Throws an exception otherwise, since the server may be impersonating a
    * legitimate Tunnel Server.
-   * 
-   * @throws ConnectionException if server name does not match, DN is un-parseable or the 
+   *
+   * @throws ConnectionException if server name does not match, DN is un-parseable or the
    * SSLSession does not have a peer certificate.
    */
   void verifySubjectInCertificate(SSLSession session)
@@ -257,8 +259,8 @@ public class SdcConnection implements FailCallback {
 
       // No match, FAIL.
       String errorMessage = "Wrong server X.500 name. Expected: <" +
-        localConf.getSdcServerHost() + ">. Actual: <" + 
-        (actualCn == null ? "null" : actualCn.getValue()) + ">."; 
+        localConf.getSdcServerHost() + ">. Actual: <" +
+        (actualCn == null ? "null" : actualCn.getValue()) + ">.";
       LOG.error(errorMessage);
       throw new ConnectionException(errorMessage);
 
@@ -268,7 +270,7 @@ public class SdcConnection implements FailCallback {
   }
 
   /**
-   * Closes underlying socket for this SDC connection.  Which shuts down the SDC agent. 
+   * Closes underlying socket for this SDC connection.  Which shuts down the SDC agent.
    */
   @Override
   public void handleFailure() {

@@ -11,7 +11,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ *
+ * $Id$
+ */
 package com.google.dataconnector.protocol;
 
 import com.google.dataconnector.protocol.proto.SdcFrame.FrameInfo;
@@ -24,21 +26,21 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Guice module for the protocol library.
- * 
+ *
  * @author rayc@google.com (Ray Colline)
  */
 public class ProtocolGuiceModule extends AbstractModule {
-  
+
   private static final int SEND_QUEUE_SIZE = 10 * 1024; // 10k entries
 
   @Override
   protected void configure() {}
-  
+
   @Provides
   public BlockingQueue<FrameInfo> getFrameInfoBlockingQueue() {
     return new LinkedBlockingQueue<FrameInfo>(SEND_QUEUE_SIZE);
   }
-  
+
   @Provides
   public BlockingQueue<SocketDataInfo> getSocketDataInfoBlockingQueue() {
     return new LinkedBlockingQueue<SocketDataInfo>(SEND_QUEUE_SIZE);

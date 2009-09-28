@@ -11,7 +11,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ *
+ * $Id$
+ */
 package com.google.dataconnector.protocol;
 
 import com.google.common.base.Preconditions;
@@ -29,16 +31,16 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Receiver for SDC Frame protocol.  The SDC Frame protocol uses the {@link FrameInfo} protocol 
+ * Receiver for SDC Frame protocol.  The SDC Frame protocol uses the {@link FrameInfo} protocol
  * buffer to encapsulate many different connections over the top of one stream.  The FrameReceiver
  * reads from a stream, sanity checks and assembles FrameInfo pbs and dispatches them to the
  * registered {@link Dispatchable}.  It is up to the user of this object to define the
  * {@link Dispatchable} for each {@link FrameInfo.Type} it wishes to handle.
- * 
+ *
  * @author rayc@google.com (Ray Colline)
  */
 public class FrameReceiver {
-  
+
   private static final Logger LOG = Logger.getLogger(FrameReceiver.class);
 
   static final byte FRAME_START = '*';
@@ -47,24 +49,24 @@ public class FrameReceiver {
   static final int PAYLOAD_LEN = 4;
   static final int HEADER_SIZE = 1 + MAGIC.length + SEQUENCE_LEN + PAYLOAD_LEN;
   static final int MAX_FRAME_SIZE = 1024 * 1024; // 1MB
-  
+
   // Local fields
   private boolean dispatching;
   private long sequence = 0;
-  private ConcurrentMap<FrameInfo.Type, Dispatchable> dispatchMap = 
+  private ConcurrentMap<FrameInfo.Type, Dispatchable> dispatchMap =
       new ConcurrentHashMap<FrameInfo.Type, Dispatchable>();
   private DataInputStream dataInputStream; // used for byte to primitives conversion.
-  
+
   // Runtime dependencies
   private InputStream inputStream;
   private AtomicLong byteCounter = new AtomicLong(); // default counter
-  
+
   /**
    * Reads frames and dispatches them to handlers.  This method does not return and is expected to
    * be used as the listener reading socket input data for frames to dispatch.  Any frame dispatched
    * here will be in the main server loop.  If your {@link Dispatchable} does not fork a new thread
    * and hangs, the entire server will hang.
-   * 
+   *
    * @throws FramingException if any framing errors occur.
    */
   public void startDispatching() throws FramingException {
@@ -73,38 +75,38 @@ public class FrameReceiver {
       dispatch(readFrame());
     }
    }
-  
+
   /**
    * Reads one frame and returns.  Use this for synchronous calls.  This cannot be called once
-   * dispatching has been started.  Dispatching is inherently asynchronous and we cannot 
+   * dispatching has been started.  Dispatching is inherently asynchronous and we cannot
    * guarantee that the frame you will receive is the one you want.
-   * 
+   *
    * @return a single Frame.
    * @throws FramingException if any Framing protocol errors occur.
    */
   public FrameInfo readOneFrame() throws FramingException {
-    Preconditions.checkArgument(!dispatching, 
+    Preconditions.checkArgument(!dispatching,
         "Cannot call readOneFrame.  Dispatching already started.");
     return readFrame();
   }
-    
-  
+
+
   /**
-   * Reads one frame and returns.  
-   * 
+   * Reads one frame and returns.
+   *
    * @return a single Frame.
    * @throws FramingException if any Framing protocol errors occur.
    */
   private FrameInfo readFrame() throws FramingException {
-    
+
     Preconditions.checkNotNull(inputStream, "Must specify inputStream before calling readFrame.");
-    
+
     try {
       // Read start byte.
       int startIndicator = inputStream.read();
       LOG.debug("Start byte: " + startIndicator);
       if ((byte) startIndicator != FRAME_START) {
-        throw new FramingException("Unexpected frame start read"); 
+        throw new FramingException("Unexpected frame start read");
       }
 
       // Read and check magic.
@@ -113,7 +115,7 @@ public class FrameReceiver {
       String magicString = new String(magic);
       LOG.debug("Magic: " + magicString);
       if (!new String(magic).equals(new String(MAGIC))) {
-        throw new FramingException("Unexpected frame magic read"); 
+        throw new FramingException("Unexpected frame magic read");
       }
       Arrays.equals(magic, MAGIC);
 
@@ -123,9 +125,9 @@ public class FrameReceiver {
       if (readSequence == sequence) {
         sequence++;
       } else {
-        throw new FramingException("Unexpected sequence number. Expected: " + sequence + 
+        throw new FramingException("Unexpected sequence number. Expected: " + sequence +
             " got:" + readSequence);
-      } 
+      }
 
       // Read and verify payload length.
       int payloadLength = dataInputStream.readInt();
@@ -144,7 +146,7 @@ public class FrameReceiver {
       if (byteCounter != null) {
         byteCounter.addAndGet(HEADER_SIZE + payloadLength);
       }
-      
+
       LOG.debug("payload: " + payload);
       // Parse the payload into a FrameInfo and return it.
       try {
@@ -157,14 +159,14 @@ public class FrameReceiver {
       }
     } catch (IOException e) {
       throw new FramingException("IO Exception on tunnelsocket", e);
-    } 
+    }
   }
-  
+
   /**
    * Calls {@link InputStream#read(byte[], int, int)} until there is no more bytes left to read.
-   * TCP does not guarantee that read will get all the bytes you want.  Therefore, you have to 
+   * TCP does not guarantee that read will get all the bytes you want.  Therefore, you have to
    * continually read until you get what you desire.
-   * 
+   *
    * @param buffer the buffer to read into.
    * @param amountToRead the amount of bytes to read.
    * @throws IOException if any read errors occur.
@@ -175,28 +177,28 @@ public class FrameReceiver {
       bytesRead += inputStream.read(buffer, bytesRead, amountToRead - bytesRead);
     } while (bytesRead < amountToRead);
   }
-  
+
   /**
    * For the given frame find its handler and dispatch the frame there.  This method runs in the
    * same thread as the frame reader.  If your dispatch blocks or goes slow, the entire server
    * will slow down.
-   * 
+   *
    * @param frameInfo the incoming frame.
    * @throws FramingException if any errors occur while processing the frame.
    */
   void dispatch(FrameInfo frameInfo) throws FramingException {
-    
+
     if (dispatchMap.containsKey(frameInfo.getType())) {
       dispatchMap.get(frameInfo.getType()).dispatch(frameInfo);
     } else {
       LOG.info("Unknown frame received: " + frameInfo);
     }
   }
-  
+
   public void registerDispatcher(FrameInfo.Type type, Dispatchable dispatchable) {
     dispatchMap.put(type, dispatchable);
   }
-  
+
   public void setInputStream(InputStream inputStream) {
     this.inputStream = inputStream;
     dataInputStream = new DataInputStream(inputStream);

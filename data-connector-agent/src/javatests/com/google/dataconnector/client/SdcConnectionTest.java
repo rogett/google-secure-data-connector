@@ -11,7 +11,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ *
+ * $Id$
+ */
 package com.google.dataconnector.client;
 
 import com.google.dataconnector.client.testing.FakeLocalConfGenerator;
@@ -39,11 +41,11 @@ import javax.security.cert.X509Certificate;
 
 /**
  * Tests for the {@link SdcConnection} class.
- * 
+ *
  * @author rayc@google.com (Ray Colline)
  */
 public class SdcConnectionTest extends TestCase {
-  
+
   private static final String EXPECTED_CN = FakeLocalConfGenerator.SDC_SERVER_HOST;
   private Principal mockPrincipal;
   private X509Certificate mockCert;
@@ -51,13 +53,13 @@ public class SdcConnectionTest extends TestCase {
   private LocalConf fakeLocalConf;
   private FrameSender mockFrameSender;
   private FrameReceiver mockFrameReceiver;
-  
+
   @Override
   protected void setUp() throws Exception {
     // TODO Auto-generated method stub
     super.setUp();
     fakeLocalConf =  new FakeLocalConfGenerator().getFakeLocalConf();
-    
+
     mockFrameSender = EasyMock.createMock(FrameSender.class);
     mockFrameSender.sendFrame(matchFrameInfo(
         fakeLocalConf.getUser() + "@" + fakeLocalConf.getDomain(),
@@ -65,7 +67,7 @@ public class SdcConnectionTest extends TestCase {
         FrameInfo.Type.AUTHORIZATION));
     EasyMock.expectLastCall();
     EasyMock.replay(mockFrameSender);
-    
+
   }
   @Override
   protected void tearDown() throws Exception {
@@ -74,7 +76,7 @@ public class SdcConnectionTest extends TestCase {
     mockSession = null;
     super.tearDown();
   }
-  
+
   public void testAuthorizeSuccess() throws Exception {
 
     AuthorizationInfo authInfoResponse = AuthorizationInfo.newBuilder()
@@ -84,19 +86,19 @@ public class SdcConnectionTest extends TestCase {
         .setType(FrameInfo.Type.AUTHORIZATION)
         .setPayload(authInfoResponse.toByteString())
         .build();
-    
+
     mockFrameReceiver = EasyMock.createMock(FrameReceiver.class);
     mockFrameReceiver.readOneFrame();
     EasyMock.expectLastCall().andReturn(frameInfoResponse);
     EasyMock.replay(mockFrameReceiver);
-    
-    SdcConnection sdcConnection = new SdcConnection(fakeLocalConf, null, mockFrameReceiver, 
+
+    SdcConnection sdcConnection = new SdcConnection(fakeLocalConf, null, mockFrameReceiver,
         mockFrameSender, null ,null, null, null);
-    
+
     assertTrue(sdcConnection.authorize());
     EasyMock.verify(mockFrameReceiver, mockFrameSender);
   }
-  
+
   public void testAuthorizeFail() throws Exception {
 
     AuthorizationInfo authInfoResponse = AuthorizationInfo.newBuilder()
@@ -106,28 +108,28 @@ public class SdcConnectionTest extends TestCase {
         .setType(FrameInfo.Type.AUTHORIZATION)
         .setPayload(authInfoResponse.toByteString())
         .build();
-    
+
     mockFrameReceiver = EasyMock.createMock(FrameReceiver.class);
     mockFrameReceiver.readOneFrame();
     EasyMock.expectLastCall().andReturn(frameInfoResponse);
     EasyMock.replay(mockFrameReceiver);
-    
-    SdcConnection sdcConnection = new SdcConnection(fakeLocalConf, null, mockFrameReceiver, 
+
+    SdcConnection sdcConnection = new SdcConnection(fakeLocalConf, null, mockFrameReceiver,
         mockFrameSender, null ,null, null, null);
-    
+
     assertFalse(sdcConnection.authorize());
     EasyMock.verify(mockFrameReceiver, mockFrameSender);
   }
-  
-  private FrameInfo matchFrameInfo(String expectedEmail, String expectedPassword, 
+
+  private FrameInfo matchFrameInfo(String expectedEmail, String expectedPassword,
       Type expectedType) {
-    EasyMock.reportMatcher(new AuthFrameInfoMatcher(expectedEmail, expectedPassword, 
+    EasyMock.reportMatcher(new AuthFrameInfoMatcher(expectedEmail, expectedPassword,
         expectedType));
     return null;
   }
-  
+
   private static class AuthFrameInfoMatcher implements IArgumentMatcher {
-    
+
     private String expectedEmail;
     private String expectedPassword;
     private Type expectedType;
@@ -137,17 +139,17 @@ public class SdcConnectionTest extends TestCase {
       this.expectedPassword = password;
       this.expectedType = type;
     }
-    
+
     @Override
     public void appendTo(StringBuffer buffer) {
-      buffer.append("frameInfoWith(" + expectedEmail + "," + expectedPassword + "," + 
-          expectedType + ")"); 
+      buffer.append("frameInfoWith(" + expectedEmail + "," + expectedPassword + "," +
+          expectedType + ")");
     }
-    
+
     @Override
     public boolean matches(Object actual) {
       if (!(actual instanceof FrameInfo)) {
-        return false;  
+        return false;
       }
       FrameInfo actualFrameInfo = (FrameInfo) actual;
       if (expectedType != actualFrameInfo.getType()) {
@@ -166,52 +168,52 @@ public class SdcConnectionTest extends TestCase {
       } catch (InvalidProtocolBufferException e) {
         return false;
       }
-    } 
+    }
   }
-  
+
   /**
    * Configures mocks to return the supplied RFC2253 formatted DN.
-   * @throws SSLPeerUnverifiedException 
+   * @throws SSLPeerUnverifiedException
    */
   private void createMockSession(LdapName expectedLdapName) throws SSLPeerUnverifiedException {
     mockPrincipal = EasyMock.createMock(Principal.class);
     mockPrincipal.getName();
     EasyMock.expectLastCall().andReturn(expectedLdapName.toString());
     EasyMock.replay(mockPrincipal);
-    
+
     mockCert = EasyMock.createMock(X509Certificate.class);
     mockCert.getSubjectDN();
     EasyMock.expectLastCall().andReturn(mockPrincipal);
     EasyMock.replay(mockCert);
-    
+
     mockSession = EasyMock.createMock(SSLSession.class);
     mockSession.getPeerCertificateChain();
     EasyMock.expectLastCall().andReturn(new X509Certificate[] { mockCert });
     EasyMock.replay(mockSession);
-    
+
   }
-  
-  public void testVerifySubjectInCertificateGoodCn() throws InvalidNameException, 
+
+  public void testVerifySubjectInCertificateGoodCn() throws InvalidNameException,
       SSLPeerUnverifiedException, ConnectionException {
-    
+
     // Setup
     createMockSession(new LdapName("CN=\"" + EXPECTED_CN + "\",OU=\"foobar\",C=\"bar\""));
-    
+
     // Execute
     SdcConnection sdc = new SdcConnection(fakeLocalConf, null, null, null, null, null, null, null);
     sdc.verifySubjectInCertificate(mockSession);
-    
+
     // Verify
     EasyMock.verify(mockSession);
     EasyMock.verify(mockCert);
   }
-  
-  public void testVerifySubjectInCertificateBadCn() throws InvalidNameException, 
+
+  public void testVerifySubjectInCertificateBadCn() throws InvalidNameException,
       SSLPeerUnverifiedException {
-    
+
     // Setup
     createMockSession(new LdapName("CN=\"" + "BADNESS" + "\",OU=\"foobar\",C=\"bar\""));
-    
+
     // Execute
     SdcConnection sdc = new SdcConnection(fakeLocalConf, null, null, null, null, null, null, null);
     try {
@@ -224,13 +226,13 @@ public class SdcConnectionTest extends TestCase {
     }
     fail("Did not recieve ConnectionException");
   }
-  
+
   public void testVerifySubjectInCertificateNoPeerChain() throws SSLPeerUnverifiedException {
     mockSession = EasyMock.createMock(SSLSession.class);
     mockSession.getPeerCertificateChain();
     EasyMock.expectLastCall().andThrow(new SSLPeerUnverifiedException("Fail"));
     EasyMock.replay(mockSession);
-    
+
     SdcConnection sdc = new SdcConnection(null, null, null, null, null, null, null, null);
     try {
       sdc.verifySubjectInCertificate(mockSession);

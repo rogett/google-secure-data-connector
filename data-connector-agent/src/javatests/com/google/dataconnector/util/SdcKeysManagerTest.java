@@ -11,7 +11,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ *
+ * $Id$
+ */
 package com.google.dataconnector.util;
 
 
@@ -25,13 +27,13 @@ import java.util.List;
 
 /**
  * Tests for the {@link LocalConfValidator} class.
- * 
+ *
  * @author rayc@google.com (Ray Colline)
  */
 public class SdcKeysManagerTest extends TestCase {
 
   public void testProperConfigResourceRules() {
-    
+
     List<ResourceKey> resourceKeysList = new ArrayList<ResourceKey>();
     resourceKeysList.add(buildKeyObj("ip1", 1, 111));
     resourceKeysList.add(buildKeyObj("ip2", 2, 122));
@@ -40,14 +42,14 @@ public class SdcKeysManagerTest extends TestCase {
     // store the keys
     SdcKeysManager sdcKeysManager = new SdcKeysManager();
     sdcKeysManager.storeSecretKeys(resourceKeysList);
-    
+
     // verify that the keys are stored correctly
     Multimap<String, Pair<String, Integer>> keysMap = sdcKeysManager.getKeysMap();
     assertTrue(keysMap.containsEntry("111", Pair.of("ip1", 1)));
     assertTrue(keysMap.containsEntry("122", Pair.of("ip2", 2)));
     assertTrue(keysMap.containsEntry("133", Pair.of("ip3", 3)));
     assertEquals(3, keysMap.size());
-    
+
     // make sure the methods to verify correctly
     assertTrue(sdcKeysManager.checkKeyIpPort("111", "ip1", 1));
     assertTrue(sdcKeysManager.checkKeyIpPort("122", "ip2", 2));
@@ -55,7 +57,7 @@ public class SdcKeysManagerTest extends TestCase {
     assertTrue(sdcKeysManager.containsKey("111"));
     assertTrue(sdcKeysManager.containsKey("122"));
     assertTrue(sdcKeysManager.containsKey("133"));
-    
+
     // some negative testing
     assertFalse(sdcKeysManager.checkKeyIpPort("444", "ip1", 1));
     assertFalse(sdcKeysManager.checkKeyIpPort("122", "ip2", 22));
@@ -64,7 +66,7 @@ public class SdcKeysManagerTest extends TestCase {
     assertFalse(sdcKeysManager.containsKey("0"));
     assertFalse(sdcKeysManager.containsKey(" "));
   }
-  
+
   private ResourceKey buildKeyObj(String ip, int port, long key) {
     return ResourceKey.newBuilder().setKey(key).setIp(ip).setPort(port).build();
   }

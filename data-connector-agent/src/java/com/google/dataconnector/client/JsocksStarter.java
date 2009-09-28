@@ -11,7 +11,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ *
+ * $Id$
+ */
 package com.google.dataconnector.client;
 
 import com.google.dataconnector.util.LocalConf;
@@ -52,36 +54,36 @@ public class JsocksStarter extends Thread {
   /**
    * Configures the SOCKS User/Password authenticator based on the rules provided
    *
-   * @param localConfiguration the local configuration object.   
-   * @param rfc1929SdcAuthenticator the 
-   * @param socksProperties 
+   * @param localConfiguration the local configuration object.
+   * @param rfc1929SdcAuthenticator the
+   * @param socksProperties
    */
   @Inject
-  public JsocksStarter(LocalConf localConfiguration, 
-      Rfc1929SdcAuthenticator rfc1929SdcAuthenticator, 
+  public JsocksStarter(LocalConf localConfiguration,
+      Rfc1929SdcAuthenticator rfc1929SdcAuthenticator,
       @Named("Socks Properties") Properties socksProperties) {
     this.localConfiguration = localConfiguration;
     this.rfc1929SdcAuthenticator = rfc1929SdcAuthenticator;
     this.socksProperties = socksProperties;
   }
-  
+
   /**
    * Do runtime configuration and start jsocks proxy thread.
    */
   public void startJsocksProxy() {
-    
+
     // Resolve our bind host which should normally be localhost.
     try {
       bindAddress = InetAddress.getByName(LocalConf.DEFAULT_SOCKS_BIND_HOST);
     } catch (UnknownHostException e) {
       throw new RuntimeException("Couldnt lookup bind host", e);
     }
-    
+
     setDaemon(true);
     setName("jsocks-starter-thread");
     start();
   }
-  
+
   @Override
   public void run() {
     // JSOCKS is configured in a static context

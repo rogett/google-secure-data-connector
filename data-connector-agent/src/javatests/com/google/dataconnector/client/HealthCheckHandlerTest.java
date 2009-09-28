@@ -11,7 +11,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ *
+ * $Id$
+ */
 package com.google.dataconnector.client;
 
 import com.google.dataconnector.client.HealthCheckHandler.Clock;
@@ -30,22 +32,22 @@ import org.easymock.IArgumentMatcher;
 
 /**
  * Tests for the {@link HealthCheckHandler} class.
- * 
+ *
  * @author rayc@google.com (Ray Colline)
  */
 public class HealthCheckHandlerTest extends TestCase {
-  
+
   public static long FAKE_TIME_STAMP = 1246405970961L;
   public static String BREAK_MESSAGE = "break out";
-  
+
   private FrameSender frameSender;
   private HealthCheckInfo expectedHci;
   private FrameInfo frameInfo;
   private ServerSuppliedConf serverSuppliedConf;
-  
+
   @Override
   protected void setUp() throws Exception {
-    
+
     expectedHci = HealthCheckInfo.newBuilder()
         .setSource(HealthCheckInfo.Source.SERVER)
         .setType(HealthCheckInfo.Type.RESPONSE)
@@ -55,20 +57,20 @@ public class HealthCheckHandlerTest extends TestCase {
        .setType(FrameInfo.Type.HEALTH_CHECK)
        .setPayload(expectedHci.toByteString())
        .build();
-    
+
     frameSender = EasyMock.createMock(FrameSender.class);
     frameSender.sendFrame(EasyMock.eq(FrameInfo.Type.HEALTH_CHECK), verifyHci());
     EasyMock.expectLastCall();
     EasyMock.replay(frameSender);
-    
+
     serverSuppliedConf = ServerSuppliedConf.newBuilder()
         .setHealthCheckWakeUpInterval(1)
         .setHealthCheckTimeout(30)
         .build();
   }
-  
+
   public void testDispatchAndNormalCheck() throws Exception {
-    
+
     Clock clock = EasyMock.createMock(Clock.class);
     clock.currentTimeMillis();
     EasyMock.expectLastCall().andReturn(FAKE_TIME_STAMP); // dispatch
@@ -78,16 +80,16 @@ public class HealthCheckHandlerTest extends TestCase {
     // We throw an exception to break out of the loop.  This is called at the log.trace.
     EasyMock.expectLastCall().andThrow(new RuntimeException(BREAK_MESSAGE));
     EasyMock.replay(clock);
-    
+
     // Should have no calls.
     FailCallback failCallback = EasyMock.createMock(FailCallback.class);
     EasyMock.replay(failCallback);
-    
+
     HealthCheckHandler healthCheckHandler = new HealthCheckHandler(clock);
     healthCheckHandler.setFrameSender(frameSender);
     healthCheckHandler.setFailCallback(failCallback);
     healthCheckHandler.setServerSuppliedConf(serverSuppliedConf);
-    
+
     healthCheckHandler.dispatch(frameInfo); // should set the time.
     try {
       healthCheckHandler.run();
@@ -98,7 +100,7 @@ public class HealthCheckHandlerTest extends TestCase {
     }
     fail("did not recieve runtime exception");
   }
-  
+
   public void testDispatchAndHealthCheckTimeout() throws Exception {
     Clock clock = EasyMock.createMock(Clock.class);
     clock.currentTimeMillis();
@@ -109,41 +111,41 @@ public class HealthCheckHandlerTest extends TestCase {
     EasyMock.expectLastCall().andReturn(FAKE_TIME_STAMP + 45000); // checking response time + 45 sec
     EasyMock.expectLastCall().andReturn(FAKE_TIME_STAMP + 45000); // log message.
     EasyMock.replay(clock);
-    
+
     // Call back handler should fire.
     FailCallback failCallback = EasyMock.createMock(FailCallback.class);
     failCallback.handleFailure();
     EasyMock.expectLastCall();
     EasyMock.replay(failCallback);
-    
+
     HealthCheckHandler healthCheckHandler = new HealthCheckHandler(clock);
     healthCheckHandler.setFrameSender(frameSender);
     healthCheckHandler.setFailCallback(failCallback);
     healthCheckHandler.setServerSuppliedConf(serverSuppliedConf);
-    
+
     healthCheckHandler.dispatch(frameInfo); // should set the time.
     healthCheckHandler.run();
     EasyMock.verify(clock, frameSender, failCallback);
   }
-  
+
    /**
     * Access method to setup the HCI matcher.
     */
   public ByteString verifyHci() {
-    EasyMock.reportMatcher(new HealthCheckInfoMatcher()); 
+    EasyMock.reportMatcher(new HealthCheckInfoMatcher());
     return null;
   }
-  
+
    /**
     * Matcher to ensure a properly formatted HCI is sent to the server.
     */
   public static class HealthCheckInfoMatcher implements IArgumentMatcher {
-    
+
    @Override
     public void appendTo(StringBuffer error) {
        error.append("unexpected HealthCheckInfo supplied");
-    } 
-   
+    }
+
    @Override
     public boolean matches(Object actual) {
       if (!(actual instanceof ByteString)) {

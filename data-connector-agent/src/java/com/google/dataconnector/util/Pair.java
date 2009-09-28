@@ -11,7 +11,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ *
+ * $Id$
+ */
 
 package com.google.dataconnector.util;
 
@@ -22,15 +24,15 @@ import com.google.gdata.util.common.base.Nullable;
 
 /**
  * A pair.
- * 
+ *
  * A pair is an immutable sequence with two elements (or components). The types of both elements
  * can be different. Null values are permitted.
  *
- * @param <A> the type of the first element 
+ * @param <A> the type of the first element
  * @param <B> the type of the second element
- * 
+ *
  * @author kevinb@google.com (Kevin Bourrillion)
- * 
+ *
  */
 public final class Pair<A, B> implements Serializable {
 
@@ -78,11 +80,11 @@ public final class Pair<A, B> implements Serializable {
    */
   @Override
   public int hashCode() {
-    return (first != null ? 41 * first.hashCode() : 0) + (second != null ? second.hashCode() : 0); 
+    return (first != null ? 41 * first.hashCode() : 0) + (second != null ? second.hashCode() : 0);
   }
 
   /**
-   * Compares the specified object with this pair for equality. 
+   * Compares the specified object with this pair for equality.
    * Returns {@code true} if and only if the specified object is also a pair and the
    * elements of both pairs are equal.
    * @param obj object to be compared for equality with this pair

@@ -11,37 +11,39 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ *
+ * $Id$
+ */
 package com.google.dataconnector.util;
 
 /**
  * Exception for errors during authentication of Secure Data Connector agent.
- * 
+ *
  * @author rayc@google.com (Ray Colline)
  */
 public class AuthenticationException extends ConnectionException {
 
   /**
    * Constructs the exception with an error message.
-   * 
+   *
    * @param message A string representing the error message.
    */
   public AuthenticationException(String message) {
     super(message);
   }
-  
+
   /**
    * Creates the exception with the specified underlying cause.
-   * 
+   *
    * @param cause the underlying cause.
    */
   public AuthenticationException(Throwable cause) {
     super(cause);
   }
-  
+
   /**
    * Creates the exception with the specified error message and cause.
-   * 
+   *
    * @param msg the error message.
    * @param cause the underlying cause.
    */
