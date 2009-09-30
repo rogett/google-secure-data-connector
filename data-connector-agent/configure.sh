@@ -21,7 +21,6 @@
 VENDOR="google"
 PACKAGE="secure-data-connector"
 VERSION=2.0
-FULL_PACKAGE="${VENDOR}-${PACKAGE}"
 FULLNAME="${VENDOR}-${PACKAGE}-${VERSION}"
 
 # Instructions for managing ${RELEASE}:
@@ -271,7 +270,6 @@ dump_variable_to_shlib() {
 dump_variable_to_shlib BINDIR
 dump_variable_to_shlib DEBIAN_PACKAGE_NAME
 dump_variable_to_shlib FULLNAME
-dump_variable_to_shlib FULL_PACKAGE
 dump_variable_to_shlib GROUP
 dump_variable_to_shlib INITSCRIPT
 dump_variable_to_shlib JAVABIN
@@ -303,7 +301,6 @@ rewrite_template() {
   substitute_macro "${1}" BINDIR
   substitute_macro "${1}" DEBIAN_PACKAGE_NAME
   substitute_macro "${1}" FULLNAME
-  substitute_macro "${1}" FULL_PACKAGE
   substitute_macro "${1}" GROUP
   substitute_macro "${1}" INITSCRIPT
   substitute_macro "${1}" JAVABIN

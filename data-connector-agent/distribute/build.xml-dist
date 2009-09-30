@@ -215,18 +215,18 @@ $Id$
          prerm="distribute/debian/securedataconnector.prerm"
          postrm="distribute/debian/securedataconnector.postrm">
       <version upstream="${version}" debian="${release}"/>
-      <maintainer name="Sebastian Welsh"
-                  email="sebastian.welsh@gmail.com"/>
-      <description synopsis="The Google secure dataconnector client package.">
-        Google secure dataconnector is used to connect from Google Apps to internal network resources. The client is a java application that
-        - connects to the Google Apps termination service
-        - registers the resources published to Apps
-        - registers the groups able to access the resources
+      <maintainer name="Matt T. Proud"
+                  email="matt.proud@gmail.com"/>
+      <description synopsis="The Google Secure Data Connector Client package.">
+        Google Secure Data Connector is used to connect from Google Apps to internal network resources. The client is a Java application that
+        - connects to the Google Apps termination service,
+        - registers the resources published to Apps,
+        - registers the groups allowed to access the resources, and
         - provides a proxy to the internal resources for those groups.
 
         The current implementation permits access to HTTP and socket services.
 
-        http://code.google.com/
+        http://code.google.com/p/google-secure-data-connector
       </description>
       <conffiles dir="config" prefix="__SYSCONFDIR__"
                  filemode="644" dirmode="755">
@@ -253,7 +253,7 @@ $Id$
       <tarfileset dir="distribute/debian" prefix="__SYSV_INIT_SCRIPT_DIRECTORY__" filemode="755">
         <include name="__FULLNAME__" />
       </tarfileset>
-      <tarfileset dir="distribute/debian" prefix="/usr/share/doc/__FULL_PACKAGE__">
+      <tarfileset dir="distribute/debian" prefix="/usr/share/doc/__DEBIAN_PACKAGE_NAME__">
         <include name="changelog.Debian.gz"/>
       </tarfileset>
     </deb>

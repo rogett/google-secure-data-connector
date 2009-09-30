@@ -78,7 +78,7 @@ $Id$
     <delete file="config.status"/>
     <delete file="configuration.sh"/>
     <delete file="distribute/build.xml"/>
-    <delete file="distribute/debian/__FULLNAME__"/>
+    <delete file="distribute/debian/google-secure-data-connector-2.0"/>
     <delete file="distribute/debian/changelog.Debian"/>
     <delete file="distribute/debian/changelog.Debian.gz"/>
     <delete file="distribute/debian/securedataconnector.postinst"/>
