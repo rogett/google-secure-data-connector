@@ -33,15 +33,15 @@
 
 # Do NOT "set -e"
 
-FULLNAME=google-secure-data-connector-1.1
-INITSCRIPT=/etc/init.d/google-secure-data-connector-1.1
-BINDIR=/opt/google/secure-data-connector/1.1/bin
-LIBDIR=/opt/google/secure-data-connector/1.1/lib
-LOCALSTATEDIR=/var/opt/google/secure-data-connector/1.1/lib
-LOGDIR=/var/opt/google/secure-data-connector/1.1/log
-RUNDIR=/var/opt/google/secure-data-connector/1.1/run
-SYSCONFDIR=/etc/opt/google/secure-data-connector/1.1
-VERSION=1.1
+FULLNAME=__FULLNAME__
+INITSCRIPT=__INITSCRIPT__
+BINDIR=__BINDIR__
+LIBDIR=__LIBDIR__
+LOCALSTATEDIR=__LOCALSTATEDIR__
+LOGDIR=__LOGDIR__
+RUNDIR=__RUNDIR__
+SYSCONFDIR=__SYSCONFDIR__
+VERSION=__VERSION__
 
 RULES_FILE="${LOCALSTATEDIR}/rules"
 LOGFILE="${LOGDIR}/dataconnector"
