@@ -42,7 +42,7 @@ public class OutputStreamConnector extends Thread {
 
   // runtime dependencies
   private OutputStream outputStream;
-  private int connectionId;
+  private long connectionId;
   private ConnectorStateCallback connectorStateCallback;
 
   // local fields
@@ -93,7 +93,7 @@ public class OutputStreamConnector extends Thread {
     this.outputStream = outputStream;
   }
 
-  public void setConnectionId(int connectionId) {
+  public void setConnectionId(final long connectionId) {
     this.connectionId = connectionId;
   }
 

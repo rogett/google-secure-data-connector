@@ -30,6 +30,6 @@ public interface ConnectorStateCallback {
    *
    * @param connectionId the connection id that this connector is managing.
    */
-  public void close(int connectionId);
+  public void close(final long connectionId);
 
 }
