@@ -38,7 +38,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class InputStreamConnectorTest extends TestCase {
 
-  private static final long CONNECTION_ID = 0;
+  private static final int CONNECTION_ID = 0;
 
   private FrameSender frameSender;
   private ByteArrayInputStream bis;
@@ -132,7 +132,7 @@ public class InputStreamConnectorTest extends TestCase {
     private boolean callbackFired = false;
 
     @Override
-    public void close(final long connectionId) {
+    public void close(int connectionId) {
       if (connectionId != CONNECTION_ID) {
         throw new RuntimeException("Connection IDs mismatch: expected " + CONNECTION_ID +
             " actual " + connectionId);

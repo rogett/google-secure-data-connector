@@ -68,10 +68,10 @@ public class SocksDataHandler implements Dispatchable {
   private FrameSender frameSender;
 
   // Local fields
-  private final ConcurrentMap<Long, BlockingQueue<SocketDataInfo>> outputQueueMap;
+  private ConcurrentMap<Integer, BlockingQueue<SocketDataInfo>> outputQueueMap;
 
   public interface ConnectionStateUpdatable {
-     public void removeConnection(final long connectionId);
+     public void removeConnection(int connectionId);
   }
 
   @Inject
@@ -79,7 +79,7 @@ public class SocksDataHandler implements Dispatchable {
       @Named("localhost") InetAddress localHostAddress, ThreadPoolExecutor threadPoolExecutor,
       Injector injector) {
 
-    outputQueueMap = new ConcurrentHashMap<Long, BlockingQueue<SocketDataInfo>>();
+    outputQueueMap = new ConcurrentHashMap<Integer, BlockingQueue<SocketDataInfo>>();
     this.localConf = localConf;
     this.socketFactory = socketFactory;
     this.localHostAddress = localHostAddress;
@@ -100,7 +100,7 @@ public class SocksDataHandler implements Dispatchable {
     Preconditions.checkNotNull(frameSender, "Must define frameSender before calling dispatch");
     try {
       SocketDataInfo socketDataInfo = SocketDataInfo.parseFrom(frameInfo.getPayload());
-      final long connectionId = socketDataInfo.getConnectionId();
+      int connectionId = (int) socketDataInfo.getConnectionId();
 
       // Handle incoming start request.
       if (socketDataInfo.getState() == SocketDataInfo.State.START) {
@@ -135,7 +135,7 @@ public class SocksDataHandler implements Dispatchable {
       // Deal with continuing connections or close connections.
       } else if (socketDataInfo.getState() == SocketDataInfo.State.CONTINUE ||
           socketDataInfo.getState() == SocketDataInfo.State.CLOSE) {
-        if (outputQueueMap.containsKey(socketDataInfo.getConnectionId())) {
+        if (outputQueueMap.containsKey((int) socketDataInfo.getConnectionId())) {
           outputQueueMap.get(connectionId).put(socketDataInfo);
         }
       // Unknown states.
@@ -174,7 +174,7 @@ public class SocksDataHandler implements Dispatchable {
      * Removes connection from the queueMap so its no longer tracked.
      */
     @Override
-    public void close(final long connectionId) {
+    public void close(int connectionId) {
       // We never know if the input or output side will detect closure first.
       // We defensively call from both sides.  In the event we are called twice we check to see
       // if we have already cleaned up.

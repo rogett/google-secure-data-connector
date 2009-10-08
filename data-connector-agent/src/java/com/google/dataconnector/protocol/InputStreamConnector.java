@@ -38,7 +38,7 @@ public class InputStreamConnector extends Thread {
   private static final Logger LOG = Logger.getLogger(InputStreamConnector.class);
 
   private InputStream inputStream;
-  private long connectionId;
+  private int connectionId;
   private FrameSender frameSender;
   private ConnectorStateCallback connectorStateCallback;
 
@@ -89,7 +89,7 @@ public class InputStreamConnector extends Thread {
     this.inputStream = inputStream;
   }
 
-  public void setConnectionId(final long connectionId) {
+  public void setConnectionId(int connectionId) {
     this.connectionId = connectionId;
   }
 

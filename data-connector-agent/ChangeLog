@@ -1,7 +1,0 @@
-2009-10-05  Matt T. Proud  <matt.proud@gmail.com>
-
-    * ChangeLog: Initial creation.
-
-    * protocol/client: Updated components that interface with ProtocolBuffer's
-      ConnectionId field to use longs instead of integers.
-
