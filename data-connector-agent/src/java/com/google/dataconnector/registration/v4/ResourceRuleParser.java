@@ -43,9 +43,9 @@ import javax.xml.stream.XMLStreamReader;
  */
 public class ResourceRuleParser {
   private static final Logger LOG = Logger.getLogger(ResourceRuleParser.class);
-  private static final String AGENT_ID_TAG = "clientid";
+  private static final String AGENT_ID_TAG = "agentid";
   private static final String URL_TAG = "url";
-  private static final String[] DEPRECATED_AGENT_ID_TAGS = new String[] {"agentid"};
+  private static final String[] DEPRECATED_AGENT_ID_TAGS = new String[] {"clientid"};
   private static final String[] DEPRECATED_URL_TAGS = new String[] {"pattern"};
 
   private final FileUtil fileUtil;
