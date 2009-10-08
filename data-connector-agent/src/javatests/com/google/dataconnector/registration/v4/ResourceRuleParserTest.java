@@ -243,4 +243,43 @@ public class ResourceRuleParserTest extends TestCase {
       // expected
     }
   }
+
+  public void testParseResourcesFile_allowsDeprecatedTags() throws RegistrationException,
+      XMLStreamException, FactoryConfigurationError, IOException {
+    // the following has 4 resources defined. all of them for this agent.
+    String resourceXml = "<resourceRules> " +
+        "<rule repeatable=\"true\"> " +
+        "  <clientId>" + TEST_AGENTID + "</clientId>" +
+        "  <blah>foobar</blah>" +
+        "  <yadiyadayada>doesnt-matter</yadiyadayada>" +
+        "  <pattern>" + HTTP_PATTERN + "</pattern>" +
+        "</rule> " +
+        "<rule> " +
+        "  <clientId>" + TEST_AGENTID + "</clientId>" +
+        "  <blah>foobar</blah>" +
+        "  <yadiyadayada>doesnt-matter</yadiyadayada>" +
+        "  <pattern>" + SOCKET_PATTERN + "</pattern> " +
+        "</rule> " +
+        "<rule> " +
+        "  <clientId>" + TEST_AGENTID_ALL + "</clientId> " +
+        "  <blah>foobar</blah>" +
+        "  <yadiyadayada>doesnt-matter</yadiyadayada>" +
+        "  <pattern>" + URL_EXACT_PATTERN + "</pattern> " +
+        "</rule> " +
+        "<rule> " +
+        "  <clientId>" + TEST_AGENTID_ALL + "</clientId> " +
+        "  <pattern>" + HTTPS_PATTERN + "</pattern> " +
+        "  <blah>foobar</blah>" +
+        "  <yadiyadayada>doesnt-matter</yadiyadayada>" +
+        "</rule> " +
+        "</resourceRules> " ;
+    fileUtil.writeFile(TEST_FILE_NAME, resourceXml);
+
+    // test
+    ResourceRuleParser resourceRuleParser = new ResourceRuleParser(fileUtil);
+    List<String> urlList = resourceRuleParser.parseResourcesFile(TEST_FILE_NAME, TEST_AGENTID);
+
+    // do we have 4 urls returned
+    assertEquals(4, urlList.size());
+  }
 }
