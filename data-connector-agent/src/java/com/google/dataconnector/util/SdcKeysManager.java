@@ -50,30 +50,30 @@ public class SdcKeysManager {
    *
    * @param resourceKeysList
    */
-  public synchronized void storeSecretKeys(List<ResourceKey> resourceKeysList) {
+  public synchronized void storeSecretKeys(final List<ResourceKey> resourceKeysList) {
     // remove existing keys
     LOG.debug("clearing keys and about to store new set of keys received");
     keysMap.clear();
 
     // store the keys
-    for (ResourceKey resourceKey : resourceKeysList) {
-      Pair<String, Integer> p = Pair.of(resourceKey.getIp(), resourceKey.getPort());
+    for (final ResourceKey resourceKey : resourceKeysList) {
+      final Pair<String, Integer> p = Pair.of(resourceKey.getIp(), resourceKey.getPort());
       LOG.info("Adding rule for " + p);
       keysMap.put(String.valueOf(resourceKey.getKey()), p);
     }
 
     // print the keys
-    for (Map.Entry<String, Pair<String, Integer>> entry : keysMap.entries()) {
+    for (final Map.Entry<String, Pair<String, Integer>> entry : keysMap.entries()) {
       LOG.debug("key: " + entry.getKey() + "," + entry.getValue() + "\n");
     }
   }
 
-  synchronized boolean checkKeyIpPort(String key, String ip, int port) {
+  synchronized boolean checkKeyIpPort(final String key, final String ip, final int port) {
     LOG.debug("checking key for ip: " + ip + ", port: " + port);
     return keysMap.containsEntry(key, Pair.of(ip, port));
   }
 
-  synchronized boolean containsKey(String key) {
+  synchronized boolean containsKey(final String key) {
     LOG.debug("checking to see if this key exists " + key);
     return keysMap.containsKey(key);
   }

@@ -32,10 +32,9 @@ public class HealthCheckRequestHandler extends Thread {
   public static Logger LOG = Logger.getLogger(HealthCheckRequestHandler.class.getName());
 
   private final ServerSocket serverSocket;
-  private boolean quit = false;
 
   @Inject
-  public HealthCheckRequestHandler(ServerSocket serverSocket) {
+  public HealthCheckRequestHandler(final ServerSocket serverSocket) {
     this.serverSocket = serverSocket;
   }
 
@@ -76,13 +75,13 @@ public class HealthCheckRequestHandler extends Thread {
   public void run() {
     setName("HealthCheckRequestHandler");
     try {
-      while (!quit) {
+      while (true) {
         Socket incomingSocket = serverSocket.accept();
 
         // read incoming request
-        BufferedReader in = new BufferedReader(new InputStreamReader(
+        final BufferedReader in = new BufferedReader(new InputStreamReader(
             incomingSocket.getInputStream()));
-        PrintWriter out = new PrintWriter(incomingSocket.getOutputStream(), true);
+        final PrintWriter out = new PrintWriter(incomingSocket.getOutputStream(), true);
         String inputStr;
         while ((inputStr = in.readLine()) != null) {
           if (inputStr.contains("/healthcheck")) {
@@ -107,12 +106,5 @@ public class HealthCheckRequestHandler extends Thread {
     } catch (IOException e) {
       LOG.warn("Healthcheck service IOException", e);
     }
-  }
-
-  /**
-   * this method is called to let the thread know that it should quit.
-   */
-  public void setQuitFlag() {
-    this.quit = true;
   }
 }

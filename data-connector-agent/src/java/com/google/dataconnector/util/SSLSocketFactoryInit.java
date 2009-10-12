@@ -50,7 +50,7 @@ public class SSLSocketFactoryInit {
   private final FileUtil fileUtil;
 
   @Inject
-  public SSLSocketFactoryInit(FileUtil fileUtil) {
+  public SSLSocketFactoryInit(final FileUtil fileUtil) {
     this.fileUtil = fileUtil;
   }
 
@@ -67,14 +67,14 @@ public class SSLSocketFactoryInit {
    * @param localConf the configuration object for the client.
    * @return SSLSocketFactory configured for use.
    */
-  public SSLSocketFactory getSslSocketFactory(LocalConf localConf) {
+  public SSLSocketFactory getSslSocketFactory(final LocalConf localConf) {
     LOG.info("Using SSL for client connections.");
 
     // The following two are required ONLY if the certificate of the server
     // does not map to the default Java CAs. In practice, this will only happen, most
     // likely, when connecting with testing/staging servers with test certificates.
 
-    String keystorePath = localConf.getSslKeyStoreFile();
+    final String keystorePath = localConf.getSslKeyStoreFile();
     char[] password = null;
     if (keystorePath != null) {
       // if KeyStoreFile is specified, we know that password must be specified too.
@@ -83,7 +83,7 @@ public class SSLSocketFactoryInit {
     }
 
     try {
-      SSLContext context = SSLContext.getInstance("TLSv1");
+      final SSLContext context = SSLContext.getInstance("TLSv1");
       if (keystorePath != null) { // The customer specified their own keystore.
         initializeSslEngineWithCustomKeystore(localConf, password, keystorePath, context);
       } else {
@@ -105,7 +105,7 @@ public class SSLSocketFactoryInit {
    * Use the JVM default as trusted store. This would be located somewhere around
    * jdk.../jre/lib/security/cacerts, and will contain widely used CAs.
    */
-  private void initializeSslEngineWithDefaultKeystore(SSLContext context)
+  private void initializeSslEngineWithDefaultKeystore(final SSLContext context)
       throws KeyManagementException {
     context.init(null, null, null);
   }
@@ -113,15 +113,15 @@ public class SSLSocketFactoryInit {
   /**
    * use the customer suplied keystore.
    */
-  private void initializeSslEngineWithCustomKeystore(LocalConf localConf, char[] password,
-      String keystorePath, SSLContext context) throws KeyStoreException, IOException,
-      NoSuchAlgorithmException, CertificateException, FileNotFoundException,
-      KeyManagementException {
+  private void initializeSslEngineWithCustomKeystore(final LocalConf localConf,
+      final char[] password, final String keystorePath, final SSLContext context) throws
+      KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException,
+      FileNotFoundException, KeyManagementException {
     // Load with our trusted certs and setup the trust manager.
     if (!localConf.getAllowUnverifiedCertificates()) {
       KeyStore keyStore = KeyStore.getInstance("JKS");
       keyStore.load(fileUtil.getFileInputStream(keystorePath), password);
-      TrustManagerFactory tmf = TrustManagerFactory.getInstance("PKIX");
+      final TrustManagerFactory tmf = TrustManagerFactory.getInstance("PKIX");
       tmf.init(keyStore);
       context.init(null, tmf.getTrustManagers(), null);
     } else {

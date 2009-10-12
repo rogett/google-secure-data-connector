@@ -46,10 +46,10 @@ public class OutputStreamConnector extends Thread {
   private ConnectorStateCallback connectorStateCallback;
 
   // local fields
-  private BlockingQueue<SocketDataInfo> queue;
+  private final BlockingQueue<SocketDataInfo> queue;
 
   @Inject
-  public OutputStreamConnector(BlockingQueue<SocketDataInfo> queue) {
+  public OutputStreamConnector(final BlockingQueue<SocketDataInfo> queue) {
     this.queue = queue;
   }
 
@@ -65,7 +65,7 @@ public class OutputStreamConnector extends Thread {
 
     try {
       while (true) {
-        SocketDataInfo socketDataInfo = queue.take();
+        final SocketDataInfo socketDataInfo = queue.take();
 
         if (socketDataInfo.getState() == SocketDataInfo.State.CLOSE) {
           LOG.debug("Closing connection " + connectionId);
@@ -89,7 +89,7 @@ public class OutputStreamConnector extends Thread {
     }
   }
 
-  public void setOutputStream(OutputStream outputStream) {
+  public void setOutputStream(final OutputStream outputStream) {
     this.outputStream = outputStream;
   }
 
@@ -101,7 +101,7 @@ public class OutputStreamConnector extends Thread {
     return queue;
   }
 
-  public void setConnectorStateCallback(ConnectorStateCallback connectorStateCallback) {
+  public void setConnectorStateCallback(final ConnectorStateCallback connectorStateCallback) {
     this.connectorStateCallback = connectorStateCallback;
   }
 }

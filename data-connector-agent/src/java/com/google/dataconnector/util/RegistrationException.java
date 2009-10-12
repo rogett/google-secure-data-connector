@@ -22,13 +22,14 @@ package com.google.dataconnector.util;
  * @author rayc@google.com (Ray Colline)
  */
 public class RegistrationException extends ConnectionException {
+  private static final long serialVersionUID = 2951268804856108084L;
 
   /**
    * Constructs the exception with an error message.
    *
    * @param message A string representing the error message.
    */
-  public RegistrationException(String message) {
+  public RegistrationException(final String message) {
     super(message);
   }
 
@@ -37,7 +38,7 @@ public class RegistrationException extends ConnectionException {
    *
    * @param cause the underlying cause.
    */
-  public RegistrationException(Throwable cause) {
+  public RegistrationException(final Throwable cause) {
     super(cause);
   }
 
@@ -47,7 +48,7 @@ public class RegistrationException extends ConnectionException {
    * @param msg the error message.
    * @param cause the underlying cause.
    */
-  public RegistrationException(String msg, Throwable cause) {
+  public RegistrationException(final String msg, final Throwable cause) {
     super(msg, cause);
   }
 

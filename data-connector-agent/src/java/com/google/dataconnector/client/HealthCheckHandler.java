@@ -23,6 +23,7 @@ import com.google.dataconnector.protocol.proto.SdcFrame;
 import com.google.dataconnector.protocol.proto.SdcFrame.FrameInfo;
 import com.google.dataconnector.protocol.proto.SdcFrame.HealthCheckInfo;
 import com.google.dataconnector.protocol.proto.SdcFrame.ServerSuppliedConf;
+import com.google.dataconnector.util.ClockUtil;
 import com.google.gdata.util.common.base.Preconditions;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -57,7 +58,7 @@ public class HealthCheckHandler extends Thread implements Dispatchable {
   private static final Logger LOG = Logger.getLogger(HealthCheckHandler.class);
 
   // Injected Dependencies
-  private Clock clock;
+  private final ClockUtil clock;
 
   // Runtime Dependencies
   private FrameSender frameSender;
@@ -68,7 +69,7 @@ public class HealthCheckHandler extends Thread implements Dispatchable {
   private long lastHealthCheckReceivedStamp = 0;
 
   @Inject
-  public HealthCheckHandler(Clock clock) {
+  public HealthCheckHandler(final ClockUtil clock) {
     this.clock = clock;
   }
 
@@ -76,10 +77,10 @@ public class HealthCheckHandler extends Thread implements Dispatchable {
    * Receives the {@link HealthCheckInfo} frame, parses and updates last received timestamp.
    */
   @Override
-  public void dispatch(FrameInfo frameInfo) throws FramingException {
+  public void dispatch(final FrameInfo frameInfo) throws FramingException {
 
     try {
-      HealthCheckInfo healthCheckInfo = HealthCheckInfo.parseFrom(frameInfo.getPayload());
+      HealthCheckInfo.parseFrom(frameInfo.getPayload());
       // Assignment is thread safe.
       lastHealthCheckReceivedStamp = clock.currentTimeMillis();
     } catch (InvalidProtocolBufferException e) {
@@ -103,7 +104,7 @@ public class HealthCheckHandler extends Thread implements Dispatchable {
 
       // We send a healthcheck request every X seconds (configurable in localconf)
       while (true) {
-        HealthCheckInfo hci = HealthCheckInfo.newBuilder()
+        final HealthCheckInfo hci = HealthCheckInfo.newBuilder()
             .setSource(HealthCheckInfo.Source.CLIENT)
             .setTimeStamp(clock.currentTimeMillis())
             .setType(HealthCheckInfo.Type.REQUEST)
@@ -142,27 +143,15 @@ public class HealthCheckHandler extends Thread implements Dispatchable {
     }
   }
 
-  public void setFrameSender(FrameSender frameSender) {
+  public void setFrameSender(final FrameSender frameSender) {
     this.frameSender = frameSender;
   }
 
-  public void setFailCallback(FailCallback failCallback) {
+  public void setFailCallback(final FailCallback failCallback) {
     this.failCallback = failCallback;
   }
 
-  public synchronized void setServerSuppliedConf(ServerSuppliedConf serverSuppliedConf) {
+  public synchronized void setServerSuppliedConf(final ServerSuppliedConf serverSuppliedConf) {
     this.serverSuppliedConf = serverSuppliedConf;
-  }
-
-  /**
-   * Extendable/Mockable clock class.
-   *
-   * @author rayc@google.com (Ray Colline)
-   */
-  public static class Clock {
-
-    public long currentTimeMillis() {
-      return System.currentTimeMillis();
-    }
   }
 }

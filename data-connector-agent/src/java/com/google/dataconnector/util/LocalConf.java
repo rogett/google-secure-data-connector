@@ -90,7 +90,7 @@ public class LocalConf {
     return name;
   }
 
-  public void setName(String name) {
+  public void setName(final String name) {
     this.name = name;
   }
 
@@ -98,11 +98,11 @@ public class LocalConf {
     return localConfigFile;
   }
 
-  public void setLocalConfigFile(String configFile) {
+  public void setLocalConfigFile(final String configFile) {
     this.localConfigFile = configFile;
   }
 
-  public void setRulesFile(String rulesFile) {
+  public void setRulesFile(final String rulesFile) {
     this.rulesFile = rulesFile;
   }
 
@@ -114,7 +114,7 @@ public class LocalConf {
     return sdcServerHost;
   }
 
-  public void setSdcServerHost(String sdcServerHost) {
+  public void setSdcServerHost(final String sdcServerHost) {
     this.sdcServerHost = sdcServerHost;
   }
 
@@ -122,7 +122,7 @@ public class LocalConf {
     return sdcServerPort;
   }
 
-  public void setSdcServerPort(Integer sdcServerPort) {
+  public void setSdcServerPort(final Integer sdcServerPort) {
     this.sdcServerPort = sdcServerPort;
   }
 
@@ -130,7 +130,7 @@ public class LocalConf {
     return domain;
   }
 
-  public void setDomain(String domain) {
+  public void setDomain(final String domain) {
     this.domain = domain;
   }
 
@@ -138,7 +138,7 @@ public class LocalConf {
     return user;
   }
 
-  public void setUser(String user) {
+  public void setUser(final String user) {
     this.user = user;
   }
 
@@ -146,7 +146,7 @@ public class LocalConf {
     return password;
   }
 
-  public void setPassword(String password) {
+  public void setPassword(final String password) {
     this.password = password;
   }
 
@@ -154,7 +154,7 @@ public class LocalConf {
     return sslKeyStorePassword;
   }
 
-  public void setSslKeyStorePassword(String sslKeyStorePassword) {
+  public void setSslKeyStorePassword(final String sslKeyStorePassword) {
     this.sslKeyStorePassword = sslKeyStorePassword;
   }
 
@@ -162,7 +162,7 @@ public class LocalConf {
     return sslKeyStoreFile;
   }
 
-  public void setSslKeyStoreFile(String sslKeyStoreFile) {
+  public void setSslKeyStoreFile(final String sslKeyStoreFile) {
     this.sslKeyStoreFile = sslKeyStoreFile;
   }
 
@@ -170,7 +170,7 @@ public class LocalConf {
     return agentId;
   }
 
-  public void setAgentId(String clientId) {
+  public void setAgentId(final String clientId) {
     this.agentId = clientId;
   }
 
@@ -178,7 +178,7 @@ public class LocalConf {
     return sshd;
   }
 
-  public void setSshd(String sshd) {
+  public void setSshd(final String sshd) {
     this.sshd = sshd;
   }
 
@@ -186,7 +186,7 @@ public class LocalConf {
     return socksServerPort;
   }
 
-  public void setSocksServerPort(Integer socksServerPort) {
+  public void setSocksServerPort(final Integer socksServerPort) {
     this.socksServerPort = socksServerPort;
   }
 
@@ -194,7 +194,7 @@ public class LocalConf {
     return socksProperties;
   }
 
-  public void setSocksProperties(String socksProperties) {
+  public void setSocksProperties(final String socksProperties) {
     this.socksProperties = socksProperties;
   }
 
@@ -202,11 +202,11 @@ public class LocalConf {
     return debug;
   }
 
-  public void setDebug(Boolean debug) {
+  public void setDebug(final Boolean debug) {
     this.debug = debug;
   }
 
-  public void setAllowUnverifiedCertificates(Boolean allowUnverifiedCertificates) {
+  public void setAllowUnverifiedCertificates(final Boolean allowUnverifiedCertificates) {
     this.allowUnverifiedCertificates = allowUnverifiedCertificates;
   }
 
@@ -218,7 +218,7 @@ public class LocalConf {
     return healthCheckGadgetUsers;
   }
 
-  public void setHealthCheckGadgetUsers(String healthCheckGadgetUsers) {
+  public void setHealthCheckGadgetUsers(final String healthCheckGadgetUsers) {
     this.healthCheckGadgetUsers = healthCheckGadgetUsers;
   }
 
@@ -226,7 +226,7 @@ public class LocalConf {
     return log4jPropertiesFile;
   }
 
-  public void setLog4jPropertiesFile(String log4jPropertiesFile) {
+  public void setLog4jPropertiesFile(final String log4jPropertiesFile) {
     this.log4jPropertiesFile = log4jPropertiesFile;
   }
 
@@ -234,7 +234,7 @@ public class LocalConf {
     return fileWatcherThreadSleepTimer;
   }
 
-  public void setFileWatcherThreadSleepTimer(int fileWatcherThreadSleepTimer) {
+  public void setFileWatcherThreadSleepTimer(final int fileWatcherThreadSleepTimer) {
     this.fileWatcherThreadSleepTimer = fileWatcherThreadSleepTimer;
   }
 }

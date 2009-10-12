@@ -39,21 +39,22 @@ public class FileUtil {
    * @param contents the contents to place in the file.
    * @throws IOException if any file operations result in errors.
    */
-  public void writeFile(String filename, String contents) throws IOException {
+  public void writeFile(final String filename, final String contents) throws IOException {
 
     // Delete any existing file.  Needed for win32 systems where renameTo breaks.
     // See java bug 4017593. http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4017593
     deleteFile(filename);
 
     // Write out tempfile.
-    String tempFilename = filename + "-" + System.currentTimeMillis() + "-" +
+    final String tempFilename = filename + "-" + System.currentTimeMillis() + "-" +
         new Random().nextInt();
-    FileWriter fileWriter = new FileWriter(new File(tempFilename));
+
+    final FileWriter fileWriter = new FileWriter(new File(tempFilename));
     fileWriter.write(contents);
     fileWriter.close();
 
     // Rename temp file to real file.  Atomic on UNIX.
-    File tempfile = new File(tempFilename);
+    final File tempfile = new File(tempFilename);
     tempfile.renameTo(new File(filename));
   }
 
@@ -64,10 +65,10 @@ public class FileUtil {
    * @return a string with the file's contents.
    * @throws IOException if any file operations result in errors.
    */
-  public String readFile(String filename) throws IOException {
-    File file = new File(filename);
-    FileReader fileReader = new FileReader(file);
-    char[] cbuf = new char[(int) file.length()];
+  public String readFile(final String filename) throws IOException {
+    final File file = new File(filename);
+    final FileReader fileReader = new FileReader(file);
+    final char[] cbuf = new char[(int) file.length()];
     fileReader.read(cbuf);
     fileReader.close();
     return new String(cbuf);
@@ -78,8 +79,8 @@ public class FileUtil {
    *
    * @param filename
    */
-  public void deleteFile(String filename) {
-    File file = new File(filename);
+  public void deleteFile(final String filename) {
+    final File file = new File(filename);
     file.delete();
   }
 
@@ -88,8 +89,8 @@ public class FileUtil {
    *
    * @param filename
    */
-  public void deleteFileOnExit(String filename) {
-    File file = new File(filename);
+  public void deleteFileOnExit(final String filename) {
+    final File file = new File(filename);
     file.deleteOnExit();
   }
 
@@ -99,7 +100,7 @@ public class FileUtil {
    * @return FileInputStream for the given file
    * @throws FileNotFoundException
    */
-  public FileInputStream getFileInputStream(String filename) throws FileNotFoundException {
+  public FileInputStream getFileInputStream(final String filename) throws FileNotFoundException {
     return new FileInputStream(filename);
   }
 
@@ -108,7 +109,7 @@ public class FileUtil {
    * @param filename file to be opened
    * @return the File object
    */
-  public File openFile(String filename) {
+  public File openFile(final String filename) {
     return new File(filename);
   }
 }

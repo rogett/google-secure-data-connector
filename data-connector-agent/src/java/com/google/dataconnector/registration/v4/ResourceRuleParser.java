@@ -51,7 +51,7 @@ public class ResourceRuleParser {
   private final FileUtil fileUtil;
 
   @Inject
-  public ResourceRuleParser(FileUtil fileUtil) {
+  public ResourceRuleParser(final FileUtil fileUtil) {
     this.fileUtil = fileUtil;
   }
 
@@ -66,28 +66,29 @@ public class ResourceRuleParser {
    * @throws XMLStreamException thrown if there is any parsing error
    * @throws FactoryConfigurationError thrown if there is any parsing error
    */
-  public List<String> parseResourcesFile(String resourcesFileName, String thisAgentId)
+  public List<String> parseResourcesFile(final String resourcesFileName, final String thisAgentId)
       throws RegistrationException, FileNotFoundException,
       XMLStreamException, FactoryConfigurationError {
-    FileInputStream fileInputStream = fileUtil.getFileInputStream(resourcesFileName);
-    XMLStreamReader xmlStreamReader =
+    final FileInputStream fileInputStream = fileUtil.getFileInputStream(resourcesFileName);
+    final XMLStreamReader xmlStreamReader =
       XMLInputFactory.newInstance().createXMLStreamReader(fileInputStream);
-    String url = null, agentId = null;
-    List<String> urlList = new ArrayList<String>();
+    String url = null;
+    String agentId = null;
+    final List<String> urlList = new ArrayList<String>();
     while (xmlStreamReader.hasNext()) {
       switch (xmlStreamReader.next()) {
         case XMLStreamConstants.START_ELEMENT:
           // look for url and agentId elements.
-          String currentTag = xmlStreamReader.getLocalName();
-          boolean urlFound = equalsTagButWarnIfLegacy(currentTag, URL_TAG, DEPRECATED_URL_TAGS);
-          boolean agentIdFound = equalsTagButWarnIfLegacy(currentTag, AGENT_ID_TAG,
+          final String currentTag = xmlStreamReader.getLocalName();
+          final boolean urlFound = equalsTagButWarnIfLegacy(currentTag, URL_TAG,
+              DEPRECATED_URL_TAGS);
+          final boolean agentIdFound = equalsTagButWarnIfLegacy(currentTag, AGENT_ID_TAG,
               DEPRECATED_AGENT_ID_TAGS);
 
           if (urlFound || agentIdFound) {
-            int event = xmlStreamReader.next();
-            if (event == XMLStreamConstants.CHARACTERS) {
+            if (xmlStreamReader.next() == XMLStreamConstants.CHARACTERS) {
               // can't tolerate anything other than CHARACTERS element
-              String tagValue = xmlStreamReader.getText();
+              final String tagValue = xmlStreamReader.getText();
               if (urlFound) {
                 url = tagValue;
               } else {
@@ -114,7 +115,7 @@ public class ResourceRuleParser {
     return urlList;
   }
 
-  private void ensurePresenceOfAgentIdAndUrl(String url, String agentId)
+  private void ensurePresenceOfAgentIdAndUrl(final String url, final String agentId)
       throws RegistrationException {
     if (url == null || agentId == null) {
       throw new RegistrationException("resources.xml file is mising url / agentId " +

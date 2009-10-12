@@ -43,7 +43,6 @@ public class FrameSenderTest extends TestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    long sequence = 0;
     expectedAuthorizationInfo = AuthorizationInfo.newBuilder()
        .setEmail("foo@joonix.net")
        .setPassword("password")
@@ -92,7 +91,6 @@ public class FrameSenderTest extends TestCase {
     assertEquals(0, actualSequence);
     offset += FrameReceiver.SEQUENCE_LEN;
 
-    byte[] payloadlen = new byte[FrameReceiver.PAYLOAD_LEN];
     System.arraycopy(output, offset, seq, 0, FrameReceiver.SEQUENCE_LEN);
     DataInputStream ds = new DataInputStream(new ByteArrayInputStream(seq));
     int actualPayloadLen = ds.readInt();

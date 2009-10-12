@@ -92,14 +92,14 @@ public class SdcConnection implements FailCallback {
   * @param healthCheckHandler
   */
   @Inject
-  public SdcConnection(LocalConf localConf,
-      SSLSocketFactoryInit sslSocketFactoryInit,
-      FrameReceiver frameReceiver,
-      FrameSender frameSender,
-      Registration registration,
-      SocksDataHandler socksDataHandler,
-      HealthCheckHandler healthCheckHandler,
-      ResourcesFileWatcher resourcesFileWatcher) {
+  public SdcConnection(final LocalConf localConf,
+      final SSLSocketFactoryInit sslSocketFactoryInit,
+      final FrameReceiver frameReceiver,
+      final FrameSender frameSender,
+      final Registration registration,
+      final SocksDataHandler socksDataHandler,
+      final HealthCheckHandler healthCheckHandler,
+      final ResourcesFileWatcher resourcesFileWatcher) {
     this.localConf = localConf;
     this.sslSocketFactoryInit = sslSocketFactoryInit;
     this.frameReceiver = frameReceiver;
@@ -123,7 +123,8 @@ public class SdcConnection implements FailCallback {
     try {
       // Setup SSL connection and verify.
       LOG.debug("setting up SSLSocket with customized SSLSocketFacory");
-      SSLSocketFactory sslSocketFactory = sslSocketFactoryInit.getSslSocketFactory(localConf);
+      final SSLSocketFactory sslSocketFactory = sslSocketFactoryInit
+          .getSslSocketFactory(localConf);
       socket = (SSLSocket) sslSocketFactory.createSocket();
       socket.setEnabledCipherSuites(SECURE_CIPHER_SUITE);
       // wait for 30 sec to connect. is that too long?
@@ -136,7 +137,7 @@ public class SdcConnection implements FailCallback {
 
       // send a message to initiate handshake with tunnelserver
       LOG.info("Sending initial handshake msg");
-      byte[] handshake = INITIAL_HANDSHAKE_MSG.getBytes();
+      final byte[] handshake = INITIAL_HANDSHAKE_MSG.getBytes();
       socket.getOutputStream().write(handshake);
       socket.getOutputStream().flush();
 
@@ -191,17 +192,17 @@ public class SdcConnection implements FailCallback {
   boolean authorize() {
     try {
       // Authenticate
-      AuthorizationInfo authInfoRequest = AuthorizationInfo.newBuilder()
+      final AuthorizationInfo authInfoRequest = AuthorizationInfo.newBuilder()
           .setEmail(localConf.getUser() + "@" + localConf.getDomain())
           .setPassword(localConf.getPassword())
           .build();
-      FrameInfo authReqRawFrame = FrameInfo.newBuilder()
+      final FrameInfo authReqRawFrame = FrameInfo.newBuilder()
           .setPayload(authInfoRequest.toByteString())
           .setType(FrameInfo.Type.AUTHORIZATION)
           .build();
       frameSender.sendFrame(authReqRawFrame);
-      FrameInfo authRespRawFrame = frameReceiver.readOneFrame();
-      AuthorizationInfo authInfoResponse = AuthorizationInfo.parseFrom(
+      final FrameInfo authRespRawFrame = frameReceiver.readOneFrame();
+      final AuthorizationInfo authInfoResponse = AuthorizationInfo.parseFrom(
           authRespRawFrame.getPayload());
       if (authInfoResponse.getResult() != AuthorizationInfo.ResultCode.OK) {
         LOG.error("Auth Result: " + authInfoResponse.getResult().toString());
@@ -226,11 +227,11 @@ public class SdcConnection implements FailCallback {
    * @throws ConnectionException if server name does not match, DN is un-parseable or the
    * SSLSession does not have a peer certificate.
    */
-  void verifySubjectInCertificate(SSLSession session)
+  void verifySubjectInCertificate(final SSLSession session)
       throws ConnectionException {
 
     // Get Principal from session.
-    X509Certificate cert;
+    final X509Certificate cert;
     try {
       cert = session.getPeerCertificateChain()[0];
     } catch (SSLPeerUnverifiedException e) {
@@ -239,14 +240,14 @@ public class SdcConnection implements FailCallback {
     Principal principal = cert.getSubjectDN();
 
     // Compare CNs between actual host and the one we thought we connected to.
-    Rdn expectedCn;
+    final Rdn expectedCn;
     try {
       expectedCn = new Rdn("CN", localConf.getSdcServerHost());
 
       // Get actual CN
-      LdapName ldapName = new LdapName(principal.getName());
+      final LdapName ldapName = new LdapName(principal.getName());
       Rdn actualCn = null;
-      for (Rdn rdn : ldapName.getRdns()) {
+      for (final Rdn rdn : ldapName.getRdns()) {
         if (rdn.getType().equals("CN")) {
           actualCn = rdn;
           break;
@@ -258,7 +259,7 @@ public class SdcConnection implements FailCallback {
       }
 
       // No match, FAIL.
-      String errorMessage = "Wrong server X.500 name. Expected: <" +
+      final String errorMessage = "Wrong server X.500 name. Expected: <" +
         localConf.getSdcServerHost() + ">. Actual: <" +
         (actualCn == null ? "null" : actualCn.getValue()) + ">.";
       LOG.error(errorMessage);

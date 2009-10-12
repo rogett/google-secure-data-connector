@@ -63,7 +63,6 @@ public class SocksDataHandlerTest extends TestCase {
   private BlockingQueue<SocketDataInfo> queue;
 
 
-  @SuppressWarnings("unchecked")
   @Override
   protected void setUp() throws Exception {
     super.setUp();

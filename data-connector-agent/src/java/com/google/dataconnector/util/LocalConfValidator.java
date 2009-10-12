@@ -27,14 +27,15 @@ import java.io.File;
  */
 public class LocalConfValidator {
   private static final Logger log = Logger.getLogger(LocalConfValidator.class);
+  private static final int MAX_PORT = 65535;
 
-  private FileFactory fileFactory;
+  private final FileUtil fileUtil;
 
   /**
    * Builds a validator with pre-configured dependencies.
    */
   public LocalConfValidator() {
-    this(new FileFactory());
+    this(new FileUtil());
   }
 
   /**
@@ -42,11 +43,9 @@ public class LocalConfValidator {
    *
    * @param fileFactory the factory used to get new {@link File} instances.
    */
-  public LocalConfValidator(FileFactory fileFactory) {
-    this.fileFactory = fileFactory;
+  public LocalConfValidator(final FileUtil fileFactory) {
+    this.fileUtil = fileFactory;
   }
-
-  private static final int MAX_PORT = 65535;
 
   /**
    * With the supplied filename, this method calls {@link File#canRead()}.
@@ -56,8 +55,9 @@ public class LocalConfValidator {
    * @throws LocalConfException if {@link File#canRead()} fails and will contain a message
    * associated the file with the supplied config file key.
    */
-  private String canReadFile(String configKey, String filename) throws LocalConfException {
-    File file = fileFactory.getFile(filename);
+  private String canReadFile(final String configKey, final String filename) throws
+      LocalConfException {
+    final File file = fileUtil.openFile(filename);
     if (!file.canRead()) {
       return("Cannot read " + configKey + "file: " + filename + "\n");
     }
@@ -71,12 +71,12 @@ public class LocalConfValidator {
    * @throws LocalConfException if any config entry is invalid.  This code batches up
    * all errors and throws them at once for improved user experience.
    */
-  public void validate(LocalConf localConf) throws LocalConfException {
+  public void validate(final LocalConf localConf) throws LocalConfException {
 
-    StringBuilder errors = new StringBuilder();
+    final StringBuilder errors = new StringBuilder();
 
     // rulesFile
-    String rulesFile = localConf.getRulesFile();
+    final String rulesFile = localConf.getRulesFile();
     if (rulesFile != null) {
       errors.append(canReadFile("rulesFile", rulesFile));
     } else {
@@ -89,7 +89,7 @@ public class LocalConfValidator {
     }
 
     // sdcServerPort
-    Integer sdcServerPort = localConf.getSdcServerPort();
+    final Integer sdcServerPort = localConf.getSdcServerPort();
     if (sdcServerPort != null) {
       if (sdcServerPort > MAX_PORT || sdcServerPort < 0) {
         errors.append("invalid 'sdcServerPort': " + sdcServerPort);
@@ -155,7 +155,7 @@ public class LocalConfValidator {
     }
 
     // socksServerPort
-    Integer socksServerPort = localConf.getSocksServerPort();
+    final Integer socksServerPort = localConf.getSocksServerPort();
     if (socksServerPort != null) {
       if (socksServerPort > MAX_PORT || socksServerPort < 0) {
         errors.append("invalid 'socksServerPort': " +  socksServerPort);
@@ -179,17 +179,6 @@ public class LocalConfValidator {
     // Check for errors and throw
     if (errors.length() > 0) {
       throw new LocalConfException(errors.toString());
-    }
-  }
-
-  /**
-   * Factory so we can dependency inject the File object.
-   *
-   * @author rayc@google.com (Ray Colline)
-   */
-  public static class FileFactory {
-    public File getFile(String fileName) {
-      return new File(fileName);
     }
   }
 }

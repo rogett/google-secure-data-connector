@@ -22,13 +22,14 @@ package com.google.dataconnector.util;
  * @author rayc@google.com (Ray Colline)
  */
 public class LocalConfException extends AgentConfigurationException {
+  private static final long serialVersionUID = 407956024101129976L;
 
   /**
    * Creates the exception with the specified error message.
    *
    * @param msg the error message.
    */
-  public LocalConfException(String msg) {
+  public LocalConfException(final String msg) {
     super(msg);
   }
 
@@ -47,7 +48,7 @@ public class LocalConfException extends AgentConfigurationException {
    * @param msg the error message.
    * @param cause the underlying cause.
    */
-  public LocalConfException(String msg, Throwable cause) {
+  public LocalConfException(final String msg, final Throwable cause) {
     super(msg, cause);
   }
 }

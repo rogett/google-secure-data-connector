@@ -63,16 +63,17 @@ public class Rfc1929SdcAuthenticator extends ServerAuthenticatorNone {
     * initialized.
     */
    @Inject
-   public Rfc1929SdcAuthenticator(SdcKeysManager keyManager) {
+   public Rfc1929SdcAuthenticator(final SdcKeysManager keyManager) {
      this.keyManager = keyManager;
    }
 
    /**
     * Used to create instances returned from startSession in JSOCKS server..
     */
-   Rfc1929SdcAuthenticator(InputStream in,OutputStream out, String passKey, 
-       SdcKeysManager keyManager, String userLogLine) {
+   Rfc1929SdcAuthenticator(final InputStream in, final OutputStream out, final String passKey, 
+       final SdcKeysManager keyManager, final String userLogLine) {
      super(in,out);
+     
      this.passKey = passKey;
      this.keyManager = keyManager;   
      this.serverMetaData = userLogLine;
@@ -87,7 +88,7 @@ public class Rfc1929SdcAuthenticator extends ServerAuthenticatorNone {
    * @returns true if request is allowed or false if its prevented by ruleset.
    */
   @Override
-  public boolean checkRequest(ProxyMessage msg) {
+  public boolean checkRequest(final ProxyMessage msg) {
     Preconditions.checkNotNull(keyManager);
 
     // This shouldn't happen but we should check anyways.
@@ -96,11 +97,11 @@ public class Rfc1929SdcAuthenticator extends ServerAuthenticatorNone {
     }
 
     try {
-      JSONObject serverMetadataJson = new JSONObject(serverMetaData);
-      String name = serverMetadataJson.getString("name");
-      String resource = serverMetadataJson.getString("resource");
-      String user = serverMetadataJson.getString("user");
-      String appId = serverMetadataJson.getString("appId");
+      final JSONObject serverMetadataJson = new JSONObject(serverMetaData);
+      final String name = serverMetadataJson.getString("name");
+      final String resource = serverMetadataJson.getString("resource");
+      final String user = serverMetadataJson.getString("user");
+      final String appId = serverMetadataJson.getString("appId");
       LOG.info(msg.getConnectionId() + " Incoming connection for rule id:" +  name + 
           " for resource:" + resource +  " cloud-user:" + user + " reported-appId:" + appId);
     } catch (JSONException e) {
@@ -108,7 +109,7 @@ public class Rfc1929SdcAuthenticator extends ServerAuthenticatorNone {
     }
 
     // Is this a valid "secret key"
-    boolean rslt = keyManager.checkKeyIpPort(passKey, msg.host, msg.port);
+    final boolean rslt = keyManager.checkKeyIpPort(passKey, msg.host, msg.port);
     if (!rslt) {
       LOG.info("No key found. Rejecting access to " + msg.host + ":" + msg.port);
     }
@@ -122,15 +123,18 @@ public class Rfc1929SdcAuthenticator extends ServerAuthenticatorNone {
    * @throws IOException if there are any socket communication issues.
    */
   @Override
-  public ServerAuthenticator startSession(Socket s) throws IOException {
-    InputStream in = s.getInputStream();
-    OutputStream out = s.getOutputStream();
+  public ServerAuthenticator startSession(final Socket s) throws IOException {
+    final InputStream in = s.getInputStream();
+    final OutputStream out = s.getOutputStream();
 
-    if(in.read() != 5) return null; //Drop non version 5 messages.
-
-    if(!selectSocks5Authentication(in,out,METHOD_ID)) 
+    if(in.read() != 5) {
+      // Drop non version 5 messages.
       return null;
-    if(!doUserPasswordAuthentication(s,in,out))
+    }
+
+    if(!selectSocks5Authentication(in, out, METHOD_ID)) 
+      return null;
+    if(!doUserPasswordAuthentication(s, in, out))
       return null;
 
     return new Rfc1929SdcAuthenticator(in, out, passKey, keyManager, serverMetaData);
@@ -145,21 +149,27 @@ public class Rfc1929SdcAuthenticator extends ServerAuthenticatorNone {
    * @returns true if authorized false if not.
    * @throws IOException if there any socket communication issues.
    */
-  private boolean doUserPasswordAuthentication(Socket s,
-                                               InputStream in,
-                                               OutputStream out) 
+  private boolean doUserPasswordAuthentication(final Socket s,
+                                               final InputStream in,
+                                               final OutputStream out) 
                                                throws IOException {
-    int version = in.read();
-    if(version != 1) return false;
+    final int version = in.read();
+    if(version != 1) {
+      return false;
+    }
     // This byte tells us how many bytes the username will be.  Max is 255.
-    int ulen = in.read();
-    if(ulen < 0) return false;
-    byte[] user = new byte[ulen];
+    final int ulen = in.read();
+    if(ulen < 0) {
+      return false;
+    }
+    final byte[] user = new byte[ulen];
     in.read(user);
     // This byte tells us how many bytes the password will be.  Max is 255.
-    int plen = in.read();
-    if(plen < 0) return false;
-    byte[] password = new byte[plen];
+    final int plen = in.read();
+    if(plen < 0) {
+      return false;
+    }
+    final byte[] password = new byte[plen];
     in.read(password);
 
     // We use the RFC1929 Username to pass metadata to the client about this connection.

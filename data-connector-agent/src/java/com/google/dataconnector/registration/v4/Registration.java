@@ -72,9 +72,10 @@ public class Registration implements Dispatchable {
   private final ResourceRuleParser resourceRuleParser;
 
   @Inject
-  public Registration(LocalConf localConf, HealthCheckRequestHandler healthCheckRequestHandler,
-      FileUtil fileUtil, ResourceRuleUrlUtil resourceRuleUrlUtil, SdcKeysManager sdcKeysManager,
-      HealthCheckHandler healthCheckHandler, ResourceRuleParser resourceRuleParser) {
+  public Registration(final LocalConf localConf,
+      final HealthCheckRequestHandler healthCheckRequestHandler, final FileUtil fileUtil,
+      final ResourceRuleUrlUtil resourceRuleUrlUtil, final SdcKeysManager sdcKeysManager,
+      final HealthCheckHandler healthCheckHandler, final ResourceRuleParser resourceRuleParser) {
     this.localConf = localConf;
     this.healthCheckRequestHandler = healthCheckRequestHandler;
     this.fileUtil = fileUtil;
@@ -93,7 +94,7 @@ public class Registration implements Dispatchable {
    * a bad state.
    */
   @Override
-  public void dispatch(FrameInfo frameInfo) throws FramingException {
+  public void dispatch(final FrameInfo frameInfo) throws FramingException {
     try {
       processRegistrationResponse(frameInfo);
     } catch (RegistrationException e) {
@@ -111,16 +112,16 @@ public class Registration implements Dispatchable {
    * @returns the server provided configuration.
    * @throws RegistrationException if registration fails or there is a communication error.
    */
-  public void sendRegistrationInfo(FrameSender frameSender) throws RegistrationException {
+  public void sendRegistrationInfo(final FrameSender frameSender) throws RegistrationException {
     try {
       // prepare registration request
-      RegistrationRequestV4.Builder regRequestBuilder = RegistrationRequestV4.newBuilder()
+      final RegistrationRequestV4.Builder regRequestBuilder = RegistrationRequestV4.newBuilder()
           .setHealthCheckPort(healthCheckRequestHandler.getPort())
           .setAgentId(localConf.getAgentId())
           .setSocksServerPort(localConf.getSocksServerPort());
 
       // are there any healthcheckgadget users defined?
-      List<String> healthCheckGadgetUsersList = getHealthCheckGadgetUsers();
+      final List<String> healthCheckGadgetUsersList = getHealthCheckGadgetUsers();
       if (healthCheckGadgetUsersList != null) {
         regRequestBuilder.addAllHealthCheckGadgetUser(healthCheckGadgetUsersList);
       }
@@ -129,11 +130,11 @@ public class Registration implements Dispatchable {
       regRequestBuilder.setResourcesXml(fileUtil.readFile(localConf.getRulesFile()));
 
       // set resource keys in the protobuf
-      List<ResourceKey> resourceKeyList = createResourceKeys(regRequestBuilder);
+      final List<ResourceKey> resourceKeyList = createResourceKeys(regRequestBuilder);
       regRequestBuilder.addAllResourceKey(resourceKeyList);
 
       // finalize the building of the RegRequest
-      RegistrationRequestV4 regRequest = regRequestBuilder.build();
+      final RegistrationRequestV4 regRequest = regRequestBuilder.build();
 
       // Send frame.
       LOG.info("Sending resources info\n" + regRequest.toString());
@@ -150,7 +151,7 @@ public class Registration implements Dispatchable {
    * return list of healthcheckgadget users declared in LocalConf.
    */
   private List<String> getHealthCheckGadgetUsers() {
-    String healthCheckGadgetUsers = localConf.getHealthCheckGadgetUsers();
+    final String healthCheckGadgetUsers = localConf.getHealthCheckGadgetUsers();
     List<String> healthCheckGadgetUsersList = null;
     if (healthCheckGadgetUsers != null && healthCheckGadgetUsers.trim().length() > 0) {
       healthCheckGadgetUsersList = new ArrayList<String>();
@@ -167,15 +168,15 @@ public class Registration implements Dispatchable {
   /**
    * create resource secretkeys for all URLs and return the list
    */
-  private List<ResourceKey> createResourceKeys(RegistrationRequestV4.Builder regRequestBuilder)
-      throws RegistrationException {
-    List<ResourceKey> resourceKeyList = new ArrayList<ResourceKey>();
+  private List<ResourceKey> createResourceKeys(final RegistrationRequestV4.Builder
+      regRequestBuilder) throws RegistrationException {
+    final List<ResourceKey> resourceKeyList = new ArrayList<ResourceKey>();
     try {
-      List<String> urlList = resourceRuleParser.parseResourcesFile(localConf.getRulesFile(),
+      final List<String> urlList = resourceRuleParser.parseResourcesFile(localConf.getRulesFile(),
           localConf.getAgentId());
 
       // create keys for all urls in the list received above
-      for (String u : urlList) {
+      for (final String u : urlList) {
         resourceKeyList.add((ResourceKey.newBuilder()
             .setIp(resourceRuleUrlUtil.getHostnameFromRule(u))
             .setPort(resourceRuleUrlUtil.getPortFromRule(u))
@@ -202,9 +203,11 @@ public class Registration implements Dispatchable {
   /**
    * process the registration response received from the SDC server
    */
-  private void processRegistrationResponse(FrameInfo frameInfo) throws RegistrationException {
+  private void processRegistrationResponse(final FrameInfo frameInfo) throws
+      RegistrationException {
     try {
-      RegistrationResponseV4 regResponse = RegistrationResponseV4.parseFrom(frameInfo.getPayload());
+      final RegistrationResponseV4 regResponse = RegistrationResponseV4.parseFrom(
+          frameInfo.getPayload());
       if (regResponse.getResult() != RegistrationResponseV4.ResultCode.OK) {
         LOG.fatal("Registration failed: " + regResponse.getStatusMessage());
         throw new RegistrationException("Registration failed");

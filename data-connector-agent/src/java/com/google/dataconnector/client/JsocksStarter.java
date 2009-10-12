@@ -42,9 +42,9 @@ public class JsocksStarter extends Thread {
   private static final Logger LOG = Logger.getLogger(JsocksStarter.class);
 
   /* Dependencies */
-  private LocalConf localConfiguration;
-  private Rfc1929SdcAuthenticator rfc1929SdcAuthenticator;
-  private Properties socksProperties;
+  private final LocalConf localConfiguration;
+  private final Rfc1929SdcAuthenticator rfc1929SdcAuthenticator;
+  private final Properties socksProperties;
 
   // Bind address
   private InetAddress bindAddress;
@@ -59,9 +59,9 @@ public class JsocksStarter extends Thread {
    * @param socksProperties
    */
   @Inject
-  public JsocksStarter(LocalConf localConfiguration,
-      Rfc1929SdcAuthenticator rfc1929SdcAuthenticator,
-      @Named("Socks Properties") Properties socksProperties) {
+  public JsocksStarter(final LocalConf localConfiguration,
+      final Rfc1929SdcAuthenticator rfc1929SdcAuthenticator,
+      final @Named("Socks Properties") Properties socksProperties) {
     this.localConfiguration = localConfiguration;
     this.rfc1929SdcAuthenticator = rfc1929SdcAuthenticator;
     this.socksProperties = socksProperties;
@@ -88,7 +88,7 @@ public class JsocksStarter extends Thread {
   public void run() {
     // JSOCKS is configured in a static context
     SOCKS.serverInit(socksProperties);
-    ProxyServer server = new ProxyServer(rfc1929SdcAuthenticator);
+    final ProxyServer server = new ProxyServer(rfc1929SdcAuthenticator);
     LOG.info("Starting JSOCKS listener thread on port " + localConfiguration.getSocksServerPort());
     server.start(localConfiguration.getSocksServerPort(), 5, bindAddress);
   }

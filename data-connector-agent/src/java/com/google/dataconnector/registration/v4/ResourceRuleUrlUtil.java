@@ -34,9 +34,9 @@ public class ResourceRuleUrlUtil {
     SOCKET;
 
     public static List<String> getValidValues() {
-      Scheme[] schemes = Scheme.values();
-      int len = schemes.length;
-      List<String> validValues = new ArrayList<String>();
+      final Scheme[] schemes = Scheme.values();
+      final int len = schemes.length;
+      final List<String> validValues = new ArrayList<String>();
       for (int i = 0; i < len; i++) {
         validValues.add(schemes[i].name().toLowerCase());
       }
@@ -53,10 +53,10 @@ public class ResourceRuleUrlUtil {
    * @throws ResourceUrlException thrown if the url is not URI format or if the scheme is
    * not http or https or socket
    */
-  public Scheme getSchemeInUrl(String resourceRuleUrl) throws ResourceUrlException {
+  public Scheme getSchemeInUrl(final String resourceRuleUrl) throws ResourceUrlException {
     try {
-      URI uri = new URI(resourceRuleUrl);
-      String scheme = uri.getScheme();
+      final URI uri = new URI(resourceRuleUrl);
+      final String scheme = uri.getScheme();
       return Scheme.valueOf(scheme.toUpperCase());
     } catch (IllegalArgumentException e) {
       throw new ResourceUrlException("resource url can only start with " +
@@ -70,11 +70,11 @@ public class ResourceRuleUrlUtil {
    * extract the hostname from the given url.
    * by using URI, the given URL will not be resolved.
    */
-  public String getHostnameFromRule(String resourceRuleUrl) throws ResourceUrlException {
+  public String getHostnameFromRule(final String resourceRuleUrl) throws ResourceUrlException {
       // validate the uri
       getSchemeInUrl(resourceRuleUrl);
       try {
-        URI uri = new URI(resourceRuleUrl);
+        final URI uri = new URI(resourceRuleUrl);
         return uri.getHost();
       } catch (URISyntaxException e) {
         throw new ResourceUrlException("badly formed resource url " + resourceRuleUrl);
@@ -85,10 +85,10 @@ public class ResourceRuleUrlUtil {
    * Use URI util to extract the port from the given url.
    * by using URI, the given URL will not be resolved.
    */
-  public int getPortFromRule(String resourceRuleUrl) throws ResourceUrlException {
+  public int getPortFromRule(final String resourceRuleUrl) throws ResourceUrlException {
       // validate the uri
-      Scheme scheme = getSchemeInUrl(resourceRuleUrl);
-      URI uri;
+      final Scheme scheme = getSchemeInUrl(resourceRuleUrl);
+      final URI uri;
       try {
         uri = new URI(resourceRuleUrl);
       } catch (URISyntaxException e) {

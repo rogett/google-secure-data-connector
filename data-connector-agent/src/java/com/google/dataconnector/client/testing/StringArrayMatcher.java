@@ -27,27 +27,27 @@ import java.util.Arrays;
  */
 public class StringArrayMatcher implements IArgumentMatcher {
 
-  private String[] expected;
+  private final String[] expected;
 
   /**
    * Creates the array matcher with the expected array.
    * @param expected
    */
-  public StringArrayMatcher(String[] expected) {
+  public StringArrayMatcher(final String[] expected) {
     this.expected = expected;
   }
 
   /**
    * Adds the error to the EasyMock report.
    */
-  public void appendTo(StringBuffer errors) {
+  public void appendTo(final StringBuffer errors) {
     errors.append("Arguments not identical");
   }
 
   /**
    * Loops through each element of the expected array and ensures it exists in the actual array.
    */
-  public boolean matches(Object actual) {
+  public boolean matches(final Object actual) {
     if (!(actual instanceof String[])) {
       return false;
     }

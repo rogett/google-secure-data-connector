@@ -82,7 +82,7 @@ public class ClientGuiceModule extends AbstractModule {
 
   @Provides @Singleton @Named("Socks Properties")
   public Properties getSocksProperties(LocalConf localConf) {
-    Properties properties = new Properties();
+    final Properties properties = new Properties();
     try {
       properties.load(new ByteArrayInputStream(localConf.getSocksProperties().trim().getBytes()));
       return properties;

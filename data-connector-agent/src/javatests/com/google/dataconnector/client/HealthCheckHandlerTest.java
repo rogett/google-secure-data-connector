@@ -16,12 +16,12 @@
  */
 package com.google.dataconnector.client;
 
-import com.google.dataconnector.client.HealthCheckHandler.Clock;
 import com.google.dataconnector.client.HealthCheckHandler.FailCallback;
 import com.google.dataconnector.protocol.FrameSender;
 import com.google.dataconnector.protocol.proto.SdcFrame.FrameInfo;
 import com.google.dataconnector.protocol.proto.SdcFrame.HealthCheckInfo;
 import com.google.dataconnector.protocol.proto.SdcFrame.ServerSuppliedConf;
+import com.google.dataconnector.util.ClockUtil;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 
@@ -71,7 +71,7 @@ public class HealthCheckHandlerTest extends TestCase {
 
   public void testDispatchAndNormalCheck() throws Exception {
 
-    Clock clock = EasyMock.createMock(Clock.class);
+    ClockUtil clock = EasyMock.createMock(ClockUtil.class);
     clock.currentTimeMillis();
     EasyMock.expectLastCall().andReturn(FAKE_TIME_STAMP); // dispatch
     EasyMock.expectLastCall().andReturn(FAKE_TIME_STAMP); // before loop
@@ -102,7 +102,7 @@ public class HealthCheckHandlerTest extends TestCase {
   }
 
   public void testDispatchAndHealthCheckTimeout() throws Exception {
-    Clock clock = EasyMock.createMock(Clock.class);
+    ClockUtil clock = EasyMock.createMock(ClockUtil.class);
     clock.currentTimeMillis();
     EasyMock.expectLastCall().andReturn(FAKE_TIME_STAMP); // dispatch
     EasyMock.expectLastCall().andReturn(FAKE_TIME_STAMP); // before loop

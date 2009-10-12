@@ -145,8 +145,8 @@ $Id$
         <include name="third-party/**"/>
       </tarfileset>
       <tarfileset dir="." mode="755" prefix="data-connector-agent">
-      	<include name="third-party/java-service-wrapper/linux/googlesdc.sh"/>
-	      <include name="third-party/java-service-wrapper/linux/bin/*"/>
+        <include name="third-party/java-service-wrapper/linux/googlesdc.sh"/>
+        <include name="third-party/java-service-wrapper/linux/bin/*"/>
         <include name="configure.sh"/>
       </tarfileset>
     </tar>

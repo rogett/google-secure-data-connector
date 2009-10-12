@@ -37,7 +37,7 @@ import javax.xml.parsers.ParserConfigurationException;
 public class FakeLocalConfGenerator {
 
   /** The fake properties file we generate the config from */
-  private LocalConf fakeLocalConf;
+  private final LocalConf fakeLocalConf;
 
   /* conf values */
   public static final String NAME = "localConf";
@@ -60,9 +60,9 @@ public class FakeLocalConfGenerator {
    */
   public FakeLocalConfGenerator() {
 
-    FeedServerEntry configEntry = new FeedServerEntry(CONFIG_XML);
+    final FeedServerEntry configEntry = new FeedServerEntry(CONFIG_XML);
     fakeLocalConf = new LocalConf();
-    ContentUtil contentUtil = new ContentUtil();
+    final ContentUtil contentUtil = new ContentUtil();
     try {
       contentUtil.fillBean((OtherContent) configEntry.getContent(), fakeLocalConf);
     } catch (IllegalArgumentException e) {

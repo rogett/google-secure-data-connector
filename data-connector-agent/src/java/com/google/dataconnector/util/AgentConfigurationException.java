@@ -22,13 +22,14 @@ package com.google.dataconnector.util;
  * @author rayc@google.com (Ray Colline)
  */
 public class AgentConfigurationException extends Exception {
+  private static final long serialVersionUID = 6459394940268093155L;
 
   /**
    * Creates the exception with the specified error message.
    *
    * @param msg the error message.
    */
-  public AgentConfigurationException(String msg) {
+  public AgentConfigurationException(final String msg) {
     super(msg);
   }
 
@@ -37,7 +38,7 @@ public class AgentConfigurationException extends Exception {
    *
    * @param cause the underlying cause.
    */
-  public AgentConfigurationException(Throwable cause) {
+  public AgentConfigurationException(final Throwable cause) {
     super(cause);
   }
 
@@ -47,7 +48,7 @@ public class AgentConfigurationException extends Exception {
    * @param msg the error message.
    * @param cause the underlying cause.
    */
-  public AgentConfigurationException(String msg, Throwable cause) {
+  public AgentConfigurationException(final String msg, final Throwable cause) {
     super(msg, cause);
   }
 }

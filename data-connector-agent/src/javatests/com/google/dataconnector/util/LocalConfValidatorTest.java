@@ -17,7 +17,6 @@
 package com.google.dataconnector.util;
 
 import com.google.dataconnector.client.testing.FakeLocalConfGenerator;
-import com.google.dataconnector.util.LocalConfValidator.FileFactory;
 
 import junit.framework.TestCase;
 
@@ -34,7 +33,7 @@ public class LocalConfValidatorTest extends TestCase {
 
   private LocalConf localConf;
   private LocalConfValidator localConfValidator;
-  private FileFactory mockFileFactory;
+  private FileUtil mockFileUtil;
   private File mockGoodFile;
   private File mockBadFile;
 
@@ -44,8 +43,8 @@ public class LocalConfValidatorTest extends TestCase {
     FakeLocalConfGenerator fakeLocalConfGenerator = new FakeLocalConfGenerator();
     localConf = fakeLocalConfGenerator.getFakeLocalConf();
 
-    mockFileFactory = EasyMock.createMock(LocalConfValidator.FileFactory.class);
-    localConfValidator = new LocalConfValidator(mockFileFactory);
+    mockFileUtil = EasyMock.createMock(FileUtil.class);
+    localConfValidator = new LocalConfValidator(mockFileUtil);
 
     // Good file.
     mockGoodFile = EasyMock.createMock(File.class);
@@ -58,11 +57,11 @@ public class LocalConfValidatorTest extends TestCase {
     EasyMock.replay(mockBadFile);
 
     // Successful filefactory
-    EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.RULES_FILE)).andReturn(
+    EasyMock.expect(mockFileUtil.openFile(FakeLocalConfGenerator.RULES_FILE)).andReturn(
         mockGoodFile);
-    EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.SSL_KEY_STORE_FILE)).andReturn(
+    EasyMock.expect(mockFileUtil.openFile(FakeLocalConfGenerator.SSL_KEY_STORE_FILE)).andReturn(
         mockGoodFile);
-    EasyMock.replay(mockFileFactory);
+    EasyMock.replay(mockFileUtil);
   }
 
   @Override
@@ -71,7 +70,7 @@ public class LocalConfValidatorTest extends TestCase {
     localConfValidator = null;
     mockBadFile = null;
     mockGoodFile = null;
-    mockFileFactory = null;
+    mockFileUtil = null;
     super.tearDown();
   }
 
@@ -79,7 +78,7 @@ public class LocalConfValidatorTest extends TestCase {
     // Test successful base case.
     localConfValidator.validate(localConf);
     EasyMock.verify(mockGoodFile);
-    EasyMock.verify(mockFileFactory);
+    EasyMock.verify(mockFileUtil);
   }
 
   // RulesFile
@@ -89,14 +88,14 @@ public class LocalConfValidatorTest extends TestCase {
     localConf.setRulesFile(badFile);
 
     // Create filefactory to give the right bad files.
-    mockFileFactory = EasyMock.createMock(LocalConfValidator.FileFactory.class);
-    EasyMock.expect(mockFileFactory.getFile(badFile)).andReturn(mockBadFile);
-    EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.SSL_KEY_STORE_FILE)).andReturn(
+    mockFileUtil = EasyMock.createMock(FileUtil.class);
+    EasyMock.expect(mockFileUtil.openFile(badFile)).andReturn(mockBadFile);
+    EasyMock.expect(mockFileUtil.openFile(FakeLocalConfGenerator.SSL_KEY_STORE_FILE)).andReturn(
         mockGoodFile);
-    EasyMock.replay(mockFileFactory);
+    EasyMock.replay(mockFileUtil);
 
     // Create new validator with our updated factory.
-    localConfValidator = new LocalConfValidator(mockFileFactory);
+    localConfValidator = new LocalConfValidator(mockFileUtil);
 
     // Test and verify
     try {
@@ -105,7 +104,7 @@ public class LocalConfValidatorTest extends TestCase {
       assertTrue(e.getMessage().contains("Cannot read"));
       EasyMock.verify(mockBadFile);
       EasyMock.verify(mockGoodFile);
-      EasyMock.verify(mockFileFactory);
+      EasyMock.verify(mockFileUtil);
       return;
     }
     fail("did not get LocalConfException");
@@ -162,14 +161,14 @@ public class LocalConfValidatorTest extends TestCase {
     localConf.setSslKeyStoreFile(badFile);
 
     // Create filefactory to give the right bad files.
-    mockFileFactory = EasyMock.createMock(LocalConfValidator.FileFactory.class);
-    EasyMock.expect(mockFileFactory.getFile(FakeLocalConfGenerator.RULES_FILE)).andReturn(
+    mockFileUtil = EasyMock.createMock(FileUtil.class);
+    EasyMock.expect(mockFileUtil.openFile(FakeLocalConfGenerator.RULES_FILE)).andReturn(
         mockGoodFile);
-    EasyMock.expect(mockFileFactory.getFile(badFile)).andReturn(mockBadFile);
-    EasyMock.replay(mockFileFactory);
+    EasyMock.expect(mockFileUtil.openFile(badFile)).andReturn(mockBadFile);
+    EasyMock.replay(mockFileUtil);
 
     // Create new validator with our updated factory.
-    localConfValidator = new LocalConfValidator(mockFileFactory);
+    localConfValidator = new LocalConfValidator(mockFileUtil);
 
     // Test and verify
     try {
@@ -178,7 +177,7 @@ public class LocalConfValidatorTest extends TestCase {
       assertTrue(e.getMessage().contains("Cannot read"));
       EasyMock.verify(mockBadFile);
       EasyMock.verify(mockGoodFile);
-      EasyMock.verify(mockFileFactory);
+      EasyMock.verify(mockFileUtil);
       return;
     }
     fail("did not get LocalConfException");

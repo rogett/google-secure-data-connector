@@ -104,8 +104,8 @@ public class FrameReceiverTest extends TestCase {
     FrameReceiver frameReceiver = new FrameReceiver();
     frameReceiver.setInputStream(bis);
     frameReceiver.setByteCounter(actualCounter);
-    FrameInfo actualFrameInfo1 = frameReceiver.readOneFrame();
-    FrameInfo actualFrameInfo2 = frameReceiver.readOneFrame();
+    frameReceiver.readOneFrame();
+    frameReceiver.readOneFrame();
     assertEquals(actualCounter.get(), bos.toByteArray().length);
   }
 
@@ -124,7 +124,7 @@ public class FrameReceiverTest extends TestCase {
     FrameReceiver frameReceiver = new FrameReceiver();
     frameReceiver.setInputStream(bis);
     try {
-      FrameInfo actualFrameInfo = frameReceiver.readOneFrame();
+      frameReceiver.readOneFrame();
       fail("did not receive framing exception");
     } catch (FramingException e) {
       assertTrue(e.getMessage().contains("Payload length"));
@@ -147,7 +147,7 @@ public class FrameReceiverTest extends TestCase {
     FrameReceiver frameReceiver = new FrameReceiver();
     frameReceiver.setInputStream(bis);
     try {
-      FrameInfo actualFrameInfo = frameReceiver.readOneFrame();
+      frameReceiver.readOneFrame();
       fail("did not receive framing exception");
     } catch (FramingException e) {
       assertTrue(e.getMessage().contains("Payload length"));
@@ -170,7 +170,7 @@ public class FrameReceiverTest extends TestCase {
     FrameReceiver frameReceiver = new FrameReceiver();
     frameReceiver.setInputStream(bis);
     try {
-      FrameInfo actualFrameInfo = frameReceiver.readOneFrame();
+      frameReceiver.readOneFrame();
       fail("did not receive framing exception");
     } catch (FramingException e) {
       assertTrue(e.getMessage().contains("sequence number"));
@@ -193,7 +193,7 @@ public class FrameReceiverTest extends TestCase {
     FrameReceiver frameReceiver = new FrameReceiver();
     frameReceiver.setInputStream(bis);
     try {
-      FrameInfo actualFrameInfo = frameReceiver.readOneFrame();
+      frameReceiver.readOneFrame();
       fail("did not receive framing exception");
     } catch (FramingException e) {
       assertTrue(e.getMessage().contains("sequence number"));
@@ -216,7 +216,7 @@ public class FrameReceiverTest extends TestCase {
     FrameReceiver frameReceiver = new FrameReceiver();
     frameReceiver.setInputStream(bis);
     try {
-      FrameInfo actualFrameInfo = frameReceiver.readOneFrame();
+      frameReceiver.readOneFrame();
       fail("did not receive framing exception");
     } catch (FramingException e) {
       assertTrue(e.getMessage().contains("frame magic read"));
@@ -239,7 +239,7 @@ public class FrameReceiverTest extends TestCase {
     FrameReceiver frameReceiver = new FrameReceiver();
     frameReceiver.setInputStream(bis);
     try {
-      FrameInfo actualFrameInfo = frameReceiver.readOneFrame();
+      frameReceiver.readOneFrame();
       fail("did not receive framing exception");
     } catch (FramingException e) {
       assertTrue(e.getMessage().contains("frame start read"));
@@ -248,10 +248,8 @@ public class FrameReceiverTest extends TestCase {
   }
 
   public class MockDispatchable implements Dispatchable {
-
     private List<FrameInfo> receivedFrames = new ArrayList<FrameInfo>();
 
-    @SuppressWarnings("unused")
     @Override
     public void dispatch(FrameInfo frameInfo) throws FramingException {
       receivedFrames.add(frameInfo);
@@ -261,6 +259,4 @@ public class FrameReceiverTest extends TestCase {
       return receivedFrames;
     }
   }
-
-
 }

@@ -42,7 +42,7 @@ public class FrameSender extends Thread {
 
   private static final Logger LOG = Logger.getLogger(FrameSender.class);
 
-  private BlockingQueue<FrameInfo> sendQueue;
+  private final BlockingQueue<FrameInfo> sendQueue;
 
   // Runtime dependencies
   private OutputStream outputStream;
@@ -53,7 +53,7 @@ public class FrameSender extends Thread {
   private long sequence = 0;
 
   @Inject
-  public FrameSender(BlockingQueue<FrameInfo> sendQueue) {
+  public FrameSender(final BlockingQueue<FrameInfo> sendQueue) {
     this.sendQueue = sendQueue;
   }
 
@@ -63,7 +63,7 @@ public class FrameSender extends Thread {
    * @param type the FrameInfo type.
    * @param payload the payload of the Payload.
    */
-  public void sendFrame(FrameInfo.Type type, ByteString payload) {
+  public void sendFrame(final FrameInfo.Type type, final ByteString payload) {
     sendFrame(FrameInfo.newBuilder()
         .setType(type)
         .setPayload(payload)
@@ -75,7 +75,7 @@ public class FrameSender extends Thread {
    *
    * @param frame the frame to send.
    */
-  public void sendFrame(FrameInfo frame) {
+  public void sendFrame(final FrameInfo frame) {
     if (!frame.hasType()) {
       throw new RuntimeException("Frame missing type info");
     }
@@ -94,10 +94,10 @@ public class FrameSender extends Thread {
    * @throws IOException if any IOerrors while writing.
    */
   // visible for testing.
-  void writeOneFrame(FrameInfo frameInfo) throws IOException {
+  void writeOneFrame(final FrameInfo frameInfo) throws IOException {
     Preconditions.checkNotNull(outputStream, "Must specify outputStream before writing frames.");
 
-    byte[] frameInfoBytes = frameInfo.toByteArray();
+    final byte[] frameInfoBytes = frameInfo.toByteArray();
 
     // Add frame start.
     outputStream.write(FrameReceiver.FRAME_START);
@@ -133,7 +133,8 @@ public class FrameSender extends Thread {
     try {
       while (true) {
         // Wait for a frame to become available.
-        FrameInfo frameInfo = FrameInfo.newBuilder(sendQueue.take()).setSequence(sequence).build();
+        final FrameInfo frameInfo = FrameInfo.newBuilder(sendQueue.take()).setSequence(sequence)
+            .build();
         writeOneFrame(frameInfo);
       }
     } catch (InterruptedException e) {

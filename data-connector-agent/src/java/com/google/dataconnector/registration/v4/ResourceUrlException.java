@@ -22,13 +22,14 @@ package com.google.dataconnector.registration.v4;
  * @author vnori@google.com (Vasu Nori)
  */
 public class ResourceUrlException extends Exception {
+  private static final long serialVersionUID = 1614409953411919590L;
 
   /**
    * Creates the exception with the specified error message.
    *
    * @param msg the error message.
    */
-  public ResourceUrlException(String msg) {
+  public ResourceUrlException(final String msg) {
     super(msg);
   }
 
@@ -37,7 +38,7 @@ public class ResourceUrlException extends Exception {
    *
    * @param cause the throwable object to be wrapped this exception obj
    */
-  public ResourceUrlException(Throwable cause) {
+  public ResourceUrlException(final Throwable cause) {
     super(cause);
   }
 
@@ -47,7 +48,7 @@ public class ResourceUrlException extends Exception {
    * @param msg the error message.
    * @param cause the underlying cause.
    */
-  public ResourceUrlException(String msg, Throwable cause) {
+  public ResourceUrlException(final String msg, final Throwable cause) {
     super(msg, cause);
   }
 }

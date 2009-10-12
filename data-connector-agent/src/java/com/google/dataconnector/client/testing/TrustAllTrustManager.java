@@ -32,17 +32,17 @@ public class TrustAllTrustManager implements TrustManager, X509TrustManager {
   public X509Certificate[] getAcceptedIssuers() {
     return null;
   }
-  public boolean isServerTrusted(X509Certificate[] certs) {
+  public boolean isServerTrusted(final X509Certificate[] certs) {
     return true;
   }
-  public boolean isClientTrusted(X509Certificate[] certs) {
+  public boolean isClientTrusted(final X509Certificate[] certs) {
     return true;
   }
-  public void checkServerTrusted(X509Certificate[] certs, String authType)
+  public void checkServerTrusted(final X509Certificate[] certs, final String authType)
       throws CertificateException {
     return;
   }
-  public void checkClientTrusted(X509Certificate[] certs, String authType)
+  public void checkClientTrusted(final X509Certificate[] certs, final String authType)
       throws CertificateException {
     return;
   }

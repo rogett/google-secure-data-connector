@@ -193,9 +193,8 @@ public class ResourceRuleParserTest extends TestCase {
 
     // test
     ResourceRuleParser resourceRuleParser = new ResourceRuleParser(fileUtil);
-    List<String> urlList;
     try {
-      urlList = resourceRuleParser.parseResourcesFile(TEST_FILE_NAME, TEST_AGENTID);
+      resourceRuleParser.parseResourcesFile(TEST_FILE_NAME, TEST_AGENTID);
       fail("RegistrationException expected to be thrown");
     } catch (RegistrationException e) {
       assertTrue(e.getMessage().contains("resources.xml file is mising url / agentId"));
@@ -223,9 +222,8 @@ public class ResourceRuleParserTest extends TestCase {
 
     // test
     ResourceRuleParser resourceRuleParser = new ResourceRuleParser(fileUtil);
-    List<String> urlList;
     try {
-      urlList = resourceRuleParser.parseResourcesFile(TEST_FILE_NAME, TEST_AGENTID);
+      resourceRuleParser.parseResourcesFile(TEST_FILE_NAME, TEST_AGENTID);
       fail("RegistrationException expected to be thrown");
     } catch (RegistrationException e) {
       assertTrue(e.getMessage().contains("resources.xml file is mising url / agentId"));
@@ -235,9 +233,8 @@ public class ResourceRuleParserTest extends TestCase {
   public void testParseResourcesFileNonexistentFile()
       throws XMLStreamException, FactoryConfigurationError, IOException, RegistrationException {
     ResourceRuleParser resourceRuleParser = new ResourceRuleParser(fileUtil);
-    List<String> urlList;
     try {
-      urlList = resourceRuleParser.parseResourcesFile("nosuchfile", TEST_AGENTID);
+      resourceRuleParser.parseResourcesFile("nosuchfile", TEST_AGENTID);
       fail("RegistrationException expected to be thrown");
     } catch (FileNotFoundException e) {
       // expected

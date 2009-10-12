@@ -22,13 +22,14 @@ package com.google.dataconnector.util;
  * @author rayc@google.com (Ray Colline)
  */
 public class AuthenticationException extends ConnectionException {
+  private static final long serialVersionUID = 1514221778110038239L;
 
   /**
    * Constructs the exception with an error message.
    *
    * @param message A string representing the error message.
    */
-  public AuthenticationException(String message) {
+  public AuthenticationException(final String message) {
     super(message);
   }
 
@@ -37,7 +38,7 @@ public class AuthenticationException extends ConnectionException {
    *
    * @param cause the underlying cause.
    */
-  public AuthenticationException(Throwable cause) {
+  public AuthenticationException(final Throwable cause) {
     super(cause);
   }
 
@@ -47,7 +48,7 @@ public class AuthenticationException extends ConnectionException {
    * @param msg the error message.
    * @param cause the underlying cause.
    */
-  public AuthenticationException(String msg, Throwable cause) {
+  public AuthenticationException(final String msg, final Throwable cause) {
     super(msg, cause);
   }
 }

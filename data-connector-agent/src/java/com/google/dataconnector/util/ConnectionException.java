@@ -22,13 +22,14 @@ package com.google.dataconnector.util;
  * @author rayc@google.com (Ray Colline)
  */
 public class ConnectionException extends Exception {
+  private static final long serialVersionUID = 3046864362125162516L;
 
   /**
    * Creates the exception with the specified error message.
    *
    * @param msg the error message.
    */
-  public ConnectionException(String msg) {
+  public ConnectionException(final String msg) {
     super(msg);
   }
 
@@ -37,7 +38,7 @@ public class ConnectionException extends Exception {
    *
    * @param cause the underlying cause.
    */
-  public ConnectionException(Throwable cause) {
+  public ConnectionException(final Throwable cause) {
     super(cause);
   }
 
@@ -47,7 +48,7 @@ public class ConnectionException extends Exception {
    * @param msg the error message.
    * @param cause the underlying cause.
    */
-  public ConnectionException(String msg, Throwable cause) {
+  public ConnectionException(final String msg, final Throwable cause) {
     super(msg, cause);
   }
 }

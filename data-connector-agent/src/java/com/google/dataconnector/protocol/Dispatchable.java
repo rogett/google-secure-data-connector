@@ -31,6 +31,6 @@ public interface Dispatchable {
    *
    * @param frameInfo a frame.
    */
-  public void dispatch(FrameInfo frameInfo) throws FramingException;
+  public void dispatch(final FrameInfo frameInfo) throws FramingException;
 
 }

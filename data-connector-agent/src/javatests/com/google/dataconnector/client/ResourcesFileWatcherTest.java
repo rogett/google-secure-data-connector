@@ -22,6 +22,14 @@ import static org.easymock.classextension.EasyMock.createMock;
 import static org.easymock.classextension.EasyMock.replay;
 import static org.easymock.classextension.EasyMock.verify;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+import junit.framework.TestCase;
+
+import org.easymock.classextension.EasyMock;
+
 import com.google.dataconnector.protocol.FrameSender;
 import com.google.dataconnector.registration.v4.Registration;
 import com.google.dataconnector.util.FileUtil;
@@ -29,156 +37,156 @@ import com.google.dataconnector.util.LocalConf;
 import com.google.dataconnector.util.RegistrationException;
 import com.google.dataconnector.util.SystemUtil;
 
-import junit.framework.TestCase;
-
-import org.easymock.classextension.EasyMock;
-
-import java.io.File;
-
 /**
  * Tests for the {@link ResourcesFileWatcher} class.
  *
- * @author vnori@google.com (Vasu Nori)
+ * @author mtp@google.com (Matt T. Proud)
  */
 public class ResourcesFileWatcherTest extends TestCase {
-
-
   private static final String TEST_FILE = "test_rules_file";
-  private LocalConf localConf = new LocalConf();
+
+  private LocalConf localConf;
   private Registration registration;
   private FrameSender frameSender;
   private FileUtil fileUtil;
   private SystemUtil systemUtil;
   private File fileHandle;
+  private FileInputStream fileInputStream;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+
+    localConf = new LocalConf();
     localConf.setRulesFile(TEST_FILE);
 
     frameSender = createMock(FrameSender.class);
-    replay(frameSender);
-
     fileHandle = EasyMock.createMock(File.class);
     systemUtil = EasyMock.createMock(SystemUtil.class);
     registration = EasyMock.createMock(Registration.class);
-
     fileUtil = EasyMock.createMock(FileUtil.class);
-    expect(fileUtil.openFile(TEST_FILE)).andReturn(fileHandle);
-    replay(fileUtil);
+    fileInputStream = EasyMock.createMock(FileInputStream.class);
   }
 
   @Override
   protected void tearDown() throws Exception {
+    super.tearDown();
+
+    verifyAll();
+  }
+
+  /**
+   * No change in content, so no new registration should result.
+   */
+  public void testRun_noChangeNoReRegistration() throws InterruptedException, IOException {
+    // Expected operation:
+    //   1st time - Read.
+    //   2nd time - Read.
+    expect(fileUtil.getFileInputStream(TEST_FILE)).andReturn(fileInputStream);
+    expect(fileInputStream.read()).andReturn(1);
+    expect(fileInputStream.read()).andReturn(-1);
+    expect(fileUtil.getFileInputStream(TEST_FILE)).andReturn(fileInputStream);
+    expect(fileInputStream.read()).andReturn(1);
+    expect(fileInputStream.read()).andReturn(-1);
+    // Exit loop with fake exception.
+    systemUtil.sleep(localConf.getFileWatcherThreadSleepTimer() * 60 * 1000L);
+    expectLastCall().andThrow(new InterruptedException());
+
+    replayAll();
+
+    // Test now.
+    ResourcesFileWatcher watcher = new ResourcesFileWatcher(localConf, registration,
+        fileUtil, systemUtil);
+    watcher.setFrameSender(frameSender);
+    watcher.run();
+
+    // Verify done in tearDown().
+  }
+
+  /**
+   * The file is modified, so re-registration occurs.
+   */
+  public void testRun_changeRequiresReRegistration() throws InterruptedException,
+      RegistrationException, IOException {
+    // Expected operation:
+    //   1st time - Read.
+    //   2nd time - Read.
+    expect(fileUtil.getFileInputStream(TEST_FILE)).andReturn(fileInputStream);
+    expect(fileInputStream.read()).andReturn(1);
+    expect(fileInputStream.read()).andReturn(-1);
+    expect(fileUtil.getFileInputStream(TEST_FILE)).andReturn(fileInputStream);
+    expect(fileInputStream.read()).andReturn(2);
+    expect(fileInputStream.read()).andReturn(-1);
+    // Exit loop with fake exception.
+    systemUtil.sleep(localConf.getFileWatcherThreadSleepTimer() * 60 * 1000L);
+    expectLastCall().andThrow(new InterruptedException());
+
+    registration.sendRegistrationInfo(frameSender);
+
+    replayAll();
+
+    // Test now.
+    ResourcesFileWatcher watcher = new ResourcesFileWatcher(localConf, registration,
+        fileUtil, systemUtil);
+    watcher.setFrameSender(frameSender);
+    watcher.run();
+
+    // Verify done in tearDown().
+  }
+
+  /**
+   * The file is modified, so re-registration occurs.
+   */
+  public void testRun_failedReRegistrationRetries() throws InterruptedException,
+      RegistrationException, IOException {
+    // Expected operation:
+    //   1st time - Read.
+    //   2nd time - Read.
+    expect(fileUtil.getFileInputStream(TEST_FILE)).andReturn(fileInputStream);
+    expect(fileInputStream.read()).andReturn(1);
+    expect(fileInputStream.read()).andReturn(-1);
+    expect(fileUtil.getFileInputStream(TEST_FILE)).andReturn(fileInputStream);
+    expect(fileInputStream.read()).andReturn(2);
+    expect(fileInputStream.read()).andReturn(-1);
+    expect(fileUtil.getFileInputStream(TEST_FILE)).andReturn(fileInputStream);
+    expect(fileInputStream.read()).andReturn(2);
+    expect(fileInputStream.read()).andReturn(-1);
+
+    registration.sendRegistrationInfo(frameSender);
+    expectLastCall().andThrow(new RegistrationException(""));
+    registration.sendRegistrationInfo(frameSender);
+
+    systemUtil.sleep(localConf.getFileWatcherThreadSleepTimer() * 60 * 1000L);
+    // Exit loop with fake exception.
+    systemUtil.sleep(localConf.getFileWatcherThreadSleepTimer() * 60 * 1000L);
+    expectLastCall().andThrow(new InterruptedException());
+
+    replayAll();
+
+    // Test now.
+    ResourcesFileWatcher watcher = new ResourcesFileWatcher(localConf, registration,
+        fileUtil, systemUtil);
+    watcher.setFrameSender(frameSender);
+    watcher.run();
+
+    // Verify done in tearDown().
+  }
+
+  private void replayAll() {
+    replay(frameSender);
+    replay(fileUtil);
+    replay(registration);
+    replay(fileHandle);
+    replay(systemUtil);
+    replay(fileInputStream);
+  }
+
+  private void verifyAll() {
     verify(frameSender);
     verify(fileUtil);
     verify(registration);
     verify(fileHandle);
     verify(systemUtil);
-
-    super.tearDown();
-  }
-
-  /**
-   * no change in file timestamp - so, registration should not be called.
-   */
-  public void testNoChangeInFileTimestamp() throws InterruptedException {
-    // no method on this should be called
-    replay(registration);
-
-    // file timestamp never changes
-    expect(fileHandle.lastModified()).andReturn(1L).anyTimes();
-    replay(fileHandle);
-
-    // sleep behavior
-    //   1st time - no exception thrown
-    //   2nd time - exception thrown
-    systemUtil.sleep(localConf.getFileWatcherThreadSleepTimer() * 60 * 1000L);
-    expectLastCall();
-    systemUtil.sleep(localConf.getFileWatcherThreadSleepTimer() * 60 * 1000L);
-    expectLastCall().andThrow(new InterruptedException());
-    replay(systemUtil);
-
-    // test now
-    ResourcesFileWatcher watcher = new ResourcesFileWatcher(localConf, registration,
-        fileUtil, systemUtil);
-    watcher.setFrameSender(frameSender);
-    watcher.run();
-
-    // verify done in tearDown()
-  }
-
-  /**
-   * file timestamp change is noticed - so, registration should be called.
-   */
-  public void testFileChangeNoticedOnce() throws InterruptedException, RegistrationException {
-    // file timestamp changes once and then remains the same after that
-    expect(fileHandle.lastModified()).andReturn(1L);
-    expect(fileHandle.lastModified()).andReturn(2L);
-    expect(fileHandle.lastModified()).andReturn(2L).anyTimes();
-    replay(fileHandle);
-
-    // registration should occur once
-    registration.sendRegistrationInfo(frameSender);
-    expectLastCall();
-    replay(registration);
-
-    // sleep behavior
-    //   1st time - no exception thrown
-    //   2nd time - no exception thrown
-    //   3rd time - exception thrown
-    systemUtil.sleep(localConf.getFileWatcherThreadSleepTimer() * 60 * 1000L);
-    expectLastCall();
-    systemUtil.sleep(localConf.getFileWatcherThreadSleepTimer() * 60 * 1000L);
-    expectLastCall();
-    systemUtil.sleep(localConf.getFileWatcherThreadSleepTimer() * 60 * 1000L);
-    expectLastCall().andThrow(new InterruptedException());
-    replay(systemUtil);
-
-    // test now
-    ResourcesFileWatcher watcher = new ResourcesFileWatcher(localConf, registration,
-        fileUtil, systemUtil);
-    watcher.setFrameSender(frameSender);
-    watcher.run();
-
-    // verify done in tearDown()
-  }
-
-  /**
-   * file timestamp change is noticed N times - so, registration should be called N times.
-   */
-  public void testFileChangeNoticedNtimes() throws InterruptedException, RegistrationException {
-    int n = 5; // file changes 5 times
-
-    long changeTimestamp = 1L;
-    expect(fileHandle.lastModified()).andReturn(changeTimestamp);
-    for (int i = 0; i < n; i++, changeTimestamp++) {
-      expect(fileHandle.lastModified()).andReturn(changeTimestamp);
-    }
-    // no more changes in timestamp
-    expect(fileHandle.lastModified()).andReturn(changeTimestamp).anyTimes();
-    replay(fileHandle);
-
-    // registration should occur once
-    registration.sendRegistrationInfo(frameSender);
-    expectLastCall().times(n);
-    replay(registration);
-
-    // sleep behavior
-    //   1 n times - no exception thrown
-    //   (n+1) attempt - exception thrown
-    systemUtil.sleep(localConf.getFileWatcherThreadSleepTimer() * 60 * 1000L);
-    expectLastCall().times(n);
-    systemUtil.sleep(localConf.getFileWatcherThreadSleepTimer() * 60 * 1000L);
-    expectLastCall().andThrow(new InterruptedException());
-    replay(systemUtil);
-
-    // test now
-    ResourcesFileWatcher watcher = new ResourcesFileWatcher(localConf, registration,
-        fileUtil, systemUtil);
-    watcher.setFrameSender(frameSender);
-    watcher.run();
-
-    // verify done in tearDown()
+    verify(fileInputStream);
   }
 }

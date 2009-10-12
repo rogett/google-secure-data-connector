@@ -17,6 +17,15 @@
 
 package com.google.dataconnector.client;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+import org.apache.log4j.Logger;
+
 import com.google.common.base.Preconditions;
 import com.google.dataconnector.protocol.FrameSender;
 import com.google.dataconnector.registration.v4.Registration;
@@ -27,15 +36,12 @@ import com.google.dataconnector.util.SystemUtil;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-import org.apache.log4j.Logger;
-
-import java.io.File;
-
 /**
- * starts a thread to watch the resources files
- * and if any changes, re-registers the changed resources with SDC Server
+ * <p>A watcher thread that keeps track of the resource rules message digest.</p>
  *
- * @author vnori@google.com (Vasu Nori)
+ * <p>If the value changes, the client re-registers with the server.</p>
+ *
+ * @author mtp@google.com (Matt T. Proud)
  */
 @Singleton
 public class ResourcesFileWatcher extends Thread {
@@ -44,12 +50,13 @@ public class ResourcesFileWatcher extends Thread {
   // Dependencies.
   private final LocalConf localConf;
   private final Registration registration;
+  private final FileUtil fileUtil;
+  private final SystemUtil systemUtil;
+
   private FrameSender frameSender;
-  private FileUtil fileUtil;
-  private SystemUtil systemUtil;
 
   /**
-   * default constructor
+   * Standard constructor.
    *
    * @param localConf the {@link LocalConf} object for this agent
    * @param registration the {@link Registration} object used by this thread to invoke registration
@@ -58,46 +65,70 @@ public class ResourcesFileWatcher extends Thread {
    * @param systemUtil
    */
   @Inject
-  public ResourcesFileWatcher(LocalConf localConf, Registration registration,
-      FileUtil fileUtil, SystemUtil systemUtil) {
+  public ResourcesFileWatcher(final LocalConf localConf, final Registration registration,
+      final FileUtil fileUtil, final SystemUtil systemUtil) {
     this.localConf = localConf;
     this.registration = registration;
     this.fileUtil = fileUtil;
     this.systemUtil = systemUtil;
   }
 
-  public void setFrameSender(FrameSender frameSender) {
+  public void setFrameSender(final FrameSender frameSender) {
     this.frameSender = frameSender;
   }
 
   @Override
   public void run() {
     Preconditions.checkNotNull(frameSender);
-    File rulesFileHandle = fileUtil.openFile(localConf.getRulesFile());
-    long lastModified = rulesFileHandle.lastModified();
+
+    byte[] lastDigest = null;
+
     try {
+      final MessageDigest md5Digest = MessageDigest.getInstance("MD5");
       while (true) {
-        long modified = rulesFileHandle.lastModified();
-        if (modified != lastModified) {
-          // file changed. re-register the resources.
-          LOG.info("Detected change in modification date of Resources file: " +
-              localConf.getRulesFile() + ". Re-registering resources..");
-          registration.sendRegistrationInfo(frameSender);
-          lastModified = modified;
+        final String resourcesFile = localConf.getRulesFile();
+        final FileInputStream currentStream = fileUtil.getFileInputStream(resourcesFile);
+        final DigestInputStream digestInputStream = new DigestInputStream(currentStream, md5Digest);
+
+        while (digestInputStream.read() != -1) {
+        }
+
+        final byte[] currentDigest = digestInputStream.getMessageDigest().digest();
+
+        /* There is no need to trigger a re-registration, since this will be automatically handled
+         * in agent connection.
+         */
+        if (lastDigest == null) {
+          lastDigest = currentDigest;
+          continue;
+        }
+
+        if (!MessageDigest.isEqual(lastDigest, currentDigest)) {
+          try {
+            LOG.info("Detected change in the content of resources file " + resourcesFile +
+            "; re-registering with server.");
+            LOG.info("Last digest was " + lastDigest + "; new digest is " + currentDigest);
+            registration.sendRegistrationInfo(frameSender);
+            lastDigest = currentDigest;
+          } catch (RegistrationException e) {
+            LOG.error("Could not register new resources with server; will retry.", e);
+          }
         }
 
         // sleep for a FileWatcherThreadSleepTimer min and check again
         systemUtil.sleep(localConf.getFileWatcherThreadSleepTimer() * 60 * 1000L);
       }
     } catch (InterruptedException e) {
-      // exit
-    } catch (RegistrationException e) {
-      LOG.fatal("re-registration of resources failed. exiting..", e);
-      //TODO(mtp): maybe this should be retried
-      System.exit(-1);
+      LOG.info("InterruptedException.", e);
+    } catch (FileNotFoundException e) {
+      LOG.fatal("Could not read configuration.", e);
+    } catch (IOException e) {
+      LOG.fatal("IOException.", e);
+    } catch (NoSuchAlgorithmException e) {
+      LOG.fatal("NoSuchAlgorithmException.", e);
     } finally {
-      LOG.info("FileWatcher thread exiting.." +
-      "Any changes in Resources file will need Agent restart");
+      LOG.info("FileWatcher thread exiting. " +
+      "Any changes in resources file will require restarting agent manually.");
     }
   }
 }

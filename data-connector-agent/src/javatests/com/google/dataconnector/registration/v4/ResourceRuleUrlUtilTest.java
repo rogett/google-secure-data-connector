@@ -68,7 +68,7 @@ public class ResourceRuleUrlUtilTest extends TestCase {
 
   public void testGetSchemeInUrlNotOneOfTheAllowedValues() {
     try {
-      Scheme scheme = new ResourceRuleUrlUtil().getSchemeInUrl("file://blah:1111");
+      new ResourceRuleUrlUtil().getSchemeInUrl("file://blah:1111");
       fail("exception expected");
     } catch (ResourceUrlException e) {
       assertTrue(e.getMessage().contains("resource url can only start with"));
@@ -77,7 +77,7 @@ public class ResourceRuleUrlUtilTest extends TestCase {
 
   public void testGetSchemeInUrlFromBadlyFormedUrl() {
     try {
-      Scheme scheme = new ResourceRuleUrlUtil().getSchemeInUrl(BADLY_FORMED_URL);
+      new ResourceRuleUrlUtil().getSchemeInUrl(BADLY_FORMED_URL);
       fail("exception expected");
     } catch (ResourceUrlException e) {
       assertTrue(e.getMessage().contains("badly formed resource url"));
@@ -116,7 +116,7 @@ public class ResourceRuleUrlUtilTest extends TestCase {
 
   public void testGetHostNameFromBadlyFormedUrl() {
     try {
-      String host = new ResourceRuleUrlUtil().getHostnameFromRule(BADLY_FORMED_URL);
+      new ResourceRuleUrlUtil().getHostnameFromRule(BADLY_FORMED_URL);
       fail("exception expected");
     } catch (ResourceUrlException e) {
       assertTrue(e.getMessage().contains("badly formed resource url"));
@@ -145,7 +145,7 @@ public class ResourceRuleUrlUtilTest extends TestCase {
 
   public void testGetPortFromBadlyFormedUrl() {
     try {
-      int port = new ResourceRuleUrlUtil().getPortFromRule(BADLY_FORMED_URL);
+      new ResourceRuleUrlUtil().getPortFromRule(BADLY_FORMED_URL);
       fail("exception expected");
     } catch (ResourceUrlException e) {
       assertTrue(e.getMessage().contains("badly formed resource url"));

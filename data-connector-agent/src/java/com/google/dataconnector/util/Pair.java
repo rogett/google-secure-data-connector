@@ -44,7 +44,7 @@ public final class Pair<A, B> implements Serializable {
   /**
    * Creates a new pair containing the given elements in order.
    */
-  public static <A, B> Pair<A, B> of(@Nullable A first, @Nullable B second) {
+  public static <A, B> Pair<A, B> of(final @Nullable A first, final @Nullable B second) {
     return new Pair<A, B>(first, second);
   }
 
@@ -53,7 +53,7 @@ public final class Pair<A, B> implements Serializable {
    * @param first the first element
    * @param second the second element
    */
-  public Pair(@Nullable A first, @Nullable B second) {
+  public Pair(final @Nullable A first, final @Nullable B second) {
     this.first = first;
     this.second = second;
   }
@@ -91,7 +91,7 @@ public final class Pair<A, B> implements Serializable {
    * @return {@code true} if the specified object is equal to this pair
    */
   @Override
-  public boolean equals(Object obj) {
+  public boolean equals(final Object obj) {
     if (obj instanceof Pair) {
             Pair<?, ?> other = (Pair<?, ?>) obj;
             return Objects.equal(first, other.first) && Objects.equal(second, other.second);

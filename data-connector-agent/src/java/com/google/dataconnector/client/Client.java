@@ -63,8 +63,9 @@ public class Client {
    * Creates a new client from the populated client configuration object.
    */
   @Inject
-  public Client(LocalConf localConf, SdcConnection secureDataConnection,
-      JsocksStarter jsocksStarter, HealthCheckRequestHandler healthCheckRequestHandler) {
+  public Client(final LocalConf localConf, final SdcConnection secureDataConnection,
+      final JsocksStarter jsocksStarter,
+      final HealthCheckRequestHandler healthCheckRequestHandler) {
     this.localConf = localConf;
     this.secureDataConnection = secureDataConnection;
     this.jsocksStarter = jsocksStarter;
@@ -75,7 +76,7 @@ public class Client {
   /**
    * This method starts the Client initialization.
    */
-  public void startup(String[] args, Injector injector) {
+  public void startup(final String[] args, final Injector injector) {
 
     // validate the localConf.xml file and the input args
     try {
@@ -116,7 +117,7 @@ public class Client {
    * @throws ConfigurationBeanException
    * @throws LocalConfException
    */
-  private void validateLocalConf(String[] args)
+  private void validateLocalConf(final String[] args)
       throws ConfigurationBeanException, LocalConfException {
     // Load configuration file and command line flags into beans
     BeanCliHelper beanCliHelper = new BeanCliHelper();
@@ -132,7 +133,7 @@ public class Client {
    * @return Properties a basic console logging setup.
    */
   public static Properties getBootstrapLoggingProperties() {
-    Properties props = new Properties();
+    final Properties props = new Properties();
     props.setProperty("log4j.rootLogger","info, A");
     props.setProperty("log4j.appender.A", "org.apache.log4j.ConsoleAppender");
     props.setProperty("log4j.appender.A.layout", "org.apache.log4j.PatternLayout");
@@ -147,7 +148,7 @@ public class Client {
    *
    * @param args
    */
-  public static void main(String[] args) {
+  public static void main(final String[] args) {
     // Bootstrap logging system
     PropertyConfigurator.configure(getBootstrapLoggingProperties());
 

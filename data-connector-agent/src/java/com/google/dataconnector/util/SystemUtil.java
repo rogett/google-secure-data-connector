@@ -30,7 +30,7 @@ public class SystemUtil {
    * @param sleepTime amount of time to sleep (in this thread)
    * @throws InterruptedException thrown if the thread is interrupted
    */
-  public void sleep(long sleepTime) throws InterruptedException {
+  public void sleep(final long sleepTime) throws InterruptedException {
     Thread.sleep(sleepTime);
   }
 }
