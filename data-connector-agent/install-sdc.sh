@@ -38,7 +38,8 @@ for dir in \
     "${BINDIR}" \
     "${SYSCONFDIR}" \
     "${LOCALSTATEDIR}" \
-    "${LOCALSTATEDIR}/log"
+    "${LOCALSTATEDIR}/log" \
+    "${SYSV_INIT_SCRIPT_DIRECTORY}"
 do echo making dir ${dir}
   mkdir -p ${dir}
 done
@@ -88,4 +89,4 @@ file="${SYSCONFDIR}/log4j.properties"
 echo installing ${file}
 install -g ${GROUP} -o ${USER} -m 640 -t ${SYSCONFDIR} ./config/log4j.properties
 
-install -o root -m 0755 distribute/initscript "${INITSCRIPT}"
+install -o root -m 0755 initscript "${INITSCRIPT}"
