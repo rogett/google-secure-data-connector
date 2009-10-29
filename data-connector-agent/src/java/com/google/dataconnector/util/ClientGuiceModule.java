@@ -19,6 +19,7 @@ package com.google.dataconnector.util;
 import com.google.dataconnector.protocol.ProtocolGuiceModule;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
+import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
@@ -98,9 +99,10 @@ public class ClientGuiceModule extends AbstractModule {
    * @return created singleton instance of HealthCheckRequestHandler
    * @throws IOException thrown if ServerSocket couldn't be created
    */
-  @Provides @Singleton
-  public HealthCheckRequestHandler getHealthCheckRequestHandler() throws IOException {
-    return new HealthCheckRequestHandler(new ServerSocket(0));
+  @Provides @Singleton @Inject
+  public HealthCheckRequestHandler getHealthCheckRequestHandler(ShutdownManager shutdownManager) 
+      throws IOException {
+    return new HealthCheckRequestHandler(new ServerSocket(0), shutdownManager);
   }
 
   @Provides @Singleton @Named("localhost")

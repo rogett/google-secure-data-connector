@@ -22,6 +22,7 @@ import com.google.dataconnector.util.HealthCheckRequestHandler;
 import com.google.dataconnector.util.LocalConf;
 import com.google.dataconnector.util.LocalConfException;
 import com.google.dataconnector.util.LocalConfValidator;
+import com.google.dataconnector.util.ShutdownManager;
 import com.google.feedserver.util.BeanCliHelper;
 import com.google.feedserver.util.ConfigurationBeanException;
 import com.google.inject.Inject;
@@ -50,13 +51,12 @@ public class Client {
   // Logging instance
   private static final Logger log = Logger.getLogger(Client.class);
 
-  private static final int ABNORMAL_EXIT = -1;
-
   /* Dependencies */
   private final LocalConf localConf;
   private final SdcConnection secureDataConnection;
   private final JsocksStarter jsocksStarter;
   private final HealthCheckRequestHandler healthCheckRequestHandler;
+  private final ShutdownManager shutdownManager;
 
 
   /**
@@ -65,16 +65,19 @@ public class Client {
   @Inject
   public Client(final LocalConf localConf, final SdcConnection secureDataConnection,
       final JsocksStarter jsocksStarter,
-      final HealthCheckRequestHandler healthCheckRequestHandler) {
+      final HealthCheckRequestHandler healthCheckRequestHandler,
+      final ShutdownManager shutdownManager) {
     this.localConf = localConf;
     this.secureDataConnection = secureDataConnection;
     this.jsocksStarter = jsocksStarter;
     this.healthCheckRequestHandler = healthCheckRequestHandler;
+    this.shutdownManager = shutdownManager; 
   }
-
 
   /**
    * This method starts the Client initialization.
+   * 
+   * @param injector the Guice injector for the client.
    */
   public void startup(final String[] args, final Injector injector) {
 
@@ -88,9 +91,19 @@ public class Client {
       log.fatal("Configuration error", e);
       return;
     }
-
-    // Set log4j properties and watch for changes every minute (default)
-    PropertyConfigurator.configureAndWatch(localConf.getLog4jPropertiesFile());
+    startup(injector);
+  }
+  
+  /**
+   * Starts the client without reading LocalConf.  Useful if you have supplied your own 
+   * LocalConf via Guice.  
+   * 
+   * @param injector the Guice injector for the client.
+   */
+  public void startup(final Injector injector) {
+    // Set log4j properties.  We do not expect this file to change often so we do not use the
+    // cooler, yet more resource intensive, "configureAndWatch".
+    PropertyConfigurator.configure(localConf.getLog4jPropertiesFile());
     if (localConf.getDebug()) {
       Logger.getRootLogger().setLevel(Level.DEBUG);
     }
@@ -105,10 +118,9 @@ public class Client {
     try {
       secureDataConnection.connect();
     } catch (ConnectionException e) {
-      log.fatal("Startup error", e);
-      // the following is necessary because frameSender thread seems to be hanging around
-      // don't want to make that a daemon because it is shared by the server.
-      System.exit(ABNORMAL_EXIT);
+      log.fatal("Connection failed.", e);
+    } finally {
+      shutdownManager.shutdownAll();
     }
   }
 
@@ -152,7 +164,16 @@ public class Client {
     // Bootstrap logging system
     PropertyConfigurator.configure(getBootstrapLoggingProperties());
 
-    Injector injector = ClientGuiceModule.getInjector();
+    final Injector injector = ClientGuiceModule.getInjector();
+    // Add shutdown hook to call shutdown if control c or OS SIGTERM is received.
+    Runtime.getRuntime().addShutdownHook(new Thread() {
+      @Override
+      public void run() {
+        injector.getInstance(ShutdownManager.class).shutdownAll();
+      }
+    });
+    
+    // Start client.
     injector.getInstance(Client.class).startup(args, injector);
   }
 }

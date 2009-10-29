@@ -22,6 +22,8 @@ import com.google.dataconnector.protocol.proto.SdcFrame.FrameInfo;
 import com.google.dataconnector.protocol.proto.SdcFrame.HealthCheckInfo;
 import com.google.dataconnector.protocol.proto.SdcFrame.ServerSuppliedConf;
 import com.google.dataconnector.util.ClockUtil;
+import com.google.dataconnector.util.ShutdownManager;
+import com.google.dataconnector.util.Stoppable;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 
@@ -44,6 +46,7 @@ public class HealthCheckHandlerTest extends TestCase {
   private HealthCheckInfo expectedHci;
   private FrameInfo frameInfo;
   private ServerSuppliedConf serverSuppliedConf;
+  private ShutdownManager shutdownManager;
 
   @Override
   protected void setUp() throws Exception {
@@ -67,6 +70,10 @@ public class HealthCheckHandlerTest extends TestCase {
         .setHealthCheckWakeUpInterval(1)
         .setHealthCheckTimeout(30)
         .build();
+    
+    shutdownManager = EasyMock.createMock(ShutdownManager.class);
+    shutdownManager.addStoppable(EasyMock.isA(Stoppable.class));
+    EasyMock.expectLastCall();
   }
 
   public void testDispatchAndNormalCheck() throws Exception {
@@ -85,7 +92,7 @@ public class HealthCheckHandlerTest extends TestCase {
     FailCallback failCallback = EasyMock.createMock(FailCallback.class);
     EasyMock.replay(failCallback);
 
-    HealthCheckHandler healthCheckHandler = new HealthCheckHandler(clock);
+    HealthCheckHandler healthCheckHandler = new HealthCheckHandler(clock, shutdownManager);
     healthCheckHandler.setFrameSender(frameSender);
     healthCheckHandler.setFailCallback(failCallback);
     healthCheckHandler.setServerSuppliedConf(serverSuppliedConf);
@@ -118,7 +125,7 @@ public class HealthCheckHandlerTest extends TestCase {
     EasyMock.expectLastCall();
     EasyMock.replay(failCallback);
 
-    HealthCheckHandler healthCheckHandler = new HealthCheckHandler(clock);
+    HealthCheckHandler healthCheckHandler = new HealthCheckHandler(clock, shutdownManager);
     healthCheckHandler.setFrameSender(frameSender);
     healthCheckHandler.setFailCallback(failCallback);
     healthCheckHandler.setServerSuppliedConf(serverSuppliedConf);

@@ -16,8 +16,11 @@
  */
 package com.google.dataconnector.client;
 
+import com.google.common.base.Preconditions;
 import com.google.dataconnector.util.LocalConf;
 import com.google.dataconnector.util.Rfc1929SdcAuthenticator;
+import com.google.dataconnector.util.ShutdownManager;
+import com.google.dataconnector.util.Stoppable;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
@@ -36,7 +39,7 @@ import java.util.Properties;
  *
  * @author rayc@google.com (Ray Colline)
  */
-public class JsocksStarter extends Thread {
+public class JsocksStarter extends Thread implements Stoppable {
 
   // Logging instance
   private static final Logger LOG = Logger.getLogger(JsocksStarter.class);
@@ -45,11 +48,13 @@ public class JsocksStarter extends Thread {
   private final LocalConf localConfiguration;
   private final Rfc1929SdcAuthenticator rfc1929SdcAuthenticator;
   private final Properties socksProperties;
+  private ShutdownManager shutdownManager;
 
   // Bind address
   private InetAddress bindAddress;
-
-  // Socks Server Properties
+  
+  // Proxy server instance
+  private ProxyServer proxyServer; 
 
   /**
    * Configures the SOCKS User/Password authenticator based on the rules provided
@@ -61,10 +66,12 @@ public class JsocksStarter extends Thread {
   @Inject
   public JsocksStarter(final LocalConf localConfiguration,
       final Rfc1929SdcAuthenticator rfc1929SdcAuthenticator,
-      final @Named("Socks Properties") Properties socksProperties) {
+      final @Named("Socks Properties") Properties socksProperties,
+      final ShutdownManager shutdownManager) {
     this.localConfiguration = localConfiguration;
     this.rfc1929SdcAuthenticator = rfc1929SdcAuthenticator;
     this.socksProperties = socksProperties;
+    this.shutdownManager = shutdownManager;
   }
 
   /**
@@ -78,18 +85,39 @@ public class JsocksStarter extends Thread {
     } catch (UnknownHostException e) {
       throw new RuntimeException("Couldnt lookup bind host", e);
     }
-
+    
+    // Set thread info.
     setDaemon(true);
-    setName("jsocks-starter-thread");
+    setName(this.getClass().getName());
+    
     start();
   }
 
   @Override
   public void run() {
+    
+    // Add to shutdown manager
+    shutdownManager.addStoppable(this); 
+    
     // JSOCKS is configured in a static context
     SOCKS.serverInit(socksProperties);
-    final ProxyServer server = new ProxyServer(rfc1929SdcAuthenticator);
+    proxyServer = new ProxyServer(rfc1929SdcAuthenticator);
     LOG.info("Starting JSOCKS listener thread on port " + localConfiguration.getSocksServerPort());
-    server.start(localConfiguration.getSocksServerPort(), 5, bindAddress);
+    proxyServer.start(localConfiguration.getSocksServerPort(), 5, bindAddress);
+  }
+
+  /**
+   * Stops proxy server and issues interrupt as recommended by {@link ProxyServer#stop()}
+   */
+  @Override
+  public void shutdown() {
+    if (proxyServer == null) {
+      LOG.warn("Jsocks was never started, however jsocks starter thread was.  Shutting down");
+      this.interrupt(); // interrupt thread wherever it may be which should cause a stop.
+      return;
+    }
+    // Actually stop server.
+    proxyServer.stop();
+    this.interrupt();  // Jsocks recommends interrupting this thread after calling stop.
   }
 }
