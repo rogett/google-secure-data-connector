@@ -43,8 +43,15 @@ DEBUG=""
 NOVERIFY="false"
 ENTRYPOINT=com.google.dataconnector.client.Client
 
+if uname | grep -iq cygwin ; then
+  SEPARATOR=";"
+else
+  SEPARATOR=":"
+fi
+
 # Dynamically generate classpath from lib directory.
-CLASSPATH=${CLASSPATH}:$(find ${LIBDIR} -type f -a -iname '*.jar' | tr '\n' ':')
+CLASSPATH=${CLASSPATH}:$(find ${LIBDIR} -type f -a -iname '*.jar' |
+  tr '\n' "${SEPARATOR}")
 export CLASSPATH
 
 on_sighup() {
@@ -161,7 +168,7 @@ migrate "${CONFIGFILE}" "${RULESFILE}"
 jobs_log="${RUNDIR}/list-of-children"
 
 while /bin/true; do
-  su ${USER} -c "${JAVABIN} ${JVM_ARGS} ${ENTRYPOINT} \
+  su ${USER} -c "\"${JAVABIN}\" ${JVM_ARGS} ${ENTRYPOINT} \
     ${DEBUG} \
     -localConfigFile \"${CONFIGFILE}\" \
     -rulesFile \"${RULESFILE}\" \

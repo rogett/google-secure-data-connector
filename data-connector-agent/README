@@ -1,6 +1,6 @@
 $Id$
 
-Secure Data Connector Install Instructions (brief).
+= Secure Data Connector Install Instructions for GNU/Linux or Cygwin
 
 Prerequisites:
 
@@ -49,3 +49,7 @@ Other useful targets:
 
 1) ant dist-clean (returns to original downloaded state)
 2) ant clean (returns to prebuilt but configured state)
+
+= Secure Data Connector Install Instructions for Windows
+
+There are no instructions yet.

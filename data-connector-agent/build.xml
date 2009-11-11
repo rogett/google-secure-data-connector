@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- Copyright 2007 Google Inc.
+<!--
+ Copyright 2007 Google Inc.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -78,7 +79,7 @@ $Id$
     <delete file="config.status"/>
     <delete file="configuration.sh"/>
     <delete file="distribute/build.xml"/>
-    <delete file="distribute/debian/google-secure-data-connector-2.0"/>
+    <delete file="distribute/debian/google-secure-data-connector-1.2"/>
     <delete file="distribute/debian/changelog.Debian"/>
     <delete file="distribute/debian/changelog.Debian.gz"/>
     <delete file="distribute/debian/securedataconnector.postinst"/>

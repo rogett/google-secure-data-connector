@@ -20,7 +20,7 @@
 
 VENDOR="google"
 PACKAGE="secure-data-connector"
-VERSION=2.0
+VERSION=1.2
 FULLNAME="${VENDOR}-${PACKAGE}-${VERSION}"
 
 # Instructions for managing ${RELEASE}:
@@ -173,9 +173,9 @@ fi
 
 # Infer java binary location from JAVA_HOME env, JAVAHOME env
 # or --javabin setting.
-if [ ${JAVA_HOME} ]; then
+if [ -d "${JAVA_HOME}" ]; then
   JAVABIN=${JAVA_HOME}/bin/java
-elif [ ${JAVAHOME} ]; then
+elif [ -d "${JAVAHOME}" ]; then
   JAVABIN=${JAVAHOME}/bin/java
 else # Try to figure it out.
   JAVABIN=$(which java)
@@ -325,6 +325,7 @@ rewrite_template "distribute/debian/changelog.Debian"
 rewrite_template "distribute/debian/securedataconnector.postinst"
 rewrite_template "distribute/debian/securedataconnector.postrm"
 rewrite_template "initscript"
+rewrite_template "install.xml"
 rewrite_template "runclient.sh"
 rewrite_template "start.sh"
 rewrite_template "stop.sh"

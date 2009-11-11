@@ -16,7 +16,7 @@
 # $Id$
 
 # Properties
-version=2.0
+version=__VERSION__
 projects.dir=..
 
 # Compile Properties
