@@ -128,12 +128,10 @@ $Id$
 
   <target name="source-distro" depends="timestamp">
     <mkdir dir="${dist}" />
-    <tar
-       destfile="${dist}/${name}-${version}-${release}-src.tar.gz"
-       longfile="gnu"
-       compression="gzip"
+    <zip
+       destfile="${dist}/${name}-${version}-${release}-src.zip"
        excludes="third-party/jsch/com/**,tmp/**, third-party/*/docs/**">
-      <tarfileset dir="." prefix="data-connector-agent">
+      <zipfileset dir="." prefix="data-connector-agent">
         <include name="*-dist"/>
         <include name="src/**"/>
         <include name="CHANGE_LOG"/>
@@ -143,13 +141,13 @@ $Id$
         <include name="distribute/*"/>
         <include name="distribute/debian/*"/>
         <include name="third-party/**"/>
-      </tarfileset>
-      <tarfileset dir="." mode="755" prefix="data-connector-agent">
+      </zipfileset>
+      <zipfileset dir="." filemode="755" prefix="data-connector-agent">
         <include name="third-party/java-service-wrapper/linux/googlesdc.sh"/>
         <include name="third-party/java-service-wrapper/linux/bin/*"/>
         <include name="configure.sh"/>
-      </tarfileset>
-    </tar>
+      </zipfileset>
+    </zip>
   </target>
 
   <target name="inspecific-configuration" depends="clean">
@@ -172,21 +170,20 @@ $Id$
     <mkdir dir="${dist}/${name}-${version}-${release}-bin/var/log" />
     <mkdir dir="${dist}/${name}-${version}-${release}-bin/var/run" />
 
-    <tar
-       destfile="${dist}/${name}-${version}-${release}-bin.tar.gz"
-       longfile="gnu"
-       basedir="${dist}/${name}-${version}-${release}-bin"
-       compression="gzip">
-      <tarfileset dir="build" filemode="444" dirmode="755" prefix="lib">
+    <zip
+       destfile="${dist}/${name}-${version}-${release}-bin.zip"
+       basedir="${dist}/${name}-${version}-${release}-bin">
+      <zipfileset dir="build" filemode="444" dirmode="755" prefix="lib">
         <include name="*.jar" />
-      </tarfileset>
-      <tarfileset dir="." filemode="755" dirmode="755" prefix="bin">
+      </zipfileset>
+      <zipfileset dir="." filemode="755" dirmode="755" prefix="bin">
+        <include name="runclient.bat" />
         <include name="runclient.sh" />
         <include name="start.sh" />
         <include name="stop.sh" />
-      </tarfileset>
-      <tarfileset dir="config" filemode="640" dirmode="750" prefix="etc" />
-      <tarfileset dir="third-party" prefix="lib/third-party" filemode="444"
+      </zipfileset>
+      <zipfileset dir="config" filemode="640" dirmode="750" prefix="etc" />
+      <zipfileset dir="third-party" prefix="lib/third-party" filemode="444"
                   dirmode="755">
         <include name="**/*.html" />
         <include name="**/*.jar" />
@@ -194,8 +191,8 @@ $Id$
         <include name="**/NOTICE" />
         <include name="**/README" />
         <include name="*.jar" />
-      </tarfileset>
-    </tar>
+      </zipfileset>
+    </zip>
   </target>
 
   <path id="deb-classpath">
@@ -231,8 +228,8 @@ $Id$
       <conffiles dir="config" prefix="__SYSCONFDIR__"
                  filemode="644" dirmode="755">
         <include name="resourceRules.xml"/>
-      	<include name="localConfig.xml"/>
-      	<include name="log4j.properties"/>
+        <include name="localConfig.xml"/>
+        <include name="log4j.properties"/>
       </conffiles>
       <tarfileset dir="build" prefix="__LIBDIR__"
                   filemode="644" dirmode="755">
@@ -240,10 +237,10 @@ $Id$
         <include name="protocol-generated.jar"/>
       </tarfileset>
       <tarfileset dir="third-party" prefix="__LIBDIR__/third-party"
-	                filemode="644" dirmode="755"
+                  filemode="644" dirmode="755"
                   excludes="**/dist/, **/src/, **/build.xml, **ant-deb/**,
                             **/java-service-wrapper/**, **/pANTkage/** ">
-	      <include name="**"/>
+        <include name="**"/>
       </tarfileset>
       <tarfileset dir="." prefix="__BINDIR__" filemode="755">
         <include name="runclient.sh"/>
@@ -265,7 +262,7 @@ $Id$
      In the mean time we can run ant deb and ant rpm separately and then all for tarballs.
     -->
 
-	<target name="all" depends="clean-distro-all,source-distro,rpm,deb"/>
+  <target name="all" depends="clean-distro-all,source-distro,rpm,deb"/>
 
 </project>
 
