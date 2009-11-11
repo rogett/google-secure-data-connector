@@ -16,10 +16,8 @@
  */
 package com.google.dataconnector.client;
 
-import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.isA;
 import static org.easymock.classextension.EasyMock.createMock;
 import static org.easymock.classextension.EasyMock.replay;
 import static org.easymock.classextension.EasyMock.verify;
@@ -37,8 +35,6 @@ import com.google.dataconnector.registration.v4.Registration;
 import com.google.dataconnector.util.FileUtil;
 import com.google.dataconnector.util.LocalConf;
 import com.google.dataconnector.util.RegistrationException;
-import com.google.dataconnector.util.ShutdownManager;
-import com.google.dataconnector.util.Stoppable;
 import com.google.dataconnector.util.SystemUtil;
 
 /**
@@ -56,7 +52,6 @@ public class ResourcesFileWatcherTest extends TestCase {
   private SystemUtil systemUtil;
   private File fileHandle;
   private FileInputStream fileInputStream;
-  private ShutdownManager shutdownManager;
 
   @Override
   protected void setUp() throws Exception {
@@ -71,9 +66,6 @@ public class ResourcesFileWatcherTest extends TestCase {
     registration = EasyMock.createMock(Registration.class);
     fileUtil = EasyMock.createMock(FileUtil.class);
     fileInputStream = EasyMock.createMock(FileInputStream.class);
-    shutdownManager = EasyMock.createMock(ShutdownManager.class);
-    shutdownManager.addStoppable(isA(Stoppable.class));
-    expectLastCall();
   }
 
   @Override
@@ -104,7 +96,7 @@ public class ResourcesFileWatcherTest extends TestCase {
 
     // Test now.
     ResourcesFileWatcher watcher = new ResourcesFileWatcher(localConf, registration,
-        fileUtil, systemUtil, shutdownManager);
+        fileUtil, systemUtil);
     watcher.setFrameSender(frameSender);
     watcher.run();
 
@@ -135,7 +127,7 @@ public class ResourcesFileWatcherTest extends TestCase {
 
     // Test now.
     ResourcesFileWatcher watcher = new ResourcesFileWatcher(localConf, registration,
-        fileUtil, systemUtil, shutdownManager);
+        fileUtil, systemUtil);
     watcher.setFrameSender(frameSender);
     watcher.run();
 
@@ -173,7 +165,7 @@ public class ResourcesFileWatcherTest extends TestCase {
 
     // Test now.
     ResourcesFileWatcher watcher = new ResourcesFileWatcher(localConf, registration,
-        fileUtil, systemUtil, shutdownManager);
+        fileUtil, systemUtil);
     watcher.setFrameSender(frameSender);
     watcher.run();
 
@@ -187,7 +179,6 @@ public class ResourcesFileWatcherTest extends TestCase {
     replay(fileHandle);
     replay(systemUtil);
     replay(fileInputStream);
-    replay(shutdownManager);
   }
 
   private void verifyAll() {
@@ -197,6 +188,5 @@ public class ResourcesFileWatcherTest extends TestCase {
     verify(fileHandle);
     verify(systemUtil);
     verify(fileInputStream);
-    verify(shutdownManager);
   }
 }

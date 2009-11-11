@@ -39,7 +39,7 @@ public class LocalConf {
 
   @ConfigFile(required = true)
   @Flag(help = "Configuration File")
-  private String localConfigFile = null; //Configure flag to be of type "String"
+  private String localConfigFile = ""; //Configure flag to be of type "String"
   @Flag(help = "Agent firewall rules configuration file.")
   private String rulesFile;
   @Flag(help = "SDC server host to connect to.")

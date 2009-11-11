@@ -32,8 +32,6 @@ import com.google.dataconnector.registration.v4.Registration;
 import com.google.dataconnector.util.FileUtil;
 import com.google.dataconnector.util.LocalConf;
 import com.google.dataconnector.util.RegistrationException;
-import com.google.dataconnector.util.ShutdownManager;
-import com.google.dataconnector.util.Stoppable;
 import com.google.dataconnector.util.SystemUtil;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -46,19 +44,16 @@ import com.google.inject.Singleton;
  * @author mtp@google.com (Matt T. Proud)
  */
 @Singleton
-public class ResourcesFileWatcher extends Thread implements Stoppable {
+public class ResourcesFileWatcher extends Thread {
   private static final Logger LOG = Logger.getLogger(ResourcesFileWatcher.class);
 
-  // Injected dependencies.
+  // Dependencies.
   private final LocalConf localConf;
   private final Registration registration;
   private final FileUtil fileUtil;
   private final SystemUtil systemUtil;
-  private ShutdownManager shutdownManager;
 
-  // Runtime dependencies.
   private FrameSender frameSender;
-
 
   /**
    * Standard constructor.
@@ -71,16 +66,11 @@ public class ResourcesFileWatcher extends Thread implements Stoppable {
    */
   @Inject
   public ResourcesFileWatcher(final LocalConf localConf, final Registration registration,
-      final FileUtil fileUtil, final SystemUtil systemUtil, final ShutdownManager shutdownManager) {
+      final FileUtil fileUtil, final SystemUtil systemUtil) {
     this.localConf = localConf;
     this.registration = registration;
     this.fileUtil = fileUtil;
     this.systemUtil = systemUtil;
-    this.shutdownManager = shutdownManager;
-    
-    // Set thread info
-    this.setName(this.getClass().getName());
-    this.setDaemon(true);
   }
 
   public void setFrameSender(final FrameSender frameSender) {
@@ -90,9 +80,6 @@ public class ResourcesFileWatcher extends Thread implements Stoppable {
   @Override
   public void run() {
     Preconditions.checkNotNull(frameSender);
-    
-    // Add this thread to the shutdown manager so it gets cleaned up.
-    shutdownManager.addStoppable(this);
 
     byte[] lastDigest = null;
 
@@ -132,7 +119,7 @@ public class ResourcesFileWatcher extends Thread implements Stoppable {
         systemUtil.sleep(localConf.getFileWatcherThreadSleepTimer() * 60 * 1000L);
       }
     } catch (InterruptedException e) {
-      LOG.info("Shutting down.", e);
+      LOG.info("InterruptedException.", e);
     } catch (FileNotFoundException e) {
       LOG.fatal("Could not read configuration.", e);
     } catch (IOException e) {
@@ -143,13 +130,5 @@ public class ResourcesFileWatcher extends Thread implements Stoppable {
       LOG.info("FileWatcher thread exiting. " +
       "Any changes in resources file will require restarting agent manually.");
     }
-  }
-
-  /**
-   * Shutdown the file watcher.
-   */
-  @Override
-  public void shutdown() {
-    this.interrupt(); 
   }
 }

@@ -24,8 +24,6 @@ import com.google.dataconnector.protocol.proto.SdcFrame.FrameInfo;
 import com.google.dataconnector.protocol.proto.SdcFrame.HealthCheckInfo;
 import com.google.dataconnector.protocol.proto.SdcFrame.ServerSuppliedConf;
 import com.google.dataconnector.util.ClockUtil;
-import com.google.dataconnector.util.ShutdownManager;
-import com.google.dataconnector.util.Stoppable;
 import com.google.gdata.util.common.base.Preconditions;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -43,7 +41,7 @@ import org.apache.log4j.Logger;
  * @author vnori@google.com (Vasu Nori)
  */
 @Singleton
-public class HealthCheckHandler extends Thread implements Dispatchable, Stoppable {
+public class HealthCheckHandler extends Thread implements Dispatchable {
 
   // amount of time (in sec) to wait for registration info to be received from SDC server
   private static final int TIME_TO_WAIT_FOR_SERVERSUPPLIED_CONF = 5;
@@ -61,7 +59,6 @@ public class HealthCheckHandler extends Thread implements Dispatchable, Stoppabl
 
   // Injected Dependencies
   private final ClockUtil clock;
-  private final ShutdownManager shutdownManager;
 
   // Runtime Dependencies
   private FrameSender frameSender;
@@ -72,10 +69,8 @@ public class HealthCheckHandler extends Thread implements Dispatchable, Stoppabl
   private long lastHealthCheckReceivedStamp = 0;
 
   @Inject
-  public HealthCheckHandler(final ClockUtil clock, final ShutdownManager shutdownManager) {
+  public HealthCheckHandler(final ClockUtil clock) {
     this.clock = clock;
-    this.shutdownManager = shutdownManager;
-    this.setName(this.getClass().getName());
   }
 
   /**
@@ -98,9 +93,6 @@ public class HealthCheckHandler extends Thread implements Dispatchable, Stoppabl
     Preconditions.checkNotNull(frameSender, "Must define frameSender before starting.");
     Preconditions.checkNotNull(failCallback, "Must define remoteFailSwitch before starting.");
 
-    // Add to shutdown manager
-    shutdownManager.addStoppable(this);
-    
     try {
       // don't start doing anything until the config info is received from the SDC server
       waitUntilServerConfigIsReceived();
@@ -161,13 +153,5 @@ public class HealthCheckHandler extends Thread implements Dispatchable, Stoppabl
 
   public synchronized void setServerSuppliedConf(final ServerSuppliedConf serverSuppliedConf) {
     this.serverSuppliedConf = serverSuppliedConf;
-  }
-
-  /**
-   * Shuts down health-check interval watcher.
-   */
-  @Override
-  public void shutdown() {
-    this.interrupt();
   }
 }

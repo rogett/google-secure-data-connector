@@ -21,8 +21,6 @@ import com.google.dataconnector.protocol.proto.SdcFrame.FrameInfo;
 
 import junit.framework.TestCase;
 
-import org.easymock.classextension.EasyMock;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -57,7 +55,7 @@ public class FrameSenderTest extends TestCase {
 
   public void testSendRawFrameInfo() throws Exception {
     queue = new LinkedBlockingQueue<FrameInfo>();
-    FrameSender frameSender = new FrameSender(queue, null);
+    FrameSender frameSender = new FrameSender(queue);
     frameSender.setOutputStream(null);
     frameSender.sendFrame(expectedFrameInfo1);
     FrameInfo actualFrameInfo = queue.take();
@@ -66,7 +64,7 @@ public class FrameSenderTest extends TestCase {
 
   public void testSendFrameTypePayload() throws Exception {
     queue = new LinkedBlockingQueue<FrameInfo>();
-    FrameSender frameSender = new FrameSender(queue, null);
+    FrameSender frameSender = new FrameSender(queue);
     frameSender.setOutputStream(null);
     frameSender.sendFrame(FrameInfo.Type.AUTHORIZATION, expectedAuthorizationInfo.toByteString());
     FrameInfo actualFrameInfo = queue.take();
@@ -75,7 +73,7 @@ public class FrameSenderTest extends TestCase {
 
   public void testWriteOneFrame() throws Exception {
     bos = new ByteArrayOutputStream();
-    FrameSender frameSender = new FrameSender(queue, null);
+    FrameSender frameSender = new FrameSender(queue);
     frameSender.setOutputStream(bos);
     frameSender.writeOneFrame(expectedFrameInfo1);
     byte[] output = bos.toByteArray();
@@ -103,6 +101,5 @@ public class FrameSenderTest extends TestCase {
     System.arraycopy(output, offset, payload, 0, actualPayloadLen);
     FrameInfo actualFrameInfo = FrameInfo.parseFrom(payload);
     assertEquals(expectedFrameInfo1, actualFrameInfo);
-    
   }
 }

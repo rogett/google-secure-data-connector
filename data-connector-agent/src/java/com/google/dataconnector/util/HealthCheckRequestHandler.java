@@ -27,26 +27,15 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-/**
- * Provides a local web service that can be queried by the cloud to determine agent status
- * and latency.  
- * 
- * @author rayc@google.com (Ray Colline)
- * @author vnori@google.com (Vasu Nori)
- */
-public class HealthCheckRequestHandler extends Thread implements Stoppable {
+public class HealthCheckRequestHandler extends Thread {
 
   public static Logger LOG = Logger.getLogger(HealthCheckRequestHandler.class.getName());
 
-  // Injected dependencies 
   private final ServerSocket serverSocket;
-  private final ShutdownManager shutdownManager;
 
   @Inject
-  public HealthCheckRequestHandler(final ServerSocket serverSocket,
-      final ShutdownManager shutdownManager) {
+  public HealthCheckRequestHandler(final ServerSocket serverSocket) {
     this.serverSocket = serverSocket;
-    this.shutdownManager = shutdownManager;
   }
 
   /**
@@ -84,10 +73,7 @@ public class HealthCheckRequestHandler extends Thread implements Stoppable {
    */
   @Override
   public void run() {
-    // Add to shutdown manager for graceful shutdown.
-    shutdownManager.addStoppable(this);
-    
-    setName(this.getClass().getName());
+    setName("HealthCheckRequestHandler");
     try {
       while (true) {
         Socket incomingSocket = serverSocket.accept();
@@ -120,17 +106,5 @@ public class HealthCheckRequestHandler extends Thread implements Stoppable {
     } catch (IOException e) {
       LOG.warn("Healthcheck service IOException", e);
     }
-  }
-  
-  /**
-   * Shuts down the health check handler thread.
-   */
-  @Override
-  public void shutdown() {
-    try {
-      serverSocket.close();
-    } catch (IOException e) {
-      LOG.debug("Socket error while closing.", e);
-    } 
   }
 }

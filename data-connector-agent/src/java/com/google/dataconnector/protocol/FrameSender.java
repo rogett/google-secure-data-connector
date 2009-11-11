@@ -18,8 +18,6 @@ package com.google.dataconnector.protocol;
 
 import com.google.common.base.Preconditions;
 import com.google.dataconnector.protocol.proto.SdcFrame.FrameInfo;
-import com.google.dataconnector.util.ShutdownManager;
-import com.google.dataconnector.util.Stoppable;
 import com.google.inject.Inject;
 import com.google.protobuf.ByteString;
 
@@ -40,13 +38,11 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * @author rayc@google.com (Ray Colline)
  */
-public class FrameSender extends Thread implements Stoppable {
+public class FrameSender extends Thread {
 
   private static final Logger LOG = Logger.getLogger(FrameSender.class);
 
-  // Injected dependencies
   private final BlockingQueue<FrameInfo> sendQueue;
-  private ShutdownManager shutdownManager;
 
   // Runtime dependencies
   private OutputStream outputStream;
@@ -56,11 +52,9 @@ public class FrameSender extends Thread implements Stoppable {
   private DataOutputStream dataOutputStream;
   private long sequence = 0;
 
-
   @Inject
-  public FrameSender(final BlockingQueue<FrameInfo> sendQueue, ShutdownManager shutdownManager) {
+  public FrameSender(final BlockingQueue<FrameInfo> sendQueue) {
     this.sendQueue = sendQueue;
-    this.shutdownManager = shutdownManager;
   }
 
   /**
@@ -136,12 +130,6 @@ public class FrameSender extends Thread implements Stoppable {
   @Override
   public void run() {
 
-    // Add this thread to the shutdown manager. 
-    shutdownManager.addStoppable(this);
-    
-    // Setup thread info
-    this.setName(this.getClass().getName());
-    
     try {
       while (true) {
         // Wait for a frame to become available.
@@ -150,7 +138,7 @@ public class FrameSender extends Thread implements Stoppable {
         writeOneFrame(frameInfo);
       }
     } catch (InterruptedException e) {
-      LOG.info("Sending frames shutting down", e);
+      LOG.info("Sending frames interrupted", e);
     } catch (IOException e) {
       LOG.info("IO error while sending frame", e);
     }
@@ -163,13 +151,5 @@ public class FrameSender extends Thread implements Stoppable {
 
   public void setByteCounter(AtomicLong byteCounter) {
     this.byteCounter = byteCounter;
-  }
-
-  /** 
-   * Shuts down sending by interrupting thread.
-   */
-  @Override
-  public void shutdown() {
-    this.interrupt();
   }
 }

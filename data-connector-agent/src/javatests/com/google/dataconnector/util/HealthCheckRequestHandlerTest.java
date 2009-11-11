@@ -54,11 +54,6 @@ public class HealthCheckRequestHandlerTest extends TestCase {
 
   public void testHealthCheckRequestHandlerProcessingRequest() throws IOException {
 
-    ShutdownManager shutdownManager = EasyMock.createMock(ShutdownManager.class);
-    shutdownManager.addStoppable(EasyMock.isA(Stoppable.class));
-    EasyMock.expectLastCall();
-    EasyMock.replay(shutdownManager);
-    
     // Successful case.
     InputStream is = new ByteArrayInputStream(("GET /healthcheck\n").getBytes());
     OutputStream os = new ByteArrayOutputStream();
@@ -67,7 +62,7 @@ public class HealthCheckRequestHandlerTest extends TestCase {
     EasyMock.expect(mockServerSocket.accept()).andThrow(new IOException("test done"));
     EasyMock.replay(mockServerSocket);
     HealthCheckRequestHandler testHealthCheckRequestHandler =
-        new HealthCheckRequestHandler(mockServerSocket, shutdownManager);
+        new HealthCheckRequestHandler(mockServerSocket);
     try {
       testHealthCheckRequestHandler.run();
       String strOut = ((ByteArrayOutputStream) os).toString("utf8");
@@ -82,6 +77,6 @@ public class HealthCheckRequestHandlerTest extends TestCase {
         fail(e.getMessage());
       }
     }
-    EasyMock.verify(mockServerSocket, shutdownManager);
+    EasyMock.verify(mockServerSocket);
   }
 }
