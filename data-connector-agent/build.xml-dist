@@ -29,7 +29,7 @@ $Id$
 
 <project
     name="secure-data-connector"
-    default="compile"
+    default="deploy-jar"
     basedir=".">
 
   <taskdef resource="net/sf/antcontrib/antcontrib.properties">
@@ -64,12 +64,13 @@ $Id$
       description="Deletes all build files." >
     <delete dir="${build}" />
     <delete dir="${bin}" />
+    <delete dir="${deploy}" />
   </target>
 
   <target
       name="dist-clean"
-      description="Deletes all files to pre configured state.">
-    <delete dir="${build}"/>
+      description="Deletes all files to pre configured state."
+      depends="clean">
     <delete file="build.properties"/>
     <delete file="build.xml"/>
     <delete file="config.status"/>
@@ -187,6 +188,37 @@ $Id$
       </manifest>
     </jar>
   </target>
+
+  <target name="deploy-jar" depends="expand-all-jars">
+    <delete file="${agent-deploy.jarfile}" />
+    <jar jarfile="${agent-deploy.jarfile}" basedir="${deploy}">
+      <manifest>
+        <attribute name="Implementation-Title" value="Secure Data Connector"/>
+        <attribute name="Implementation-Version" value="SDC ${version} Built: ${buildstamp}"/>
+        <attribute name="Implementation-Vendor" value="Google"/>
+        <attribute name="Main-Class"
+              value="com.google.dataconnector.client.Client"/>
+      </manifest>
+    </jar>
+  </target>
+
+  <target name="expand-all-jars" depends="compile">
+    <mkdir dir="${deploy}"/>
+    <!-- unjar all third party jars -->
+    <foreach param="jar-to-expand" target="expand-jar">
+      <path>
+        <fileset dir="${basedir}">
+          <include name="third-party/**/*.jar"/>
+          <include name="build/*.jar"/>
+        </fileset>
+      </path>
+    </foreach>
+  </target>
+
+ <target name="expand-jar">
+   <unjar src="${jar-to-expand}" dest="${deploy}"/>
+ </target>
+
 
   <!-- install -->
   <target name="install" depends="compile">
