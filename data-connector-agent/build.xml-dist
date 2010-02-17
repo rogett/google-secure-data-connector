@@ -141,6 +141,10 @@ $Id$
         <pathelement path="third-party/google-feedserver/gdata-client-1.0.jar"/>
         <pathelement path="third-party/google-feedserver/gdata-core-1.0.jar"/>
         <pathelement path="third-party/google-feedserver/google-feedserver-java-client-2.0.jar"/>
+        <pathelement path="third-party/httpcomponents-core-4.0.1/httpcore-4.0.1.jar"/>
+        <pathelement path="third-party/httpcomponents-core-4.0.1/httpcore-nio-4.0.1.jar"/>
+        <pathelement path="third-party/httpcomponents-client-4.0.1/httpclient-4.0.1.jar"/>
+        <pathelement path="third-party/httpcomponents-client-4.0.1/httpmime-4.0.1.jar"/>
         <pathelement path="third-party/guice/guice-2.0.jar"/>
         <pathelement path="third-party/jsocks/jsocks.jar"/>
         <pathelement path="third-party/json/json.jar"/>

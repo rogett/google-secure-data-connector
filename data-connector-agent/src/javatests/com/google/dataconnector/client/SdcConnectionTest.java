@@ -93,7 +93,7 @@ public class SdcConnectionTest extends TestCase {
     EasyMock.replay(mockFrameReceiver);
 
     SdcConnection sdcConnection = new SdcConnection(fakeLocalConf, null, mockFrameReceiver,
-        mockFrameSender, null ,null, null, null, null);
+        mockFrameSender, null ,null, null, null, null, null);
 
     assertTrue(sdcConnection.authorize());
     EasyMock.verify(mockFrameReceiver, mockFrameSender);
@@ -115,7 +115,7 @@ public class SdcConnectionTest extends TestCase {
     EasyMock.replay(mockFrameReceiver);
 
     SdcConnection sdcConnection = new SdcConnection(fakeLocalConf, null, mockFrameReceiver,
-        mockFrameSender, null ,null, null, null, null);
+        mockFrameSender, null ,null, null, null, null, null);
 
     assertFalse(sdcConnection.authorize());
     EasyMock.verify(mockFrameReceiver, mockFrameSender);
@@ -201,7 +201,7 @@ public class SdcConnectionTest extends TestCase {
 
     // Execute
     SdcConnection sdc = new SdcConnection(fakeLocalConf, null, null, null, null, null, null, null, 
-        null);
+        null, null);
     sdc.verifySubjectInCertificate(mockSession);
 
     // Verify
@@ -217,7 +217,7 @@ public class SdcConnectionTest extends TestCase {
 
     // Execute
     SdcConnection sdc = new SdcConnection(fakeLocalConf, null, null, null, null, null, null, null, 
-        null);
+        null, null);
     try {
       sdc.verifySubjectInCertificate(mockSession);
     } catch (ConnectionException e) {
@@ -236,7 +236,7 @@ public class SdcConnectionTest extends TestCase {
     EasyMock.replay(mockSession);
 
     SdcConnection sdc = new SdcConnection(null, null, null, null, null, null, null, null,
-        null);
+        null, null);
     try {
       sdc.verifySubjectInCertificate(mockSession);
     } catch (ConnectionException e) {

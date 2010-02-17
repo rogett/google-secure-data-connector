@@ -26,6 +26,7 @@ message FrameInfo {
     REGISTRATION = 1;
     HEALTH_CHECK = 2;
     AUTHORIZATION = 3;
+    FETCH_REQUEST = 4;
   }
 
   optional int64 sequence = 1;
@@ -114,6 +115,30 @@ message HealthCheckInfo {
   // server provided configuration parameters.
   optional Source source = 2;
   optional Type type = 3;
+}
+
+// Generic message header of key/value pair.
+message MessageHeader {
+	required string key = 1;
+	required string value = 2;
+}
+
+// Proto definition corresponding to FrameInfo.Type=FETCH_REQUEST
+message FetchRequest {
+	required string id = 1;
+  required string resource = 2;
+	optional string strategy = 3;
+	repeated MessageHeader headers = 4;
+	optional bytes contents = 5;
+}
+
+// Proto definition of response to FrameInfo.Type=FETCH_REQUEST
+message FetchReply {
+	required string id = 1;
+	required int32 status = 2;
+	repeated MessageHeader headers = 3;
+	optional bytes contents = 4;
+	optional int64 latency = 5;
 }
 
 // registration request for v4 agents

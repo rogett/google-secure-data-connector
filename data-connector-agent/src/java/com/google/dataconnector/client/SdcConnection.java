@@ -65,7 +65,7 @@ public class SdcConnection implements FailCallback, Stoppable {
     "TLS_RSA_WITH_AES_128_CBC_SHA"
   };
 
-  public static final String INITIAL_HANDSHAKE_MSG = "v4.0 " +
+  public static final String INITIAL_HANDSHAKE_MSG = "v5.0 " +
      SdcConnection.class.getPackage().getImplementationVersion() + "\n";
 
   // Dependencies.
@@ -76,6 +76,7 @@ public class SdcConnection implements FailCallback, Stoppable {
   private final Registration registration;
   private final SocksDataHandler socksDataHandler;
   private final HealthCheckHandler healthCheckHandler;
+  private final FetchRequestHandler agentRequestHandler;
   private final ResourcesFileWatcher resourcesFileWatcher;
   private final ShutdownManager shutdownManager;
 
@@ -92,6 +93,9 @@ public class SdcConnection implements FailCallback, Stoppable {
   * @param registration
   * @param socksDataHandler
   * @param healthCheckHandler
+  * @param agentRequestHandler
+  * @param resourcesFileWatcher
+  * @param shutdownManager
   */
   @Inject
   public SdcConnection(final LocalConf localConf,
@@ -101,6 +105,7 @@ public class SdcConnection implements FailCallback, Stoppable {
       final Registration registration,
       final SocksDataHandler socksDataHandler,
       final HealthCheckHandler healthCheckHandler,
+      final FetchRequestHandler agentRequestHandler,
       final ResourcesFileWatcher resourcesFileWatcher,
       final ShutdownManager shutdownManager) {
     this.localConf = localConf;
@@ -110,6 +115,7 @@ public class SdcConnection implements FailCallback, Stoppable {
     this.registration = registration;
     this.socksDataHandler = socksDataHandler;
     this.healthCheckHandler = healthCheckHandler;
+    this.agentRequestHandler = agentRequestHandler;
     this.resourcesFileWatcher = resourcesFileWatcher;
     this.shutdownManager = shutdownManager;
   }
@@ -173,6 +179,10 @@ public class SdcConnection implements FailCallback, Stoppable {
       socksDataHandler.setFrameSender(frameSender);
       frameReceiver.registerDispatcher(FrameInfo.Type.SOCKET_DATA, socksDataHandler);
 
+      // Setup AgentRequest handler
+      agentRequestHandler.setFrameSender(frameSender);
+      frameReceiver.registerDispatcher(FrameInfo.Type.FETCH_REQUEST, agentRequestHandler);
+      
       // a thread to watch for changes in the resources.xml file
       // make this thread a daemon - so it can't hold up the process from exiting
       LOG.info("starting a thread to watch resources file");
