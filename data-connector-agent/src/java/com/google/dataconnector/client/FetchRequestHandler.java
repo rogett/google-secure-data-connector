@@ -78,8 +78,8 @@ public class FetchRequestHandler implements Dispatchable {
 		 * Given the request, fill in the results in the reply provided.
 		 * 
 		 * @param request The request.
-		 * @param reply The reply to fill in.
-		 * @throws Exception Any exception during processing.
+		 * @param replyBuilder The reply to fill in.
+		 * @throws StrategyException Any exception during processing.
 		 */
 		public void process(FetchRequest request, FetchReply.Builder replyBuilder) 
 			  throws StrategyException;
@@ -211,7 +211,6 @@ public class FetchRequestHandler implements Dispatchable {
 
 		/**
 		 * Constructs an instance to fetch the specified resource URL.
-		 * @param resource The url.
 		 */
 		ResourceFetcher(FetchRequest request, Strategy strategy) {
 			this.request = request;
