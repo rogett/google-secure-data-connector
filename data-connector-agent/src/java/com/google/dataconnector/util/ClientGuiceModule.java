@@ -19,7 +19,6 @@ package com.google.dataconnector.util;
 import com.google.dataconnector.protocol.ProtocolGuiceModule;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
-import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
@@ -29,7 +28,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
-import java.net.ServerSocket;
 import java.net.UnknownHostException;
 import java.util.Properties;
 import java.util.concurrent.SynchronousQueue;
@@ -90,19 +88,6 @@ public class ClientGuiceModule extends AbstractModule {
     } catch (IOException e) {
       throw new RuntimeException("Invalid socks properties", e);
     }
-  }
-
-  /**
-   * creates a singleton instance of {@link HealthCheckRequestHandler} with a
-   * ServerSocket listening on an ephemeral port.
-   *
-   * @return created singleton instance of HealthCheckRequestHandler
-   * @throws IOException thrown if ServerSocket couldn't be created
-   */
-  @Provides @Singleton @Inject
-  public HealthCheckRequestHandler getHealthCheckRequestHandler(ShutdownManager shutdownManager) 
-      throws IOException {
-    return new HealthCheckRequestHandler(new ServerSocket(0), shutdownManager);
   }
 
   @Provides @Singleton @Named("localhost")

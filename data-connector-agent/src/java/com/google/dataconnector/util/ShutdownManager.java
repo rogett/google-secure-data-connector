@@ -70,6 +70,7 @@ public class ShutdownManager {
     }
     stoppableGroups.get(group).add(
         new Pair<String, Stoppable>(stoppable.getClass().getName(), stoppable));
+    LOG.debug("Managing shutdown for " + stoppable.getClass().getName());
   }
   
   /**
@@ -97,8 +98,8 @@ public class ShutdownManager {
     
     for (Pair<String, Stoppable> stoppablePair : stoppableGroups.get(groupName)) {
       try {
+        LOG.info("Issuing shutdown for " + stoppablePair.first());
         stoppablePair.second().shutdown();
-        LOG.info("Issued shutdown for " + stoppablePair.first());
       } catch (RuntimeException e) {
         LOG.warn("Stop failed for " + stoppablePair.first(), e);
       }

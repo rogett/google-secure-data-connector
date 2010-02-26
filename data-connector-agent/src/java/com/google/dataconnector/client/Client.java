@@ -18,7 +18,6 @@ package com.google.dataconnector.client;
 
 import com.google.dataconnector.util.ClientGuiceModule;
 import com.google.dataconnector.util.ConnectionException;
-import com.google.dataconnector.util.HealthCheckRequestHandler;
 import com.google.dataconnector.util.LocalConf;
 import com.google.dataconnector.util.LocalConfException;
 import com.google.dataconnector.util.LocalConfValidator;
@@ -47,16 +46,21 @@ import java.util.Properties;
  * @author rayc@google.com (Ray Colline)
  */
 public class Client {
-
+  
   // Logging instance
-  private static final Logger log = Logger.getLogger(Client.class);
+  private static final Logger LOG = Logger.getLogger(Client.class);
+  
+  // Constants
+  private static final long MAX_BACKOFF_TIME = 5 * 60 * 1000; // 5 minutes
 
   /* Dependencies */
   private final LocalConf localConf;
   private final SdcConnection secureDataConnection;
   private final JsocksStarter jsocksStarter;
-  private final HealthCheckRequestHandler healthCheckRequestHandler;
   private final ShutdownManager shutdownManager;
+  
+  /* Local fields */
+  private static long unsuccessfulAttempts = 0;
 
 
   /**
@@ -65,95 +69,62 @@ public class Client {
   @Inject
   public Client(final LocalConf localConf, final SdcConnection secureDataConnection,
       final JsocksStarter jsocksStarter,
-      final HealthCheckRequestHandler healthCheckRequestHandler,
       final ShutdownManager shutdownManager) {
     this.localConf = localConf;
     this.secureDataConnection = secureDataConnection;
     this.jsocksStarter = jsocksStarter;
-    this.healthCheckRequestHandler = healthCheckRequestHandler;
     this.shutdownManager = shutdownManager; 
   }
 
   /**
-   * This method starts the Client initialization.
-   * 
-   * @param injector the Guice injector for the client.
+   * Reads flags and config files, validates configuration and starts agent.
    */
-  public void startup(final String[] args, final Injector injector) {
-
+  public void parseFlagsValidateAndConnect(final String[] args) {
+    
     // validate the localConf.xml file and the input args
     try {
-      validateLocalConf(args);
+      BeanCliHelper beanCliHelper = new BeanCliHelper();
+      beanCliHelper.register(localConf);
+      beanCliHelper.parse(args);
+      new LocalConfValidator().validate(localConf);
     } catch (LocalConfException e) {
-      log.fatal("Configuration error", e);
+      LOG.fatal("Configuration error", e);
       return;
     } catch (ConfigurationBeanException e) {
-      log.fatal("Configuration error", e);
+      LOG.fatal("Configuration error", e);
       return;
     }
-    startup(injector);
-  }
-  
-  /**
-   * Starts the client without reading LocalConf.  Useful if you have supplied your own 
-   * LocalConf via Guice.  
-   * 
-   * @param injector the Guice injector for the client.
-   */
-  public void startup(final Injector injector) {
+    
     // Set log4j properties.  We do not expect this file to change often so we do not use the
     // cooler, yet more resource intensive, "configureAndWatch".
     PropertyConfigurator.configure(localConf.getLog4jPropertiesFile());
     if (localConf.getDebug()) {
       Logger.getRootLogger().setLevel(Level.DEBUG);
     }
-
-    // start the healthcheck service
-    healthCheckRequestHandler.init();
-
-    // start jsocks thread
-    jsocksStarter.startJsocksProxy();
-
-    // start main processing thread - to initiate connection/registration with the SDC server
+    
+    // Connect
     try {
+      // start jsocks thread
+      jsocksStarter.startJsocksProxy();
+      // start main processing thread - to initiate connection/registration with the SDC server
       secureDataConnection.connect();
     } catch (ConnectionException e) {
-      log.fatal("Connection failed.", e);
+      LOG.fatal("Connection failed.", e);
     } finally {
       shutdownManager.shutdownAll();
     }
+    
+    // Check whether connection was successful or not.
+    if (secureDataConnection.hasConnectedSuccessfully()) {
+      unsuccessfulAttempts = 0;
+    } else if (localConf.getStartOnce()) {
+      LOG.info("Configured only to start once. Quitting!");
+      unsuccessfulAttempts = -1; // Sentinel value meaning we should quit.
+    } else { // Failed connection
+      unsuccessfulAttempts++;
+    }
   }
-
-  /**
-   * validate the localConf.xml file and the input args
-   * @throws ConfigurationBeanException
-   * @throws LocalConfException
-   */
-  private void validateLocalConf(final String[] args)
-      throws ConfigurationBeanException, LocalConfException {
-    // Load configuration file and command line flags into beans
-    BeanCliHelper beanCliHelper = new BeanCliHelper();
-    beanCliHelper.register(localConf);
-    beanCliHelper.parse(args);
-    new LocalConfValidator().validate(localConf);
-  }
-
-  /**
-   * Returns a base set of logging properties so we can log fatal errors before config parsing is
-   * done.
-   *
-   * @return Properties a basic console logging setup.
-   */
-  public static Properties getBootstrapLoggingProperties() {
-    final Properties props = new Properties();
-    props.setProperty("log4j.rootLogger","info, A");
-    props.setProperty("log4j.appender.A", "org.apache.log4j.ConsoleAppender");
-    props.setProperty("log4j.appender.A.layout", "org.apache.log4j.PatternLayout");
-    props.setProperty("log4j.appender.A.layout.ConversionPattern", "%d [%t] %-5p %c %x - %m%n");
-    return props;
-  }
-
-
+  
   /**
    * Entry point for the Secure Data Connector binary.  Sets up logging, parses flags and
    * creates ClientConf.
@@ -165,15 +136,54 @@ public class Client {
     PropertyConfigurator.configure(getBootstrapLoggingProperties());
 
     final Injector injector = ClientGuiceModule.getInjector();
+    final ShutdownManager shutdownManager = injector.getInstance(ShutdownManager.class);
     // Add shutdown hook to call shutdown if control c or OS SIGTERM is received.
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
       public void run() {
-        injector.getInstance(ShutdownManager.class).shutdownAll();
+        shutdownManager.shutdownAll();
       }
     });
     
-    // Start client.
-    injector.getInstance(Client.class).startup(args, injector);
+    // Starts the client in a loop that exponentially backs off. 
+    while (true) {
+      try {
+        // Only try to back-off if we have unsuccessful connections.
+        if (unsuccessfulAttempts > 0) {
+          long backOffTime = Math.min(MAX_BACKOFF_TIME, (1 << unsuccessfulAttempts) * 1000L);
+          try {
+            // Sleep for the amount of time needed.
+            Thread.sleep(backOffTime);
+          } catch (InterruptedException e) {
+            LOG.error("Interrupted while trying to exponentially back off. Exiting.");
+            break;
+          }
+          LOG.info("Starting agent after " + unsuccessfulAttempts + " unsuccessful attempts." +
+              " Next connect in " + backOffTime + " milliseconds.");
+        } else if (unsuccessfulAttempts == -1) {
+          // We are being told to quit probably because we were only configured to start once.
+          break; 
+        }
+        injector.getInstance(Client.class).parseFlagsValidateAndConnect(args);
+      } catch (Exception e) { // This is an outside server loop. Catch everything.
+        LOG.error("Agent died.", e);
+        shutdownManager.shutdownAll();
+      }
+    }
+  }
+  
+  /**
+   * Returns a base set of logging properties so we can log fatal errors before config parsing is
+   * done.
+   *
+   * @return Properties a basic console logging setup.
+   */
+  public static Properties getBootstrapLoggingProperties() {
+    final Properties props = new Properties();
+    props.setProperty("log4j.rootLogger","info, A");
+    props.setProperty("log4j.appender.A", "org.apache.log4j.ConsoleAppender");
+    props.setProperty("log4j.appender.Ant d.layout", "org.apache.log4j.PatternLayout");
+    props.setProperty("log4j.appender.A.layout.ConversionPattern", "%d [%t] %-5p %c %x - %m%n");
+    return props;
   }
 }

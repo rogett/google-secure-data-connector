@@ -36,7 +36,6 @@ import com.google.dataconnector.util.ShutdownManager;
 import com.google.dataconnector.util.Stoppable;
 import com.google.dataconnector.util.SystemUtil;
 import com.google.inject.Inject;
-import com.google.inject.Singleton;
 
 /**
  * <p>A watcher thread that keeps track of the resource rules message digest.</p>
@@ -45,7 +44,6 @@ import com.google.inject.Singleton;
  *
  * @author mtp@google.com (Matt T. Proud)
  */
-@Singleton
 public class ResourcesFileWatcher extends Thread implements Stoppable {
   private static final Logger LOG = Logger.getLogger(ResourcesFileWatcher.class);
 
@@ -54,7 +52,6 @@ public class ResourcesFileWatcher extends Thread implements Stoppable {
   private final Registration registration;
   private final FileUtil fileUtil;
   private final SystemUtil systemUtil;
-  private ShutdownManager shutdownManager;
 
   // Runtime dependencies.
   private FrameSender frameSender;
@@ -76,11 +73,13 @@ public class ResourcesFileWatcher extends Thread implements Stoppable {
     this.registration = registration;
     this.fileUtil = fileUtil;
     this.systemUtil = systemUtil;
-    this.shutdownManager = shutdownManager;
     
     // Set thread info
     this.setName(this.getClass().getName());
     this.setDaemon(true);
+    
+    // Add this thread to the shutdown manager so it gets cleaned up.
+    shutdownManager.addStoppable(this);
   }
 
   public void setFrameSender(final FrameSender frameSender) {
@@ -91,9 +90,6 @@ public class ResourcesFileWatcher extends Thread implements Stoppable {
   public void run() {
     Preconditions.checkNotNull(frameSender);
     
-    // Add this thread to the shutdown manager so it gets cleaned up.
-    shutdownManager.addStoppable(this);
-
     byte[] lastDigest = null;
 
     try {

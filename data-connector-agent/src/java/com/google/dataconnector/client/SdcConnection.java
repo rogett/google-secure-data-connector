@@ -131,6 +131,10 @@ public class SdcConnection implements FailCallback, Stoppable {
     LOG.info("Connecting to SDC server");
 
     try {
+      // Set runtime dependency.
+      // TODO(rayc) figure out a cooler way to do this.
+      registration.setHealthCheckHandler(healthCheckHandler);
+      
       // Setup SSL connection and verify.
       LOG.debug("setting up SSLSocket with customized SSLSocketFacory");
       final SSLSocketFactory sslSocketFactory = sslSocketFactoryInit
@@ -306,6 +310,10 @@ public class SdcConnection implements FailCallback, Stoppable {
     LOG.error("Closing SDC connection due to health check failure.");
     // Will cause connect() to unblock.
     this.shutdown();
+  }
+  
+  public boolean hasConnectedSuccessfully() {
+    return healthCheckHandler.hasHadAtleastOneSuccessfulHealthCheck();
   }
   
 }

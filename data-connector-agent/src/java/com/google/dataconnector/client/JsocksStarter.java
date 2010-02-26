@@ -16,7 +16,6 @@
  */
 package com.google.dataconnector.client;
 
-import com.google.common.base.Preconditions;
 import com.google.dataconnector.util.LocalConf;
 import com.google.dataconnector.util.Rfc1929SdcAuthenticator;
 import com.google.dataconnector.util.ShutdownManager;
@@ -90,14 +89,14 @@ public class JsocksStarter extends Thread implements Stoppable {
     setDaemon(true);
     setName(this.getClass().getName());
     
+    // Add to shutdown manager
+    shutdownManager.addStoppable(this); 
+    
     start();
   }
 
   @Override
   public void run() {
-    
-    // Add to shutdown manager
-    shutdownManager.addStoppable(this); 
     
     // JSOCKS is configured in a static context
     SOCKS.serverInit(socksProperties);

@@ -42,6 +42,8 @@ public class LocalConf {
   private String localConfigFile = null; //Configure flag to be of type "String"
   @Flag(help = "Agent firewall rules configuration file.")
   private String rulesFile;
+  @Flag(help = "Only start the agent once.")
+  private Boolean startOnce = false;
   @Flag(help = "SDC server host to connect to.")
   private String sdcServerHost = DEFAULT_GOOGLE_SDC_HOST;
   @Flag(help = "SDC server port to connect to.")
@@ -70,6 +72,7 @@ public class LocalConf {
   private Boolean debug = DEBUG;
   @Flag(help = "Allow unverified certificates")
   private Boolean allowUnverifiedCertificates = false;
+  @Deprecated // We do not want to break any one's existing conf file even though this is a no-op.
   @Flag(help = "the users who can access the healthcheck gadget")
   private String healthCheckGadgetUsers;
   @Flag(help = "log4j properties File")
@@ -110,6 +113,14 @@ public class LocalConf {
     return rulesFile;
   }
 
+  public void setStartOnce(Boolean startOnce) {
+    this.startOnce = startOnce;
+  }
+
+  public Boolean getStartOnce() {
+    return startOnce;
+  }
+  
   public String getSdcServerHost() {
     return sdcServerHost;
   }
@@ -214,10 +225,12 @@ public class LocalConf {
     return allowUnverifiedCertificates;
   }
 
+  @Deprecated // We do not want to break any one's existing conf file even though this is a no-op.
   public String getHealthCheckGadgetUsers() {
     return healthCheckGadgetUsers;
   }
 
+  @Deprecated // We do not want to break any one's existing conf file even though this is a no-op.
   public void setHealthCheckGadgetUsers(final String healthCheckGadgetUsers) {
     this.healthCheckGadgetUsers = healthCheckGadgetUsers;
   }
