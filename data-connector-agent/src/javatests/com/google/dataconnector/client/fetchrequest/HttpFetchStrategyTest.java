@@ -36,50 +36,50 @@ import com.google.dataconnector.protocol.proto.SdcFrame.FetchRequest;
  */
 public class HttpFetchStrategyTest extends TestCase {
 
-	/**
-	 * Tests processing of response.
-	 * @throws Exception
-	 */
-	public void testProcess() throws Exception {
-		FetchRequest ar = FetchRequest.newBuilder()
-			.setId("test1").setStrategy("HttpClient").setResource("http://www.google.com")
-			.build();
-		
-		FetchReply.Builder builder = FetchReply.newBuilder();
-		
-		// Mock the response so we don't make any network calls.
-		final int status = 200;
-		final Header[] headers = new Header[5];
-		for (int i = 0 ; i < headers.length; i++) {
-			headers[i] = EasyMock.createMock(Header.class);
-			EasyMock.expect(headers[i].getName()).andReturn("key" + i);
-			EasyMock.expect(headers[i].getValue()).andReturn("val" + i);
-			EasyMock.replay(headers[i]);
-		}
-		
-		final HttpResponse resp = EasyMock.createMock(HttpResponse.class);
-		final HttpEntity ent = EasyMock.createMock(HttpEntity.class);
-		final StatusLine st = EasyMock.createMock(StatusLine.class);
-		ent.writeTo((OutputStream)EasyMock.anyObject());
-		EasyMock.expect(st.getStatusCode()).andReturn(status);
-		EasyMock.expect(resp.getStatusLine()).andReturn(st);
-		EasyMock.expect(resp.getEntity()).andReturn(ent);
-		EasyMock.expect(resp.getAllHeaders()).andReturn(headers);
-		EasyMock.replay(st, resp);
-
-		HttpFetchStrategy s = new HttpFetchStrategy() {
-			@Override
-			HttpResponse getHttpResponse(FetchRequest request) throws StrategyException {
-				// Mock the response
-				return resp;
-			}
-		};
-		s.process(ar, builder);
-
-		assertFalse("Strategy shouldn't have to set the id.", builder.hasId());
-		assertTrue("Must return a status.", builder.hasStatus());
-		assertEquals(status, builder.getStatus());
-		assertFalse("The mock has no contents.", builder.hasContents());
-		assertEquals(headers.length, builder.getHeadersCount());
-	}
+  /**
+   * Tests processing of response.
+   * @throws Exception
+   */
+  public void testProcess() throws Exception {
+    FetchRequest ar = FetchRequest.newBuilder()
+        .setId("test1").setStrategy("HttpClient").setResource("http://www.google.com")
+        .build();
+    
+    FetchReply.Builder builder = FetchReply.newBuilder();
+    
+    // Mock the response so we don't make any network calls.
+    final int status = 200;
+    final Header[] headers = new Header[5];
+    for (int i = 0 ; i < headers.length; i++) {
+      headers[i] = EasyMock.createMock(Header.class);
+      EasyMock.expect(headers[i].getName()).andReturn("key" + i);
+      EasyMock.expect(headers[i].getValue()).andReturn("val" + i);
+      EasyMock.replay(headers[i]);
+    }
+    
+    final HttpResponse resp = EasyMock.createMock(HttpResponse.class);
+    final HttpEntity ent = EasyMock.createMock(HttpEntity.class);
+    final StatusLine st = EasyMock.createMock(StatusLine.class);
+    ent.writeTo((OutputStream)EasyMock.anyObject());
+    EasyMock.expect(st.getStatusCode()).andReturn(status);
+    EasyMock.expect(resp.getStatusLine()).andReturn(st);
+    EasyMock.expect(resp.getEntity()).andReturn(ent);
+    EasyMock.expect(resp.getAllHeaders()).andReturn(headers);
+    EasyMock.replay(st, resp);
+    
+    HttpFetchStrategy s = new HttpFetchStrategy() {
+        @Override
+        HttpResponse getHttpResponse(FetchRequest request) throws StrategyException {
+          // Mock the response
+          return resp;
+        }
+      };
+    s.process(ar, builder);
+    
+    assertFalse("Strategy shouldn't have to set the id.", builder.hasId());
+    assertTrue("Must return a status.", builder.hasStatus());
+    assertEquals(status, builder.getStatus());
+    assertFalse("The mock has no contents.", builder.hasContents());
+    assertEquals(headers.length, builder.getHeadersCount());
+  }
 }

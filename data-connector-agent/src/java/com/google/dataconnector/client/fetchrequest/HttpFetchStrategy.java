@@ -37,71 +37,71 @@ import com.google.protobuf.ByteString;
 
 /**
 TODO(dchung): javadoc.
-*/
+ */
 public class HttpFetchStrategy implements Strategy {
 
-	private static Logger LOG = Logger.getLogger(HttpFetchStrategy.class);
+  private static Logger LOG = Logger.getLogger(HttpFetchStrategy.class);
 
-	// Local fields.	
-	private final DefaultHttpClient httpClient = new DefaultHttpClient();
-	
-	@Inject
-	public HttpFetchStrategy() {
-		// Default constructor.
-	}
+  // Local fields.	
+  private final DefaultHttpClient httpClient = new DefaultHttpClient();
 
-	/**
-	 * Executes an HTTP GET and return the response.
-	 * @param request The request.
-	 * @return The HTTP response.
-	 * @throws StrategyException
-	 */
-	HttpResponse getHttpResponse(FetchRequest request) throws StrategyException {
-		try {
-			// Simply do a HTTP GET
-			LOG.info(request.getId() + ": Requesting resource: " + request.getResource());
-			HttpGet httpGet = new HttpGet(request.getResource());
-			return httpClient.execute(httpGet);
-		} catch (IOException e) {
-			throw new StrategyException(request.getId() + ": while executing HTTP GET:", e);
-		}
-	}
-	
-	/**
-	 * Implements the strategy method of processing the request and filling in the
-	 * reply with results of processing.
-	 * 
-	 * @param request The request.
-	 * @param replyBuilder The reply to fill in.
-	 */
-	@Override
-	public void process(FetchRequest request, FetchReply.Builder replyBuilder) 
-			throws StrategyException {
-		HttpResponse response = getHttpResponse(request);
+  @Inject
+  public HttpFetchStrategy() {
+    // Default constructor.
+  }
 
-		StatusLine statusLine = response.getStatusLine();
-		int statusCode = statusLine.getStatusCode();
-		replyBuilder.setStatus(statusCode);
-		LOG.debug(request.getId() + ": Got response from resource:" + statusLine);
+  /**
+   * Executes an HTTP GET and return the response.
+   * @param request The request.
+   * @return The HTTP response.
+   * @throws StrategyException
+   */
+  HttpResponse getHttpResponse(FetchRequest request) throws StrategyException {
+    try {
+      // Simply do a HTTP GET
+      LOG.info(request.getId() + ": Requesting resource: " + request.getResource());
+      HttpGet httpGet = new HttpGet(request.getResource());
+      return httpClient.execute(httpGet);
+    } catch (IOException e) {
+      throw new StrategyException(request.getId() + ": while executing HTTP GET:", e);
+    }
+  }
 
-		HttpEntity entity = response.getEntity();
-		if (entity != null) {
-			try {
-				ByteArrayOutputStream buff = new ByteArrayOutputStream();
-				entity.writeTo(buff);
-				buff.flush();
-				buff.close();
-				if (buff.size() > 0) {
-					replyBuilder.setContents(ByteString.copyFrom(buff.toByteArray()));
-				}
-			} catch (IOException e) {
-				throw new StrategyException(request.getId() + " while copying content:", e);
-			}
-		}
-		// Copy the headers
-		for (Header h : response.getAllHeaders()) {
-			replyBuilder.addHeaders(MessageHeader.newBuilder()
-					.setKey(h.getName()).setValue(h.getValue()).build());
-		}
-	}
+  /**
+   * Implements the strategy method of processing the request and filling in the
+   * reply with results of processing.
+   * 
+   * @param request The request.
+   * @param replyBuilder The reply to fill in.
+   */
+  @Override
+  public void process(FetchRequest request, FetchReply.Builder replyBuilder) 
+  throws StrategyException {
+    HttpResponse response = getHttpResponse(request);
+
+    StatusLine statusLine = response.getStatusLine();
+    int statusCode = statusLine.getStatusCode();
+    replyBuilder.setStatus(statusCode);
+
+    HttpEntity entity = response.getEntity();
+    if (entity != null) {
+      try {
+        ByteArrayOutputStream buff = new ByteArrayOutputStream();
+        entity.writeTo(buff);
+        buff.flush();
+        buff.close();
+        if (buff.size() > 0) {
+          replyBuilder.setContents(ByteString.copyFrom(buff.toByteArray()));
+        }
+      } catch (IOException e) {
+        throw new StrategyException(request.getId() + " while copying content:", e);
+      }
+    }
+    // Copy the headers
+    for (Header h : response.getAllHeaders()) {
+      replyBuilder.addHeaders(MessageHeader.newBuilder()
+          .setKey(h.getName()).setValue(h.getValue()).build());
+    }
+    LOG.info(request.getId() + ": Got response from resource:" + statusLine);
+  }
 }
