@@ -27,4 +27,8 @@ public class StrategyException extends Exception {
 	public StrategyException(String message, Throwable th) {
 		super(message, th);
 	}
+
+	public StrategyException(String message) {
+		super(message);
+	}
 }

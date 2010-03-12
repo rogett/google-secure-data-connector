@@ -56,6 +56,9 @@ public class LocalConf {
   @Flag(help = "Password.")
   private String password;
 
+  @Flag(help = "Password file (text). If set, contents read overrides the values passed via flag.")
+  private String passwordFile;
+
   @Flag(help = "Keystore password if using external keystore file")
   private String sslKeyStorePassword = DEFAULT_SSL_KEYSTORE_PASSWORD;
   @Flag(help = "External keystore to use.  Default only allows verified certs per java default " +
@@ -155,6 +158,14 @@ public class LocalConf {
 
   public String getPassword() {
     return password;
+  }
+
+  public void setPasswordFile(final String passwordFile) {
+    this.passwordFile = passwordFile;
+  }
+
+  public String getPasswordFile() {
+    return passwordFile;
   }
 
   public void setPassword(final String password) {

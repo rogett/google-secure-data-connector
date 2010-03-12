@@ -226,7 +226,7 @@ public class FetchRequestHandler implements Dispatchable {
       StatusCode statusCode = StatusCode.OK;
       FetchReply.Builder replyBuilder = FetchReply.newBuilder();
       FetchReply reply = null;
-      
+
       replyBuilder.setId(request.getId());
 
       Exception exception = null;
@@ -239,8 +239,8 @@ public class FetchRequestHandler implements Dispatchable {
         if (!replyBuilder.hasStatus()) {
           replyBuilder.setStatus(statusCode.value);
         }
-        
-        reply = replyBuilder.build(); 
+
+        reply = replyBuilder.build();
         sendReply(reply);
         return reply;
 
@@ -252,15 +252,15 @@ public class FetchRequestHandler implements Dispatchable {
       } catch (Exception e) {
         exception = e;
         // Do not send reply.
-        replyBuilder.setStatus(StatusCode.AGENT_ERROR.value).build(); 
-      } 
+        replyBuilder.setStatus(StatusCode.AGENT_ERROR.value).build();
+      }
       LOG.warn(request.getId() + ": Exception while fetching " + request, exception);
       return replyBuilder.build();
     }
 
     @Override
     public String toString() {
-      return String.format("ResourceFetcher(request=%s,reply=%s)", 
+      return String.format("ResourceFetcher(request=%s,reply=%s)",
           this.request, this.reply);
     }
   }
@@ -292,7 +292,9 @@ public class FetchRequestHandler implements Dispatchable {
    */
   void sendReply(FetchReply reply) {
     Preconditions.checkNotNull(frameSender);
-    LOG.info("Sending reply " + reply);
+    LOG.info(reply.getId() + ": Sending reply status=" + reply.getStatus() +
+             ", latency=" + reply.getLatency());
+    LOG.debug("Sending reply =" + reply);
     frameSender.sendFrame(FrameInfo.Type.FETCH_REQUEST, reply.toByteString());
   }
 

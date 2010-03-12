@@ -18,6 +18,7 @@ package com.google.dataconnector.client;
 
 import com.google.dataconnector.util.ClientGuiceModule;
 import com.google.dataconnector.util.ConnectionException;
+import com.google.dataconnector.util.FileUtil;
 import com.google.dataconnector.util.LocalConf;
 import com.google.dataconnector.util.LocalConfException;
 import com.google.dataconnector.util.LocalConfValidator;
@@ -31,6 +32,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
+import java.io.IOException;
 import java.util.Properties;
 
 /**
@@ -102,13 +104,23 @@ public class Client {
       Logger.getRootLogger().setLevel(Level.DEBUG);
     }
     
+    
     // Connect
     try {
+      // If the password file is specified, then read its contents and override
+      // the password property with the contents read.  At this point the file
+      // is readable since the check has already been performed during validation.
+      if (localConf.getPasswordFile() != null) {
+      	String password = new FileUtil().readFile(localConf.getPasswordFile());
+      	localConf.setPassword(password);
+      }
       // start jsocks thread
       jsocksStarter.startJsocksProxy();
       // start main processing thread - to initiate connection/registration with the SDC server
       secureDataConnection.connect();
-    } catch (ConnectionException e) {
+    } catch (IOException e ) {
+      LOG.fatal("Cannot read password file.", e);
+    }	catch (ConnectionException e) {
       LOG.fatal("Connection failed.", e);
     } finally {
       shutdownManager.shutdownAll();

@@ -131,8 +131,14 @@ public class LocalConfValidator {
     }
 
     // oauthKey or password required
-    if (localConf.getPassword() == null) {
-      errors.append("'password' required\n");
+    String password = localConf.getPassword();
+    String passwordFile = localConf.getPasswordFile();
+    
+    if (password == null && passwordFile == null) {
+      errors.append("either 'password' or 'passwordFile' required\n");
+    } else if (password == null) {
+    	// No password, must have readable password file.
+      errors.append(canReadFile("passwordFile", passwordFile));
     }
 
     // sslKeyStoreFile
