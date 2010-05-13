@@ -68,6 +68,8 @@ public class SdcConnection implements FailCallback, Stoppable {
   public static final String INITIAL_HANDSHAKE_MSG = "v5.0 " +
      SdcConnection.class.getPackage().getImplementationVersion() + "\n";
 
+  private final static boolean RUN_HEALTH_CHECK = false;
+  
   // Dependencies.
   private final LocalConf localConf;
   private final SSLSocketFactoryInit sslSocketFactoryInit;
@@ -79,7 +81,8 @@ public class SdcConnection implements FailCallback, Stoppable {
   private final FetchRequestHandler agentRequestHandler;
   private final ResourcesFileWatcher resourcesFileWatcher;
   private final ShutdownManager shutdownManager;
-
+  private final SocketSessionRequestHandler socketSessionRequestHandler;
+  
   // Fields
   private SSLSocket socket;
 
@@ -94,6 +97,7 @@ public class SdcConnection implements FailCallback, Stoppable {
   * @param socksDataHandler
   * @param healthCheckHandler
   * @param agentRequestHandler
+  * @param socketSessionRequestHandler,
   * @param resourcesFileWatcher
   * @param shutdownManager
   */
@@ -106,6 +110,7 @@ public class SdcConnection implements FailCallback, Stoppable {
       final SocksDataHandler socksDataHandler,
       final HealthCheckHandler healthCheckHandler,
       final FetchRequestHandler agentRequestHandler,
+      final SocketSessionRequestHandler socketSessionRequestHandler,
       final ResourcesFileWatcher resourcesFileWatcher,
       final ShutdownManager shutdownManager) {
     this.localConf = localConf;
@@ -116,6 +121,7 @@ public class SdcConnection implements FailCallback, Stoppable {
     this.socksDataHandler = socksDataHandler;
     this.healthCheckHandler = healthCheckHandler;
     this.agentRequestHandler = agentRequestHandler;
+    this.socketSessionRequestHandler = socketSessionRequestHandler;
     this.resourcesFileWatcher = resourcesFileWatcher;
     this.shutdownManager = shutdownManager;
   }
@@ -174,10 +180,12 @@ public class SdcConnection implements FailCallback, Stoppable {
       frameReceiver.registerDispatcher(FrameInfo.Type.REGISTRATION, registration);
 
       // Setup Healthcheck
-      healthCheckHandler.setFrameSender(frameSender);
-      healthCheckHandler.setFailCallback(this);
-      frameReceiver.registerDispatcher(FrameInfo.Type.HEALTH_CHECK, healthCheckHandler);
-      healthCheckHandler.start();
+      if (RUN_HEALTH_CHECK) {
+        healthCheckHandler.setFrameSender(frameSender);
+        healthCheckHandler.setFailCallback(this);
+        frameReceiver.registerDispatcher(FrameInfo.Type.HEALTH_CHECK, healthCheckHandler);
+        healthCheckHandler.start();
+      }
 
       // Setup Socket Data.
       socksDataHandler.setFrameSender(frameSender);
@@ -186,7 +194,11 @@ public class SdcConnection implements FailCallback, Stoppable {
       // Setup AgentRequest handler
       agentRequestHandler.setFrameSender(frameSender);
       frameReceiver.registerDispatcher(FrameInfo.Type.FETCH_REQUEST, agentRequestHandler);
-      
+
+      // Setup SocketSessionRequestHandler
+      socketSessionRequestHandler.setFrameSender(frameSender);
+      frameReceiver.registerDispatcher(FrameInfo.Type.SOCKET_SESSION, socketSessionRequestHandler);
+
       // a thread to watch for changes in the resources.xml file
       // make this thread a daemon - so it can't hold up the process from exiting
       LOG.info("starting a thread to watch resources file");

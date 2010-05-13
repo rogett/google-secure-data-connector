@@ -31,7 +31,7 @@ import com.google.dataconnector.util.FileUtil;
 import com.google.dataconnector.util.LocalConf;
 import com.google.dataconnector.util.RegistrationException;
 import com.google.dataconnector.util.SdcKeysManager;
-import com.google.gdata.util.common.base.Preconditions;
+import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import com.google.protobuf.InvalidProtocolBufferException;
 

@@ -73,7 +73,7 @@ $Id: build.xml-dist 525 2010-02-17 01:03:08Z davidc616 $
     <available file="protoc" filepath="${env.PATH}" property="protoc_exists"/>
   </target>
 
-  <target name="protoc-all-protos" if="protoc_exists" depends="check-for-protoc">
+  <target name="protoc-all-protos"> <!-- if="protoc_exists" depends="check-for-protoc"-->
     <foreach param="proto-to-compile" target="compile-proto">
       <path>
         <fileset dir="${src}">

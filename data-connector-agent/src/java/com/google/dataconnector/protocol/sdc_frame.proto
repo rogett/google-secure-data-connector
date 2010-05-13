@@ -27,6 +27,7 @@ message FrameInfo {
     HEALTH_CHECK = 2;
     AUTHORIZATION = 3;
     FETCH_REQUEST = 4;
+    SOCKET_SESSION = 5; // Asynchronous session data.
   }
 
   optional int64 sequence = 1;
@@ -119,26 +120,67 @@ message HealthCheckInfo {
 
 // Generic message header of key/value pair.
 message MessageHeader {
-	required string key = 1;
-	required string value = 2;
+  required string key = 1;
+  required string value = 2;
 }
 
 // Proto definition corresponding to FrameInfo.Type=FETCH_REQUEST
 message FetchRequest {
-	required string id = 1;
+  required string id = 1;
   required string resource = 2;
-	optional string strategy = 3;
-	repeated MessageHeader headers = 4;
-	optional bytes contents = 5;
+  optional string strategy = 3;
+  repeated MessageHeader headers = 4;
+  optional bytes contents = 5;
 }
 
 // Proto definition of response to FrameInfo.Type=FETCH_REQUEST
 message FetchReply {
-	required string id = 1;
-	required int32 status = 2;
-	repeated MessageHeader headers = 3;
-	optional bytes contents = 4;
-	optional int64 latency = 5;
+  required string id = 1;
+  required int32 status = 2;
+  repeated MessageHeader headers = 3;
+  optional bytes contents = 4;
+  optional int64 latency = 5;
+}
+
+// Proto definition corresponding to FrameInfo.Type=SOCKET_REQUEST
+enum SocketSessionVerb {
+  CREATE = 1;  // Setup prior to creating socket: DNS lookup etc.
+  CONNECT = 2; // Connect
+  CLOSE = 3; // Close the socket.
+}
+
+message SocketSessionRequest {
+  required SocketSessionVerb verb = 1;
+  required bytes socketHandle = 2;
+  required string hostname = 3;
+  optional int32 port = 4;
+  repeated MessageHeader headers = 5;
+  optional int64 timeout = 6;
+}
+
+// Proto definition of response to FrameInfo.Type=SOCKET_REQUEST
+message SocketSessionReply {
+  enum Status {
+    OK = 1;
+    ERROR = 2;
+    UNKNOWN_HOST = 3;
+    CANNOT_CONNECT = 4;
+  }
+  required SocketSessionVerb verb = 1;
+  required bytes socketHandle = 2;
+  required Status status = 3;
+  required string hostname = 4;
+  optional int32 port = 5;
+  repeated MessageHeader headers = 6;
+  optional int64 latency = 7;
+}
+
+// Proto definition of response to FrameInfo.Type=SOCKET_SESSION
+message SocketSessionData {
+  required bytes socketHandle = 1;
+  optional bytes data = 2;
+  optional int64 streamOffset = 3;
+  optional bool close = 4;  // Closes connection after receive this data.
 }
 
 // registration request for v4 agents

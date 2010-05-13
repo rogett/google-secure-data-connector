@@ -7,6 +7,73 @@ public final class SdcFrame {
   public static void registerAllExtensions(
       com.google.protobuf.ExtensionRegistry registry) {
   }
+  public enum SocketSessionVerb
+      implements com.google.protobuf.ProtocolMessageEnum {
+    CREATE(0, 1),
+    CONNECT(1, 2),
+    CLOSE(2, 3),
+    ;
+    
+    
+    public final int getNumber() { return value; }
+    
+    public static SocketSessionVerb valueOf(int value) {
+      switch (value) {
+        case 1: return CREATE;
+        case 2: return CONNECT;
+        case 3: return CLOSE;
+        default: return null;
+      }
+    }
+    
+    public static com.google.protobuf.Internal.EnumLiteMap<SocketSessionVerb>
+        internalGetValueMap() {
+      return internalValueMap;
+    }
+    private static com.google.protobuf.Internal.EnumLiteMap<SocketSessionVerb>
+        internalValueMap =
+          new com.google.protobuf.Internal.EnumLiteMap<SocketSessionVerb>() {
+            public SocketSessionVerb findValueByNumber(int number) {
+              return SocketSessionVerb.valueOf(number)
+    ;        }
+          };
+    
+    public final com.google.protobuf.Descriptors.EnumValueDescriptor
+        getValueDescriptor() {
+      return getDescriptor().getValues().get(index);
+    }
+    public final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptorForType() {
+      return getDescriptor();
+    }
+    public static final com.google.protobuf.Descriptors.EnumDescriptor
+        getDescriptor() {
+      return com.google.dataconnector.protocol.proto.SdcFrame.getDescriptor().getEnumTypes().get(0);
+    }
+    
+    private static final SocketSessionVerb[] VALUES = {
+      CREATE, CONNECT, CLOSE, 
+    };
+    public static SocketSessionVerb valueOf(
+        com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+      if (desc.getType() != getDescriptor()) {
+        throw new java.lang.IllegalArgumentException(
+          "EnumValueDescriptor is not for this type.");
+      }
+      return VALUES[desc.getIndex()];
+    }
+    private final int index;
+    private final int value;
+    private SocketSessionVerb(int index, int value) {
+      this.index = index;
+      this.value = value;
+    }
+    
+    static {
+      com.google.dataconnector.protocol.proto.SdcFrame.getDescriptor();
+    }
+  }
+  
   public static final class FrameInfo extends
       com.google.protobuf.GeneratedMessage {
     // Use FrameInfo.newBuilder() to construct.
@@ -38,6 +105,7 @@ public final class SdcFrame {
       HEALTH_CHECK(2, 2),
       AUTHORIZATION(3, 3),
       FETCH_REQUEST(4, 4),
+      SOCKET_SESSION(5, 5),
       ;
       
       
@@ -50,6 +118,7 @@ public final class SdcFrame {
           case 2: return HEALTH_CHECK;
           case 3: return AUTHORIZATION;
           case 4: return FETCH_REQUEST;
+          case 5: return SOCKET_SESSION;
           default: return null;
         }
       }
@@ -80,7 +149,7 @@ public final class SdcFrame {
       }
       
       private static final Type[] VALUES = {
-        SOCKET_DATA, REGISTRATION, HEALTH_CHECK, AUTHORIZATION, FETCH_REQUEST, 
+        SOCKET_DATA, REGISTRATION, HEALTH_CHECK, AUTHORIZATION, FETCH_REQUEST, SOCKET_SESSION, 
       };
       public static Type valueOf(
           com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
@@ -4363,6 +4432,1575 @@ public final class SdcFrame {
     }
   }
   
+  public static final class SocketSessionRequest extends
+      com.google.protobuf.GeneratedMessage {
+    // Use SocketSessionRequest.newBuilder() to construct.
+    private SocketSessionRequest() {}
+    
+    private static final SocketSessionRequest defaultInstance = new SocketSessionRequest();
+    public static SocketSessionRequest getDefaultInstance() {
+      return defaultInstance;
+    }
+    
+    public SocketSessionRequest getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+    
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return com.google.dataconnector.protocol.proto.SdcFrame.internal_static_sdc_frame_SocketSessionRequest_descriptor;
+    }
+    
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return com.google.dataconnector.protocol.proto.SdcFrame.internal_static_sdc_frame_SocketSessionRequest_fieldAccessorTable;
+    }
+    
+    // required .sdc_frame.SocketSessionVerb verb = 1;
+    public static final int VERB_FIELD_NUMBER = 1;
+    private boolean hasVerb;
+    private com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionVerb verb_ = com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionVerb.CREATE;
+    public boolean hasVerb() { return hasVerb; }
+    public com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionVerb getVerb() { return verb_; }
+    
+    // required bytes socketHandle = 2;
+    public static final int SOCKETHANDLE_FIELD_NUMBER = 2;
+    private boolean hasSocketHandle;
+    private com.google.protobuf.ByteString socketHandle_ = com.google.protobuf.ByteString.EMPTY;
+    public boolean hasSocketHandle() { return hasSocketHandle; }
+    public com.google.protobuf.ByteString getSocketHandle() { return socketHandle_; }
+    
+    // required string hostname = 3;
+    public static final int HOSTNAME_FIELD_NUMBER = 3;
+    private boolean hasHostname;
+    private java.lang.String hostname_ = "";
+    public boolean hasHostname() { return hasHostname; }
+    public java.lang.String getHostname() { return hostname_; }
+    
+    // optional int32 port = 4;
+    public static final int PORT_FIELD_NUMBER = 4;
+    private boolean hasPort;
+    private int port_ = 0;
+    public boolean hasPort() { return hasPort; }
+    public int getPort() { return port_; }
+    
+    // repeated .sdc_frame.MessageHeader headers = 5;
+    public static final int HEADERS_FIELD_NUMBER = 5;
+    private java.util.List<com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader> headers_ =
+      java.util.Collections.emptyList();
+    public java.util.List<com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader> getHeadersList() {
+      return headers_;
+    }
+    public int getHeadersCount() { return headers_.size(); }
+    public com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader getHeaders(int index) {
+      return headers_.get(index);
+    }
+    
+    // optional int64 timeout = 6;
+    public static final int TIMEOUT_FIELD_NUMBER = 6;
+    private boolean hasTimeout;
+    private long timeout_ = 0L;
+    public boolean hasTimeout() { return hasTimeout; }
+    public long getTimeout() { return timeout_; }
+    
+    public final boolean isInitialized() {
+      if (!hasVerb) return false;
+      if (!hasSocketHandle) return false;
+      if (!hasHostname) return false;
+      for (com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader element : getHeadersList()) {
+        if (!element.isInitialized()) return false;
+      }
+      return true;
+    }
+    
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (hasVerb()) {
+        output.writeEnum(1, getVerb().getNumber());
+      }
+      if (hasSocketHandle()) {
+        output.writeBytes(2, getSocketHandle());
+      }
+      if (hasHostname()) {
+        output.writeString(3, getHostname());
+      }
+      if (hasPort()) {
+        output.writeInt32(4, getPort());
+      }
+      for (com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader element : getHeadersList()) {
+        output.writeMessage(5, element);
+      }
+      if (hasTimeout()) {
+        output.writeInt64(6, getTimeout());
+      }
+      getUnknownFields().writeTo(output);
+    }
+    
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+    
+      size = 0;
+      if (hasVerb()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(1, getVerb().getNumber());
+      }
+      if (hasSocketHandle()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(2, getSocketHandle());
+      }
+      if (hasHostname()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeStringSize(3, getHostname());
+      }
+      if (hasPort()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(4, getPort());
+      }
+      for (com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader element : getHeadersList()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(5, element);
+      }
+      if (hasTimeout()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(6, getTimeout());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+    
+    public static com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionRequest parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionRequest parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionRequest parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionRequest parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionRequest parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionRequest parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionRequest parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeDelimitedFrom(input).buildParsed();
+    }
+    public static com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionRequest parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeDelimitedFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionRequest parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionRequest parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionRequest prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+    
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> {
+      private com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionRequest result;
+      
+      // Construct using com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionRequest.newBuilder()
+      private Builder() {}
+      
+      private static Builder create() {
+        Builder builder = new Builder();
+        builder.result = new com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionRequest();
+        return builder;
+      }
+      
+      protected com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionRequest internalGetResult() {
+        return result;
+      }
+      
+      public Builder clear() {
+        if (result == null) {
+          throw new IllegalStateException(
+            "Cannot call clear() after build().");
+        }
+        result = new com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionRequest();
+        return this;
+      }
+      
+      public Builder clone() {
+        return create().mergeFrom(result);
+      }
+      
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionRequest.getDescriptor();
+      }
+      
+      public com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionRequest getDefaultInstanceForType() {
+        return com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionRequest.getDefaultInstance();
+      }
+      
+      public boolean isInitialized() {
+        return result.isInitialized();
+      }
+      public com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionRequest build() {
+        if (result != null && !isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return buildPartial();
+      }
+      
+      private com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionRequest buildParsed()
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        if (!isInitialized()) {
+          throw newUninitializedMessageException(
+            result).asInvalidProtocolBufferException();
+        }
+        return buildPartial();
+      }
+      
+      public com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionRequest buildPartial() {
+        if (result == null) {
+          throw new IllegalStateException(
+            "build() has already been called on this Builder.");
+        }
+        if (result.headers_ != java.util.Collections.EMPTY_LIST) {
+          result.headers_ =
+            java.util.Collections.unmodifiableList(result.headers_);
+        }
+        com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionRequest returnMe = result;
+        result = null;
+        return returnMe;
+      }
+      
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionRequest) {
+          return mergeFrom((com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionRequest)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+      
+      public Builder mergeFrom(com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionRequest other) {
+        if (other == com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionRequest.getDefaultInstance()) return this;
+        if (other.hasVerb()) {
+          setVerb(other.getVerb());
+        }
+        if (other.hasSocketHandle()) {
+          setSocketHandle(other.getSocketHandle());
+        }
+        if (other.hasHostname()) {
+          setHostname(other.getHostname());
+        }
+        if (other.hasPort()) {
+          setPort(other.getPort());
+        }
+        if (!other.headers_.isEmpty()) {
+          if (result.headers_.isEmpty()) {
+            result.headers_ = new java.util.ArrayList<com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader>();
+          }
+          result.headers_.addAll(other.headers_);
+        }
+        if (other.hasTimeout()) {
+          setTimeout(other.getTimeout());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+      
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder(
+            this.getUnknownFields());
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              this.setUnknownFields(unknownFields.build());
+              return this;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                this.setUnknownFields(unknownFields.build());
+                return this;
+              }
+              break;
+            }
+            case 8: {
+              int rawValue = input.readEnum();
+              com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionVerb value = com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionVerb.valueOf(rawValue);
+              if (value == null) {
+                unknownFields.mergeVarintField(1, rawValue);
+              } else {
+                setVerb(value);
+              }
+              break;
+            }
+            case 18: {
+              setSocketHandle(input.readBytes());
+              break;
+            }
+            case 26: {
+              setHostname(input.readString());
+              break;
+            }
+            case 32: {
+              setPort(input.readInt32());
+              break;
+            }
+            case 42: {
+              com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader.Builder subBuilder = com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader.newBuilder();
+              input.readMessage(subBuilder, extensionRegistry);
+              addHeaders(subBuilder.buildPartial());
+              break;
+            }
+            case 48: {
+              setTimeout(input.readInt64());
+              break;
+            }
+          }
+        }
+      }
+      
+      
+      // required .sdc_frame.SocketSessionVerb verb = 1;
+      public boolean hasVerb() {
+        return result.hasVerb();
+      }
+      public com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionVerb getVerb() {
+        return result.getVerb();
+      }
+      public Builder setVerb(com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionVerb value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        result.hasVerb = true;
+        result.verb_ = value;
+        return this;
+      }
+      public Builder clearVerb() {
+        result.hasVerb = false;
+        result.verb_ = com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionVerb.CREATE;
+        return this;
+      }
+      
+      // required bytes socketHandle = 2;
+      public boolean hasSocketHandle() {
+        return result.hasSocketHandle();
+      }
+      public com.google.protobuf.ByteString getSocketHandle() {
+        return result.getSocketHandle();
+      }
+      public Builder setSocketHandle(com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  result.hasSocketHandle = true;
+        result.socketHandle_ = value;
+        return this;
+      }
+      public Builder clearSocketHandle() {
+        result.hasSocketHandle = false;
+        result.socketHandle_ = getDefaultInstance().getSocketHandle();
+        return this;
+      }
+      
+      // required string hostname = 3;
+      public boolean hasHostname() {
+        return result.hasHostname();
+      }
+      public java.lang.String getHostname() {
+        return result.getHostname();
+      }
+      public Builder setHostname(java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  result.hasHostname = true;
+        result.hostname_ = value;
+        return this;
+      }
+      public Builder clearHostname() {
+        result.hasHostname = false;
+        result.hostname_ = getDefaultInstance().getHostname();
+        return this;
+      }
+      
+      // optional int32 port = 4;
+      public boolean hasPort() {
+        return result.hasPort();
+      }
+      public int getPort() {
+        return result.getPort();
+      }
+      public Builder setPort(int value) {
+        result.hasPort = true;
+        result.port_ = value;
+        return this;
+      }
+      public Builder clearPort() {
+        result.hasPort = false;
+        result.port_ = 0;
+        return this;
+      }
+      
+      // repeated .sdc_frame.MessageHeader headers = 5;
+      public java.util.List<com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader> getHeadersList() {
+        return java.util.Collections.unmodifiableList(result.headers_);
+      }
+      public int getHeadersCount() {
+        return result.getHeadersCount();
+      }
+      public com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader getHeaders(int index) {
+        return result.getHeaders(index);
+      }
+      public Builder setHeaders(int index, com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        result.headers_.set(index, value);
+        return this;
+      }
+      public Builder setHeaders(int index, com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader.Builder builderForValue) {
+        result.headers_.set(index, builderForValue.build());
+        return this;
+      }
+      public Builder addHeaders(com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        if (result.headers_.isEmpty()) {
+          result.headers_ = new java.util.ArrayList<com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader>();
+        }
+        result.headers_.add(value);
+        return this;
+      }
+      public Builder addHeaders(com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader.Builder builderForValue) {
+        if (result.headers_.isEmpty()) {
+          result.headers_ = new java.util.ArrayList<com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader>();
+        }
+        result.headers_.add(builderForValue.build());
+        return this;
+      }
+      public Builder addAllHeaders(
+          java.lang.Iterable<? extends com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader> values) {
+        if (result.headers_.isEmpty()) {
+          result.headers_ = new java.util.ArrayList<com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader>();
+        }
+        super.addAll(values, result.headers_);
+        return this;
+      }
+      public Builder clearHeaders() {
+        result.headers_ = java.util.Collections.emptyList();
+        return this;
+      }
+      
+      // optional int64 timeout = 6;
+      public boolean hasTimeout() {
+        return result.hasTimeout();
+      }
+      public long getTimeout() {
+        return result.getTimeout();
+      }
+      public Builder setTimeout(long value) {
+        result.hasTimeout = true;
+        result.timeout_ = value;
+        return this;
+      }
+      public Builder clearTimeout() {
+        result.hasTimeout = false;
+        result.timeout_ = 0L;
+        return this;
+      }
+    }
+    
+    static {
+      com.google.dataconnector.protocol.proto.SdcFrame.getDescriptor();
+    }
+    
+    static {
+      com.google.dataconnector.protocol.proto.SdcFrame.internalForceInit();
+    }
+  }
+  
+  public static final class SocketSessionReply extends
+      com.google.protobuf.GeneratedMessage {
+    // Use SocketSessionReply.newBuilder() to construct.
+    private SocketSessionReply() {}
+    
+    private static final SocketSessionReply defaultInstance = new SocketSessionReply();
+    public static SocketSessionReply getDefaultInstance() {
+      return defaultInstance;
+    }
+    
+    public SocketSessionReply getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+    
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return com.google.dataconnector.protocol.proto.SdcFrame.internal_static_sdc_frame_SocketSessionReply_descriptor;
+    }
+    
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return com.google.dataconnector.protocol.proto.SdcFrame.internal_static_sdc_frame_SocketSessionReply_fieldAccessorTable;
+    }
+    
+    public enum Status
+        implements com.google.protobuf.ProtocolMessageEnum {
+      OK(0, 1),
+      ERROR(1, 2),
+      UNKNOWN_HOST(2, 3),
+      CANNOT_CONNECT(3, 4),
+      ;
+      
+      
+      public final int getNumber() { return value; }
+      
+      public static Status valueOf(int value) {
+        switch (value) {
+          case 1: return OK;
+          case 2: return ERROR;
+          case 3: return UNKNOWN_HOST;
+          case 4: return CANNOT_CONNECT;
+          default: return null;
+        }
+      }
+      
+      public static com.google.protobuf.Internal.EnumLiteMap<Status>
+          internalGetValueMap() {
+        return internalValueMap;
+      }
+      private static com.google.protobuf.Internal.EnumLiteMap<Status>
+          internalValueMap =
+            new com.google.protobuf.Internal.EnumLiteMap<Status>() {
+              public Status findValueByNumber(int number) {
+                return Status.valueOf(number)
+      ;        }
+            };
+      
+      public final com.google.protobuf.Descriptors.EnumValueDescriptor
+          getValueDescriptor() {
+        return getDescriptor().getValues().get(index);
+      }
+      public final com.google.protobuf.Descriptors.EnumDescriptor
+          getDescriptorForType() {
+        return getDescriptor();
+      }
+      public static final com.google.protobuf.Descriptors.EnumDescriptor
+          getDescriptor() {
+        return com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply.getDescriptor().getEnumTypes().get(0);
+      }
+      
+      private static final Status[] VALUES = {
+        OK, ERROR, UNKNOWN_HOST, CANNOT_CONNECT, 
+      };
+      public static Status valueOf(
+          com.google.protobuf.Descriptors.EnumValueDescriptor desc) {
+        if (desc.getType() != getDescriptor()) {
+          throw new java.lang.IllegalArgumentException(
+            "EnumValueDescriptor is not for this type.");
+        }
+        return VALUES[desc.getIndex()];
+      }
+      private final int index;
+      private final int value;
+      private Status(int index, int value) {
+        this.index = index;
+        this.value = value;
+      }
+      
+      static {
+        com.google.dataconnector.protocol.proto.SdcFrame.getDescriptor();
+      }
+    }
+    
+    // required .sdc_frame.SocketSessionVerb verb = 1;
+    public static final int VERB_FIELD_NUMBER = 1;
+    private boolean hasVerb;
+    private com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionVerb verb_ = com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionVerb.CREATE;
+    public boolean hasVerb() { return hasVerb; }
+    public com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionVerb getVerb() { return verb_; }
+    
+    // required bytes socketHandle = 2;
+    public static final int SOCKETHANDLE_FIELD_NUMBER = 2;
+    private boolean hasSocketHandle;
+    private com.google.protobuf.ByteString socketHandle_ = com.google.protobuf.ByteString.EMPTY;
+    public boolean hasSocketHandle() { return hasSocketHandle; }
+    public com.google.protobuf.ByteString getSocketHandle() { return socketHandle_; }
+    
+    // required .sdc_frame.SocketSessionReply.Status status = 3;
+    public static final int STATUS_FIELD_NUMBER = 3;
+    private boolean hasStatus;
+    private com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply.Status status_ = com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply.Status.OK;
+    public boolean hasStatus() { return hasStatus; }
+    public com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply.Status getStatus() { return status_; }
+    
+    // required string hostname = 4;
+    public static final int HOSTNAME_FIELD_NUMBER = 4;
+    private boolean hasHostname;
+    private java.lang.String hostname_ = "";
+    public boolean hasHostname() { return hasHostname; }
+    public java.lang.String getHostname() { return hostname_; }
+    
+    // optional int32 port = 5;
+    public static final int PORT_FIELD_NUMBER = 5;
+    private boolean hasPort;
+    private int port_ = 0;
+    public boolean hasPort() { return hasPort; }
+    public int getPort() { return port_; }
+    
+    // repeated .sdc_frame.MessageHeader headers = 6;
+    public static final int HEADERS_FIELD_NUMBER = 6;
+    private java.util.List<com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader> headers_ =
+      java.util.Collections.emptyList();
+    public java.util.List<com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader> getHeadersList() {
+      return headers_;
+    }
+    public int getHeadersCount() { return headers_.size(); }
+    public com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader getHeaders(int index) {
+      return headers_.get(index);
+    }
+    
+    // optional int64 latency = 7;
+    public static final int LATENCY_FIELD_NUMBER = 7;
+    private boolean hasLatency;
+    private long latency_ = 0L;
+    public boolean hasLatency() { return hasLatency; }
+    public long getLatency() { return latency_; }
+    
+    public final boolean isInitialized() {
+      if (!hasVerb) return false;
+      if (!hasSocketHandle) return false;
+      if (!hasStatus) return false;
+      if (!hasHostname) return false;
+      for (com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader element : getHeadersList()) {
+        if (!element.isInitialized()) return false;
+      }
+      return true;
+    }
+    
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (hasVerb()) {
+        output.writeEnum(1, getVerb().getNumber());
+      }
+      if (hasSocketHandle()) {
+        output.writeBytes(2, getSocketHandle());
+      }
+      if (hasStatus()) {
+        output.writeEnum(3, getStatus().getNumber());
+      }
+      if (hasHostname()) {
+        output.writeString(4, getHostname());
+      }
+      if (hasPort()) {
+        output.writeInt32(5, getPort());
+      }
+      for (com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader element : getHeadersList()) {
+        output.writeMessage(6, element);
+      }
+      if (hasLatency()) {
+        output.writeInt64(7, getLatency());
+      }
+      getUnknownFields().writeTo(output);
+    }
+    
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+    
+      size = 0;
+      if (hasVerb()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(1, getVerb().getNumber());
+      }
+      if (hasSocketHandle()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(2, getSocketHandle());
+      }
+      if (hasStatus()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeEnumSize(3, getStatus().getNumber());
+      }
+      if (hasHostname()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeStringSize(4, getHostname());
+      }
+      if (hasPort()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(5, getPort());
+      }
+      for (com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader element : getHeadersList()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(6, element);
+      }
+      if (hasLatency()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(7, getLatency());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+    
+    public static com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeDelimitedFrom(input).buildParsed();
+    }
+    public static com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeDelimitedFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+    
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> {
+      private com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply result;
+      
+      // Construct using com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply.newBuilder()
+      private Builder() {}
+      
+      private static Builder create() {
+        Builder builder = new Builder();
+        builder.result = new com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply();
+        return builder;
+      }
+      
+      protected com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply internalGetResult() {
+        return result;
+      }
+      
+      public Builder clear() {
+        if (result == null) {
+          throw new IllegalStateException(
+            "Cannot call clear() after build().");
+        }
+        result = new com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply();
+        return this;
+      }
+      
+      public Builder clone() {
+        return create().mergeFrom(result);
+      }
+      
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply.getDescriptor();
+      }
+      
+      public com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply getDefaultInstanceForType() {
+        return com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply.getDefaultInstance();
+      }
+      
+      public boolean isInitialized() {
+        return result.isInitialized();
+      }
+      public com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply build() {
+        if (result != null && !isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return buildPartial();
+      }
+      
+      private com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply buildParsed()
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        if (!isInitialized()) {
+          throw newUninitializedMessageException(
+            result).asInvalidProtocolBufferException();
+        }
+        return buildPartial();
+      }
+      
+      public com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply buildPartial() {
+        if (result == null) {
+          throw new IllegalStateException(
+            "build() has already been called on this Builder.");
+        }
+        if (result.headers_ != java.util.Collections.EMPTY_LIST) {
+          result.headers_ =
+            java.util.Collections.unmodifiableList(result.headers_);
+        }
+        com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply returnMe = result;
+        result = null;
+        return returnMe;
+      }
+      
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply) {
+          return mergeFrom((com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+      
+      public Builder mergeFrom(com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply other) {
+        if (other == com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply.getDefaultInstance()) return this;
+        if (other.hasVerb()) {
+          setVerb(other.getVerb());
+        }
+        if (other.hasSocketHandle()) {
+          setSocketHandle(other.getSocketHandle());
+        }
+        if (other.hasStatus()) {
+          setStatus(other.getStatus());
+        }
+        if (other.hasHostname()) {
+          setHostname(other.getHostname());
+        }
+        if (other.hasPort()) {
+          setPort(other.getPort());
+        }
+        if (!other.headers_.isEmpty()) {
+          if (result.headers_.isEmpty()) {
+            result.headers_ = new java.util.ArrayList<com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader>();
+          }
+          result.headers_.addAll(other.headers_);
+        }
+        if (other.hasLatency()) {
+          setLatency(other.getLatency());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+      
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder(
+            this.getUnknownFields());
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              this.setUnknownFields(unknownFields.build());
+              return this;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                this.setUnknownFields(unknownFields.build());
+                return this;
+              }
+              break;
+            }
+            case 8: {
+              int rawValue = input.readEnum();
+              com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionVerb value = com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionVerb.valueOf(rawValue);
+              if (value == null) {
+                unknownFields.mergeVarintField(1, rawValue);
+              } else {
+                setVerb(value);
+              }
+              break;
+            }
+            case 18: {
+              setSocketHandle(input.readBytes());
+              break;
+            }
+            case 24: {
+              int rawValue = input.readEnum();
+              com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply.Status value = com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply.Status.valueOf(rawValue);
+              if (value == null) {
+                unknownFields.mergeVarintField(3, rawValue);
+              } else {
+                setStatus(value);
+              }
+              break;
+            }
+            case 34: {
+              setHostname(input.readString());
+              break;
+            }
+            case 40: {
+              setPort(input.readInt32());
+              break;
+            }
+            case 50: {
+              com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader.Builder subBuilder = com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader.newBuilder();
+              input.readMessage(subBuilder, extensionRegistry);
+              addHeaders(subBuilder.buildPartial());
+              break;
+            }
+            case 56: {
+              setLatency(input.readInt64());
+              break;
+            }
+          }
+        }
+      }
+      
+      
+      // required .sdc_frame.SocketSessionVerb verb = 1;
+      public boolean hasVerb() {
+        return result.hasVerb();
+      }
+      public com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionVerb getVerb() {
+        return result.getVerb();
+      }
+      public Builder setVerb(com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionVerb value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        result.hasVerb = true;
+        result.verb_ = value;
+        return this;
+      }
+      public Builder clearVerb() {
+        result.hasVerb = false;
+        result.verb_ = com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionVerb.CREATE;
+        return this;
+      }
+      
+      // required bytes socketHandle = 2;
+      public boolean hasSocketHandle() {
+        return result.hasSocketHandle();
+      }
+      public com.google.protobuf.ByteString getSocketHandle() {
+        return result.getSocketHandle();
+      }
+      public Builder setSocketHandle(com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  result.hasSocketHandle = true;
+        result.socketHandle_ = value;
+        return this;
+      }
+      public Builder clearSocketHandle() {
+        result.hasSocketHandle = false;
+        result.socketHandle_ = getDefaultInstance().getSocketHandle();
+        return this;
+      }
+      
+      // required .sdc_frame.SocketSessionReply.Status status = 3;
+      public boolean hasStatus() {
+        return result.hasStatus();
+      }
+      public com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply.Status getStatus() {
+        return result.getStatus();
+      }
+      public Builder setStatus(com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply.Status value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        result.hasStatus = true;
+        result.status_ = value;
+        return this;
+      }
+      public Builder clearStatus() {
+        result.hasStatus = false;
+        result.status_ = com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply.Status.OK;
+        return this;
+      }
+      
+      // required string hostname = 4;
+      public boolean hasHostname() {
+        return result.hasHostname();
+      }
+      public java.lang.String getHostname() {
+        return result.getHostname();
+      }
+      public Builder setHostname(java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  result.hasHostname = true;
+        result.hostname_ = value;
+        return this;
+      }
+      public Builder clearHostname() {
+        result.hasHostname = false;
+        result.hostname_ = getDefaultInstance().getHostname();
+        return this;
+      }
+      
+      // optional int32 port = 5;
+      public boolean hasPort() {
+        return result.hasPort();
+      }
+      public int getPort() {
+        return result.getPort();
+      }
+      public Builder setPort(int value) {
+        result.hasPort = true;
+        result.port_ = value;
+        return this;
+      }
+      public Builder clearPort() {
+        result.hasPort = false;
+        result.port_ = 0;
+        return this;
+      }
+      
+      // repeated .sdc_frame.MessageHeader headers = 6;
+      public java.util.List<com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader> getHeadersList() {
+        return java.util.Collections.unmodifiableList(result.headers_);
+      }
+      public int getHeadersCount() {
+        return result.getHeadersCount();
+      }
+      public com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader getHeaders(int index) {
+        return result.getHeaders(index);
+      }
+      public Builder setHeaders(int index, com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        result.headers_.set(index, value);
+        return this;
+      }
+      public Builder setHeaders(int index, com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader.Builder builderForValue) {
+        result.headers_.set(index, builderForValue.build());
+        return this;
+      }
+      public Builder addHeaders(com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        if (result.headers_.isEmpty()) {
+          result.headers_ = new java.util.ArrayList<com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader>();
+        }
+        result.headers_.add(value);
+        return this;
+      }
+      public Builder addHeaders(com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader.Builder builderForValue) {
+        if (result.headers_.isEmpty()) {
+          result.headers_ = new java.util.ArrayList<com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader>();
+        }
+        result.headers_.add(builderForValue.build());
+        return this;
+      }
+      public Builder addAllHeaders(
+          java.lang.Iterable<? extends com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader> values) {
+        if (result.headers_.isEmpty()) {
+          result.headers_ = new java.util.ArrayList<com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader>();
+        }
+        super.addAll(values, result.headers_);
+        return this;
+      }
+      public Builder clearHeaders() {
+        result.headers_ = java.util.Collections.emptyList();
+        return this;
+      }
+      
+      // optional int64 latency = 7;
+      public boolean hasLatency() {
+        return result.hasLatency();
+      }
+      public long getLatency() {
+        return result.getLatency();
+      }
+      public Builder setLatency(long value) {
+        result.hasLatency = true;
+        result.latency_ = value;
+        return this;
+      }
+      public Builder clearLatency() {
+        result.hasLatency = false;
+        result.latency_ = 0L;
+        return this;
+      }
+    }
+    
+    static {
+      com.google.dataconnector.protocol.proto.SdcFrame.getDescriptor();
+    }
+    
+    static {
+      com.google.dataconnector.protocol.proto.SdcFrame.internalForceInit();
+    }
+  }
+  
+  public static final class SocketSessionData extends
+      com.google.protobuf.GeneratedMessage {
+    // Use SocketSessionData.newBuilder() to construct.
+    private SocketSessionData() {}
+    
+    private static final SocketSessionData defaultInstance = new SocketSessionData();
+    public static SocketSessionData getDefaultInstance() {
+      return defaultInstance;
+    }
+    
+    public SocketSessionData getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+    
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return com.google.dataconnector.protocol.proto.SdcFrame.internal_static_sdc_frame_SocketSessionData_descriptor;
+    }
+    
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return com.google.dataconnector.protocol.proto.SdcFrame.internal_static_sdc_frame_SocketSessionData_fieldAccessorTable;
+    }
+    
+    // required bytes socketHandle = 1;
+    public static final int SOCKETHANDLE_FIELD_NUMBER = 1;
+    private boolean hasSocketHandle;
+    private com.google.protobuf.ByteString socketHandle_ = com.google.protobuf.ByteString.EMPTY;
+    public boolean hasSocketHandle() { return hasSocketHandle; }
+    public com.google.protobuf.ByteString getSocketHandle() { return socketHandle_; }
+    
+    // optional bytes data = 2;
+    public static final int DATA_FIELD_NUMBER = 2;
+    private boolean hasData;
+    private com.google.protobuf.ByteString data_ = com.google.protobuf.ByteString.EMPTY;
+    public boolean hasData() { return hasData; }
+    public com.google.protobuf.ByteString getData() { return data_; }
+    
+    // optional int64 streamOffset = 3;
+    public static final int STREAMOFFSET_FIELD_NUMBER = 3;
+    private boolean hasStreamOffset;
+    private long streamOffset_ = 0L;
+    public boolean hasStreamOffset() { return hasStreamOffset; }
+    public long getStreamOffset() { return streamOffset_; }
+    
+    // optional bool close = 4;
+    public static final int CLOSE_FIELD_NUMBER = 4;
+    private boolean hasClose;
+    private boolean close_ = false;
+    public boolean hasClose() { return hasClose; }
+    public boolean getClose() { return close_; }
+    
+    public final boolean isInitialized() {
+      if (!hasSocketHandle) return false;
+      return true;
+    }
+    
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (hasSocketHandle()) {
+        output.writeBytes(1, getSocketHandle());
+      }
+      if (hasData()) {
+        output.writeBytes(2, getData());
+      }
+      if (hasStreamOffset()) {
+        output.writeInt64(3, getStreamOffset());
+      }
+      if (hasClose()) {
+        output.writeBool(4, getClose());
+      }
+      getUnknownFields().writeTo(output);
+    }
+    
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+    
+      size = 0;
+      if (hasSocketHandle()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(1, getSocketHandle());
+      }
+      if (hasData()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(2, getData());
+      }
+      if (hasStreamOffset()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(3, getStreamOffset());
+      }
+      if (hasClose()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(4, getClose());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+    
+    public static com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionData parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionData parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionData parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionData parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionData parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionData parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionData parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeDelimitedFrom(input).buildParsed();
+    }
+    public static com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionData parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeDelimitedFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionData parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionData parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionData prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+    
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> {
+      private com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionData result;
+      
+      // Construct using com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionData.newBuilder()
+      private Builder() {}
+      
+      private static Builder create() {
+        Builder builder = new Builder();
+        builder.result = new com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionData();
+        return builder;
+      }
+      
+      protected com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionData internalGetResult() {
+        return result;
+      }
+      
+      public Builder clear() {
+        if (result == null) {
+          throw new IllegalStateException(
+            "Cannot call clear() after build().");
+        }
+        result = new com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionData();
+        return this;
+      }
+      
+      public Builder clone() {
+        return create().mergeFrom(result);
+      }
+      
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionData.getDescriptor();
+      }
+      
+      public com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionData getDefaultInstanceForType() {
+        return com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionData.getDefaultInstance();
+      }
+      
+      public boolean isInitialized() {
+        return result.isInitialized();
+      }
+      public com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionData build() {
+        if (result != null && !isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return buildPartial();
+      }
+      
+      private com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionData buildParsed()
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        if (!isInitialized()) {
+          throw newUninitializedMessageException(
+            result).asInvalidProtocolBufferException();
+        }
+        return buildPartial();
+      }
+      
+      public com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionData buildPartial() {
+        if (result == null) {
+          throw new IllegalStateException(
+            "build() has already been called on this Builder.");
+        }
+        com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionData returnMe = result;
+        result = null;
+        return returnMe;
+      }
+      
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionData) {
+          return mergeFrom((com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionData)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+      
+      public Builder mergeFrom(com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionData other) {
+        if (other == com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionData.getDefaultInstance()) return this;
+        if (other.hasSocketHandle()) {
+          setSocketHandle(other.getSocketHandle());
+        }
+        if (other.hasData()) {
+          setData(other.getData());
+        }
+        if (other.hasStreamOffset()) {
+          setStreamOffset(other.getStreamOffset());
+        }
+        if (other.hasClose()) {
+          setClose(other.getClose());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+      
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder(
+            this.getUnknownFields());
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              this.setUnknownFields(unknownFields.build());
+              return this;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                this.setUnknownFields(unknownFields.build());
+                return this;
+              }
+              break;
+            }
+            case 10: {
+              setSocketHandle(input.readBytes());
+              break;
+            }
+            case 18: {
+              setData(input.readBytes());
+              break;
+            }
+            case 24: {
+              setStreamOffset(input.readInt64());
+              break;
+            }
+            case 32: {
+              setClose(input.readBool());
+              break;
+            }
+          }
+        }
+      }
+      
+      
+      // required bytes socketHandle = 1;
+      public boolean hasSocketHandle() {
+        return result.hasSocketHandle();
+      }
+      public com.google.protobuf.ByteString getSocketHandle() {
+        return result.getSocketHandle();
+      }
+      public Builder setSocketHandle(com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  result.hasSocketHandle = true;
+        result.socketHandle_ = value;
+        return this;
+      }
+      public Builder clearSocketHandle() {
+        result.hasSocketHandle = false;
+        result.socketHandle_ = getDefaultInstance().getSocketHandle();
+        return this;
+      }
+      
+      // optional bytes data = 2;
+      public boolean hasData() {
+        return result.hasData();
+      }
+      public com.google.protobuf.ByteString getData() {
+        return result.getData();
+      }
+      public Builder setData(com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  result.hasData = true;
+        result.data_ = value;
+        return this;
+      }
+      public Builder clearData() {
+        result.hasData = false;
+        result.data_ = getDefaultInstance().getData();
+        return this;
+      }
+      
+      // optional int64 streamOffset = 3;
+      public boolean hasStreamOffset() {
+        return result.hasStreamOffset();
+      }
+      public long getStreamOffset() {
+        return result.getStreamOffset();
+      }
+      public Builder setStreamOffset(long value) {
+        result.hasStreamOffset = true;
+        result.streamOffset_ = value;
+        return this;
+      }
+      public Builder clearStreamOffset() {
+        result.hasStreamOffset = false;
+        result.streamOffset_ = 0L;
+        return this;
+      }
+      
+      // optional bool close = 4;
+      public boolean hasClose() {
+        return result.hasClose();
+      }
+      public boolean getClose() {
+        return result.getClose();
+      }
+      public Builder setClose(boolean value) {
+        result.hasClose = true;
+        result.close_ = value;
+        return this;
+      }
+      public Builder clearClose() {
+        result.hasClose = false;
+        result.close_ = false;
+        return this;
+      }
+    }
+    
+    static {
+      com.google.dataconnector.protocol.proto.SdcFrame.getDescriptor();
+    }
+    
+    static {
+      com.google.dataconnector.protocol.proto.SdcFrame.internalForceInit();
+    }
+  }
+  
   public static final class RegistrationRequestV4 extends
       com.google.protobuf.GeneratedMessage {
     // Use RegistrationRequestV4.newBuilder() to construct.
@@ -5424,6 +7062,21 @@ public final class SdcFrame {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_sdc_frame_FetchReply_fieldAccessorTable;
   private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_sdc_frame_SocketSessionRequest_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_sdc_frame_SocketSessionRequest_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_sdc_frame_SocketSessionReply_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_sdc_frame_SocketSessionReply_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_sdc_frame_SocketSessionData_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_sdc_frame_SocketSessionData_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_sdc_frame_RegistrationRequestV4_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -5443,57 +7096,73 @@ public final class SdcFrame {
   static {
     java.lang.String[] descriptorData = {
       "\n:src/java/com/google/dataconnector/prot" +
-      "ocol/sdc_frame.proto\022\tsdc_frame\"\272\001\n\tFram" +
+      "ocol/sdc_frame.proto\022\tsdc_frame\"\316\001\n\tFram" +
       "eInfo\022\020\n\010sequence\030\001 \001(\003\022\'\n\004type\030\002 \001(\0162\031." +
       "sdc_frame.FrameInfo.Type\022\017\n\007payload\030\003 \001(" +
-      "\014\"a\n\004Type\022\017\n\013SOCKET_DATA\020\000\022\020\n\014REGISTRATI" +
+      "\014\"u\n\004Type\022\017\n\013SOCKET_DATA\020\000\022\020\n\014REGISTRATI" +
       "ON\020\001\022\020\n\014HEALTH_CHECK\020\002\022\021\n\rAUTHORIZATION\020" +
-      "\003\022\021\n\rFETCH_REQUEST\020\004\"\224\001\n\016SocketDataInfo\022" +
-      "\024\n\014connectionId\030\001 \002(\003\022.\n\005state\030\002 \002(\0162\037.s" +
-      "dc_frame.SocketDataInfo.State\022\017\n\007segment" +
-      "\030\003 \001(\014\"+\n\005State\022\t\n\005START\020\000\022\014\n\010CONTINUE\020\001",
-      "\022\t\n\005CLOSE\020\002\"\300\002\n\021AuthorizationInfo\022\r\n\005ema" +
-      "il\030\001 \001(\t\0227\n\010authType\030\002 \001(\0162%.sdc_frame.A" +
-      "uthorizationInfo.AuthType\022\020\n\010password\030\003 " +
-      "\001(\t\0227\n\006result\030\005 \001(\0162\'.sdc_frame.Authoriz" +
-      "ationInfo.ResultCode\022\025\n\rstatusMessage\030\006 " +
-      "\001(\t\"g\n\nResultCode\022\006\n\002OK\020\001\022\021\n\rACCESS_DENI" +
-      "ED\020\002\022,\n(ACCESS_DENIED_CAPTCHA_REQUIRED_T" +
-      "O_UNLOCK\020\003\022\020\n\014SERVER_ERROR\020\004\"\030\n\010AuthType" +
-      "\022\014\n\010PASSWORD\020\001\"4\n\013ResourceKey\022\n\n\002ip\030\001 \002(" +
-      "\t\022\014\n\004port\030\002 \002(\005\022\013\n\003key\030\003 \002(\003\"\313\001\n\020Registr",
-      "ationInfo\022\013\n\003xml\030\001 \001(\t\022\025\n\rstatusMessage\030" +
-      "\002 \001(\t\0226\n\006result\030\003 \001(\0162&.sdc_frame.Regist" +
-      "rationInfo.ResultCode\0229\n\022serverSuppliedC" +
-      "onf\030\004 \001(\0132\035.sdc_frame.ServerSuppliedConf" +
-      "\" \n\nResultCode\022\006\n\002OK\020\001\022\n\n\006FAILED\020\002\"S\n\022Se" +
-      "rverSuppliedConf\022\032\n\022healthCheckTimeout\030\004" +
-      " \001(\005\022!\n\031healthCheckWakeUpInterval\030\005 \001(\005\"" +
-      "\313\001\n\017HealthCheckInfo\022\021\n\ttimeStamp\030\001 \001(\003\0221" +
-      "\n\006source\030\002 \001(\0162!.sdc_frame.HealthCheckIn" +
-      "fo.Source\022-\n\004type\030\003 \001(\0162\037.sdc_frame.Heal",
-      "thCheckInfo.Type\" \n\006Source\022\n\n\006CLIENT\020\001\022\n" +
-      "\n\006SERVER\020\002\"!\n\004Type\022\013\n\007REQUEST\020\001\022\014\n\010RESPO" +
-      "NSE\020\002\"+\n\rMessageHeader\022\013\n\003key\030\001 \002(\t\022\r\n\005v" +
-      "alue\030\002 \002(\t\"{\n\014FetchRequest\022\n\n\002id\030\001 \002(\t\022\020" +
-      "\n\010resource\030\002 \002(\t\022\020\n\010strategy\030\003 \001(\t\022)\n\007he" +
-      "aders\030\004 \003(\0132\030.sdc_frame.MessageHeader\022\020\n" +
-      "\010contents\030\005 \001(\014\"v\n\nFetchReply\022\n\n\002id\030\001 \002(" +
-      "\t\022\016\n\006status\030\002 \002(\005\022)\n\007headers\030\003 \003(\0132\030.sdc" +
-      "_frame.MessageHeader\022\020\n\010contents\030\004 \001(\014\022\017" +
-      "\n\007latency\030\005 \001(\003\"\274\001\n\025RegistrationRequestV",
-      "4\022\017\n\007agentId\030\001 \002(\t\022\027\n\017socksServerPort\030\002 " +
-      "\002(\005\022\027\n\017healthCheckPort\030\003 \002(\005\022\035\n\025healthCh" +
-      "eckGadgetUser\030\004 \003(\t\022+\n\013resourceKey\030\005 \003(\013" +
-      "2\026.sdc_frame.ResourceKey\022\024\n\014resourcesXml" +
-      "\030\006 \002(\t\"\347\001\n\026RegistrationResponseV4\022\025\n\rsta" +
-      "tusMessage\030\001 \001(\t\022<\n\006result\030\002 \002(\0162,.sdc_f" +
-      "rame.RegistrationResponseV4.ResultCode\0229" +
-      "\n\022serverSuppliedConf\030\003 \001(\0132\035.sdc_frame.S" +
-      "erverSuppliedConf\"=\n\nResultCode\022\006\n\002OK\020\001\022" +
-      "\025\n\021ERRORS_IN_REQUEST\020\002\022\020\n\014SERVER_ERROR\020\003",
-      "B)\n\'com.google.dataconnector.protocol.pr" +
-      "oto"
+      "\003\022\021\n\rFETCH_REQUEST\020\004\022\022\n\016SOCKET_SESSION\020\005" +
+      "\"\224\001\n\016SocketDataInfo\022\024\n\014connectionId\030\001 \002(" +
+      "\003\022.\n\005state\030\002 \002(\0162\037.sdc_frame.SocketDataI" +
+      "nfo.State\022\017\n\007segment\030\003 \001(\014\"+\n\005State\022\t\n\005S",
+      "TART\020\000\022\014\n\010CONTINUE\020\001\022\t\n\005CLOSE\020\002\"\300\002\n\021Auth" +
+      "orizationInfo\022\r\n\005email\030\001 \001(\t\0227\n\010authType" +
+      "\030\002 \001(\0162%.sdc_frame.AuthorizationInfo.Aut" +
+      "hType\022\020\n\010password\030\003 \001(\t\0227\n\006result\030\005 \001(\0162" +
+      "\'.sdc_frame.AuthorizationInfo.ResultCode" +
+      "\022\025\n\rstatusMessage\030\006 \001(\t\"g\n\nResultCode\022\006\n" +
+      "\002OK\020\001\022\021\n\rACCESS_DENIED\020\002\022,\n(ACCESS_DENIE" +
+      "D_CAPTCHA_REQUIRED_TO_UNLOCK\020\003\022\020\n\014SERVER" +
+      "_ERROR\020\004\"\030\n\010AuthType\022\014\n\010PASSWORD\020\001\"4\n\013Re" +
+      "sourceKey\022\n\n\002ip\030\001 \002(\t\022\014\n\004port\030\002 \002(\005\022\013\n\003k",
+      "ey\030\003 \002(\003\"\313\001\n\020RegistrationInfo\022\013\n\003xml\030\001 \001" +
+      "(\t\022\025\n\rstatusMessage\030\002 \001(\t\0226\n\006result\030\003 \001(" +
+      "\0162&.sdc_frame.RegistrationInfo.ResultCod" +
+      "e\0229\n\022serverSuppliedConf\030\004 \001(\0132\035.sdc_fram" +
+      "e.ServerSuppliedConf\" \n\nResultCode\022\006\n\002OK" +
+      "\020\001\022\n\n\006FAILED\020\002\"S\n\022ServerSuppliedConf\022\032\n\022" +
+      "healthCheckTimeout\030\004 \001(\005\022!\n\031healthCheckW" +
+      "akeUpInterval\030\005 \001(\005\"\313\001\n\017HealthCheckInfo\022" +
+      "\021\n\ttimeStamp\030\001 \001(\003\0221\n\006source\030\002 \001(\0162!.sdc" +
+      "_frame.HealthCheckInfo.Source\022-\n\004type\030\003 ",
+      "\001(\0162\037.sdc_frame.HealthCheckInfo.Type\" \n\006" +
+      "Source\022\n\n\006CLIENT\020\001\022\n\n\006SERVER\020\002\"!\n\004Type\022\013" +
+      "\n\007REQUEST\020\001\022\014\n\010RESPONSE\020\002\"+\n\rMessageHead" +
+      "er\022\013\n\003key\030\001 \002(\t\022\r\n\005value\030\002 \002(\t\"{\n\014FetchR" +
+      "equest\022\n\n\002id\030\001 \002(\t\022\020\n\010resource\030\002 \002(\t\022\020\n\010" +
+      "strategy\030\003 \001(\t\022)\n\007headers\030\004 \003(\0132\030.sdc_fr" +
+      "ame.MessageHeader\022\020\n\010contents\030\005 \001(\014\"v\n\nF" +
+      "etchReply\022\n\n\002id\030\001 \002(\t\022\016\n\006status\030\002 \002(\005\022)\n" +
+      "\007headers\030\003 \003(\0132\030.sdc_frame.MessageHeader" +
+      "\022\020\n\010contents\030\004 \001(\014\022\017\n\007latency\030\005 \001(\003\"\264\001\n\024",
+      "SocketSessionRequest\022*\n\004verb\030\001 \002(\0162\034.sdc" +
+      "_frame.SocketSessionVerb\022\024\n\014socketHandle" +
+      "\030\002 \002(\014\022\020\n\010hostname\030\003 \002(\t\022\014\n\004port\030\004 \001(\005\022)" +
+      "\n\007headers\030\005 \003(\0132\030.sdc_frame.MessageHeade" +
+      "r\022\017\n\007timeout\030\006 \001(\003\"\253\002\n\022SocketSessionRepl" +
+      "y\022*\n\004verb\030\001 \002(\0162\034.sdc_frame.SocketSessio" +
+      "nVerb\022\024\n\014socketHandle\030\002 \002(\014\0224\n\006status\030\003 " +
+      "\002(\0162$.sdc_frame.SocketSessionReply.Statu" +
+      "s\022\020\n\010hostname\030\004 \002(\t\022\014\n\004port\030\005 \001(\005\022)\n\007hea" +
+      "ders\030\006 \003(\0132\030.sdc_frame.MessageHeader\022\017\n\007",
+      "latency\030\007 \001(\003\"A\n\006Status\022\006\n\002OK\020\001\022\t\n\005ERROR" +
+      "\020\002\022\020\n\014UNKNOWN_HOST\020\003\022\022\n\016CANNOT_CONNECT\020\004" +
+      "\"\\\n\021SocketSessionData\022\024\n\014socketHandle\030\001 " +
+      "\002(\014\022\014\n\004data\030\002 \001(\014\022\024\n\014streamOffset\030\003 \001(\003\022" +
+      "\r\n\005close\030\004 \001(\010\"\274\001\n\025RegistrationRequestV4" +
+      "\022\017\n\007agentId\030\001 \002(\t\022\027\n\017socksServerPort\030\002 \002" +
+      "(\005\022\027\n\017healthCheckPort\030\003 \002(\005\022\035\n\025healthChe" +
+      "ckGadgetUser\030\004 \003(\t\022+\n\013resourceKey\030\005 \003(\0132" +
+      "\026.sdc_frame.ResourceKey\022\024\n\014resourcesXml\030" +
+      "\006 \002(\t\"\347\001\n\026RegistrationResponseV4\022\025\n\rstat",
+      "usMessage\030\001 \001(\t\022<\n\006result\030\002 \002(\0162,.sdc_fr" +
+      "ame.RegistrationResponseV4.ResultCode\0229\n" +
+      "\022serverSuppliedConf\030\003 \001(\0132\035.sdc_frame.Se" +
+      "rverSuppliedConf\"=\n\nResultCode\022\006\n\002OK\020\001\022\025" +
+      "\n\021ERRORS_IN_REQUEST\020\002\022\020\n\014SERVER_ERROR\020\003*" +
+      "7\n\021SocketSessionVerb\022\n\n\006CREATE\020\001\022\013\n\007CONN" +
+      "ECT\020\002\022\t\n\005CLOSE\020\003B)\n\'com.google.dataconne" +
+      "ctor.protocol.proto"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -5580,8 +7249,32 @@ public final class SdcFrame {
               new java.lang.String[] { "Id", "Status", "Headers", "Contents", "Latency", },
               com.google.dataconnector.protocol.proto.SdcFrame.FetchReply.class,
               com.google.dataconnector.protocol.proto.SdcFrame.FetchReply.Builder.class);
-          internal_static_sdc_frame_RegistrationRequestV4_descriptor =
+          internal_static_sdc_frame_SocketSessionRequest_descriptor =
             getDescriptor().getMessageTypes().get(10);
+          internal_static_sdc_frame_SocketSessionRequest_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_sdc_frame_SocketSessionRequest_descriptor,
+              new java.lang.String[] { "Verb", "SocketHandle", "Hostname", "Port", "Headers", "Timeout", },
+              com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionRequest.class,
+              com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionRequest.Builder.class);
+          internal_static_sdc_frame_SocketSessionReply_descriptor =
+            getDescriptor().getMessageTypes().get(11);
+          internal_static_sdc_frame_SocketSessionReply_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_sdc_frame_SocketSessionReply_descriptor,
+              new java.lang.String[] { "Verb", "SocketHandle", "Status", "Hostname", "Port", "Headers", "Latency", },
+              com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply.class,
+              com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply.Builder.class);
+          internal_static_sdc_frame_SocketSessionData_descriptor =
+            getDescriptor().getMessageTypes().get(12);
+          internal_static_sdc_frame_SocketSessionData_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_sdc_frame_SocketSessionData_descriptor,
+              new java.lang.String[] { "SocketHandle", "Data", "StreamOffset", "Close", },
+              com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionData.class,
+              com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionData.Builder.class);
+          internal_static_sdc_frame_RegistrationRequestV4_descriptor =
+            getDescriptor().getMessageTypes().get(13);
           internal_static_sdc_frame_RegistrationRequestV4_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_sdc_frame_RegistrationRequestV4_descriptor,
@@ -5589,7 +7282,7 @@ public final class SdcFrame {
               com.google.dataconnector.protocol.proto.SdcFrame.RegistrationRequestV4.class,
               com.google.dataconnector.protocol.proto.SdcFrame.RegistrationRequestV4.Builder.class);
           internal_static_sdc_frame_RegistrationResponseV4_descriptor =
-            getDescriptor().getMessageTypes().get(11);
+            getDescriptor().getMessageTypes().get(14);
           internal_static_sdc_frame_RegistrationResponseV4_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_sdc_frame_RegistrationResponseV4_descriptor,
