@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="iso-8859-1" standalone="yes" ?>
+<!--
+
+   Copyright 2009 Google, Inc.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+   This is the IzPack installer generator.  It is currently used only for
+   Windows.  It is a work in progress.
+
+   $Id$
+
+  -->
+<installation version="1.0">
+  <info>
+    <appname>Google Secure Data Connector</appname>
+    <appversion>__VERSION__ - Release __RELEASE__</appversion>
+    <url>http://code.google.com/p/google-secure-data-connector</url>
+    <javaversion>1.5</javaversion>
+  </info>
+
+  <guiprefs width="640" height="480" resizable="yes"/>
+  <locale>
+    <langpack iso3="eng"/>
+    <langpack iso3="chn"/>
+    <langpack iso3="deu"/>
+    <langpack iso3="fra"/>
+    <langpack iso3="rus"/>
+    <langpack iso3="spa"/>
+  </locale>
+
+  <resources>
+    <res id="LicencePanel.licence" src="COPYING"/>
+    <res id="InfoPanel.info" src="README"/>
+  </resources>
+
+  <!-- 
+     The panels section.
+     We indicate here which panels we want to use. The order will be respected.
+    -->
+  <panels>
+    <panel classname="HelloPanel"/>
+    <panel classname="InfoPanel"/>
+    <panel classname="LicencePanel"/>
+    <panel classname="TargetPanel"/>
+    <panel classname="PacksPanel"/>
+    <panel classname="InstallPanel"/>
+    <panel classname="FinishPanel"/>
+  </panels>
+
+  <!-- 
+     The packs section.
+     We specify here our packs.
+    -->
+  <packs>
+    <pack name="Base" required="yes">
+      <description>The base files</description>
+      <file src="COPYING" targetdir="$INSTALL_PATH"/>
+      <file src="README" targetdir="$INSTALL_PATH"/>
+    </pack>
+  </packs>
+</installation>

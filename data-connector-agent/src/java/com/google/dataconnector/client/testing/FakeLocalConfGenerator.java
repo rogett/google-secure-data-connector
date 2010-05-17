@@ -54,7 +54,6 @@ public class FakeLocalConfGenerator {
   public static final Integer SOCKS_SERVER_PORT = 1080;
   public static final String SOCKSD_BIND_HOST = "127.0.0.1";
   public static final String RULES_FILE = "/tmp/rulesConf.xml";
-  public static final String PASSWORD_FILE = "./password";
 
   /**
    * Creates a configuration beans from the fake hardcoded XML files.

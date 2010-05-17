@@ -154,43 +154,6 @@ public class LocalConfValidatorTest extends TestCase {
     fail("did not get LocalConf");
   }
 
-  // PasswordFile
-  public void testMissingPasswordOrPasswordFile() {
-    // Setup bad data
-    String badFile = "/bad/file";
-    localConf.setPasswordFile(badFile);
-
-    // No password specified
-    localConf.setPassword(null);
-    
-    // Create filefactory to give the right bad files.
-    mockFileUtil = EasyMock.createMock(FileUtil.class);
-    EasyMock.expect(mockFileUtil.openFile(FakeLocalConfGenerator.RULES_FILE)).andReturn(
-        mockGoodFile);
-    EasyMock.expect(mockFileUtil.openFile(badFile)).andReturn(mockBadFile);
-    EasyMock.expect(mockFileUtil.openFile(localConf.getSslKeyStoreFile())).andReturn(
-    		mockGoodFile);
-    EasyMock.replay(mockFileUtil);
-
-    // Create new validator with our updated factory.
-    localConfValidator = new LocalConfValidator(mockFileUtil);
-
-    // Test and verify
-    try {
-    	assertNotNull(localConf.getPasswordFile());
-    	assertNull(localConf.getPassword());
-    	
-      localConfValidator.validate(localConf);
-    } catch (LocalConfException e) {
-      assertTrue(e.getMessage().contains("Cannot read"));
-      EasyMock.verify(mockBadFile);
-      EasyMock.verify(mockGoodFile);
-      EasyMock.verify(mockFileUtil);
-      return;
-    }
-    fail("did not get LocalConfException");
-  }
-
   // SslKeyStoreFile
   public void testBadSslKeystoreFile() {
     // Setup bad data

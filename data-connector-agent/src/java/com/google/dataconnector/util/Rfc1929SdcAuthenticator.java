@@ -17,7 +17,7 @@
 
 package com.google.dataconnector.util;
 
-import com.google.common.base.Preconditions;
+import com.google.gdata.util.common.base.Preconditions;
 import com.google.inject.Inject;
 
 import net.sourceforge.jsocks.socks.ProxyMessage;

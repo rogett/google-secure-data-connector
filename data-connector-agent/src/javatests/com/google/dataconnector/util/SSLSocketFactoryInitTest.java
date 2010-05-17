@@ -39,7 +39,6 @@ public class SSLSocketFactoryInitTest extends TestCase {
 
   public void testGetSslSocketFactoryUseDefaultKeystore() {
     EasyMock.expect(localConf.getSslKeyStoreFile()).andReturn(null);
-    EasyMock.expect(localConf.getAllowUnverifiedCertificates()).andReturn(false);
     EasyMock.replay(localConf);
 
     SSLSocketFactoryInit sSLSocketFactoryInit = new SSLSocketFactoryInit(null);

@@ -28,11 +28,12 @@ import com.google.dataconnector.protocol.proto.SdcFrame.ServerSuppliedConf;
 import com.google.dataconnector.registration.v4.Registration;
 import com.google.dataconnector.registration.v4.ResourceRuleUrlUtil;
 import com.google.dataconnector.util.FileUtil;
+import com.google.dataconnector.util.HealthCheckRequestHandler;
 import com.google.dataconnector.util.LocalConf;
 import com.google.dataconnector.util.RegistrationException;
 import com.google.dataconnector.util.SdcKeysManager;
-import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import org.apache.log4j.Logger;
@@ -56,30 +57,31 @@ import javax.xml.stream.XMLStreamException;
  * @author rayc@google.com (Ray Colline)
  * @author vnori@google.com (Vasu Nori)
  */
+@Singleton
 public class Registration implements Dispatchable {
 
   private static final Logger LOG = Logger.getLogger(Registration.class);
 
   // injected dependencies
   private final LocalConf localConf;
+  private final HealthCheckRequestHandler healthCheckRequestHandler;
   private final FileUtil fileUtil;
   private final ResourceRuleUrlUtil resourceRuleUrlUtil;
   private final SdcKeysManager sdcKeysManager;
+  private final HealthCheckHandler healthCheckHandler;
   private final ResourceRuleParser resourceRuleParser;
-  
-  // runtime dependencies
-  private HealthCheckHandler healthCheckHandler;
 
   @Inject
   public Registration(final LocalConf localConf,
-      final FileUtil fileUtil, 
-      final ResourceRuleUrlUtil resourceRuleUrlUtil, 
-      final SdcKeysManager sdcKeysManager, 
-      final ResourceRuleParser resourceRuleParser) {
+      final HealthCheckRequestHandler healthCheckRequestHandler, final FileUtil fileUtil,
+      final ResourceRuleUrlUtil resourceRuleUrlUtil, final SdcKeysManager sdcKeysManager,
+      final HealthCheckHandler healthCheckHandler, final ResourceRuleParser resourceRuleParser) {
     this.localConf = localConf;
+    this.healthCheckRequestHandler = healthCheckRequestHandler;
     this.fileUtil = fileUtil;
     this.resourceRuleUrlUtil = resourceRuleUrlUtil;
     this.sdcKeysManager = sdcKeysManager;
+    this.healthCheckHandler = healthCheckHandler;
     this.resourceRuleParser = resourceRuleParser;
   }
 
@@ -114,11 +116,16 @@ public class Registration implements Dispatchable {
     try {
       // prepare registration request
       final RegistrationRequestV4.Builder regRequestBuilder = RegistrationRequestV4.newBuilder()
+          .setHealthCheckPort(healthCheckRequestHandler.getPort())
           .setAgentId(localConf.getAgentId())
-          .setSocksServerPort(localConf.getSocksServerPort())
-          // Must set due to "required" healthCheckPort attribute but this is deprecated.
-          .setHealthCheckPort(65535); 
-           
+          .setSocksServerPort(localConf.getSocksServerPort());
+
+      // are there any healthcheckgadget users defined?
+      final List<String> healthCheckGadgetUsersList = getHealthCheckGadgetUsers();
+      if (healthCheckGadgetUsersList != null) {
+        regRequestBuilder.addAllHealthCheckGadgetUser(healthCheckGadgetUsersList);
+      }
+
       // set resources xml in the protobuf
       regRequestBuilder.setResourcesXml(fileUtil.readFile(localConf.getRulesFile()));
 
@@ -141,6 +148,24 @@ public class Registration implements Dispatchable {
   }
 
   /**
+   * return list of healthcheckgadget users declared in LocalConf.
+   */
+  private List<String> getHealthCheckGadgetUsers() {
+    final String healthCheckGadgetUsers = localConf.getHealthCheckGadgetUsers();
+    List<String> healthCheckGadgetUsersList = null;
+    if (healthCheckGadgetUsers != null && healthCheckGadgetUsers.trim().length() > 0) {
+      healthCheckGadgetUsersList = new ArrayList<String>();
+      String[] users = healthCheckGadgetUsers.split(",");
+      for (String user : users) {
+        if (user.trim().length() > 0) {
+          healthCheckGadgetUsersList.add(user.trim());
+        }
+      }
+    }
+    return healthCheckGadgetUsersList;
+  }
+
+  /**
    * create resource secretkeys for all URLs and return the list
    */
   private List<ResourceKey> createResourceKeys(final RegistrationRequestV4.Builder
@@ -157,6 +182,12 @@ public class Registration implements Dispatchable {
             .setPort(resourceRuleUrlUtil.getPortFromRule(u))
             .setKey(new Random().nextLong()).build()));
       }
+      // create an additional resourceKey for the healthcheck resource rule
+      resourceKeyList.add(ResourceKey.newBuilder()
+          .setIp("localhost")
+          .setPort(healthCheckRequestHandler.getPort())
+          .setKey(new Random().nextLong())
+          .build());
     } catch (FileNotFoundException e) {
       throw new RegistrationException(e);
     } catch (XMLStreamException e) {
@@ -174,7 +205,6 @@ public class Registration implements Dispatchable {
    */
   private void processRegistrationResponse(final FrameInfo frameInfo) throws
       RegistrationException {
-    Preconditions.checkNotNull(healthCheckHandler);
     try {
       final RegistrationResponseV4 regResponse = RegistrationResponseV4.parseFrom(
           frameInfo.getPayload());
@@ -193,9 +223,5 @@ public class Registration implements Dispatchable {
     } catch (InvalidProtocolBufferException e) {
       throw new RegistrationException(e);
     }
-  }
-
-  public void setHealthCheckHandler(HealthCheckHandler healthCheckHandler) {
-    this.healthCheckHandler = Preconditions.checkNotNull(healthCheckHandler);
   }
 }

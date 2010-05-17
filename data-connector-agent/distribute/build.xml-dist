@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Copyright 2007 Google Inc.
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+Build File for Secure Data Connector client and reference server.
+
+  Interesting targets:
+   -all: builds distros
+   -install: builds jars and runs setup.sh
+   -clean:
+   -source-distro: creates the source.tar.gz for the whole project
+   -binary-distro: creates binary.tar.gz
+   -deb: builds a debian package that complies with the LSB FHS
+
+You can easily control the prefix and other information for packages
+via the cfg targets.
+
+$Id$
+-->
+
+<project
+   name="google-secure-data-connector"
+   default="all"
+   basedir="..">
+
+  <!-- PROPERTIES -->
+  <property name="version" value="__VERSION__"/>
+  <!-- Any time a modification to the packaging or related infrastructure
+       occurs and the version does not increase, this number must be
+       incremented. -->
+  <property name="release" value="__RELEASE__"/>
+  <property name="name" value="google-secure-data-connector"/>
+  <property name="sourcedir" value="distribute/dist/"/>
+  <property name="projects.dir" value=".." />
+  <property name="COMPILE_DEBUG_FLAG" value="true" />
+  <property name="COMPILE_DEBUG_LEVEL" value="source,lines,vars" />
+
+  <property name="deb" value="distribute/deb" />
+  <property name="dist" value="distribute/dist" />
+  <property name="target_user" value="daemon" />
+  <property name="target_group" value="daemon" />
+
+  <!-- TARGETS -->
+
+  <import file="../third-party/pANTkage/rpm.xml"/>
+
+  <target name="timestamp">
+    <tstamp>
+      <format property="timestamp" pattern="MMddyyyyhhmm"/>
+    </tstamp>
+  </target>
+
+  <target name="init" depends="timestamp">
+    <mkdir dir="${dist}" />
+  </target>
+
+  <target name="clean-distro-all" depends="clean">
+    <delete file="${dist}/${name}-${version}-${release}-bin.tar.gz" />
+    <delete file="${dist}/${name}-${version}-${release}-src.tar.gz" />
+    <delete file="${dist}/${name}_${version}-${release}_all.deb" />
+    <delete file="${dist}/${name}-${version}-${release}.noarch.rpm" />
+  </target>
+
+  <target name="clean-distro" depends="clean">
+    <delete file="${dist}/${name}-${version}-${release}-bin.tar.gz" />
+    <delete file="${dist}/${name}-${version}-${release}-src.tar.gz" />
+  </target>
+
+  <target name="clean" description="Deletes all build files.">
+    <delete file="${deb}" />
+    <exec dir="." executable="ant">
+      <arg value="dist-clean"/>
+    </exec>
+  </target>
+
+  <target name="lsb" depends="init">
+    <exec dir="." executable="./configure.sh">
+      <arg value="--noverify"/>
+      <arg value="--javahome=/usr"/>
+    </exec>
+    <ant
+       antfile="build.xml"
+       dir="."
+       inheritAll="false"/>
+  </target>
+
+  <target name="cfgdeb" depends="init,clean">
+    <exec dir="." executable="./configure.sh">
+      <arg value="--noverify"/>
+      <arg value="--user=securedataconnector"/>
+      <arg value="--group=securedataconnector"/>
+      <arg value="--javahome=/usr"/>
+      <arg value="--suffix_version_to_debian_package_name"/>
+    </exec>
+    <ant
+       antfile="build.xml"
+       dir="."
+       inheritAll="false"/>
+    <gzip src="distribute/debian/changelog.Debian"
+          destfile="distribute/debian/changelog.Debian.gz" />
+  </target>
+
+  <target name="cfgrpm" depends="init,clean">
+    <mkdir dir="/rpm" />
+    <exec dir="." executable="./configure.sh">
+      <arg value="--noverify"/>
+      <arg value="--user=securedataconnector"/>
+      <arg value="--group=securedataconnector"/>
+      <arg value="--javahome=/usr"/>
+    </exec>
+    <ant
+       antfile="build.xml"
+       dir="."
+       inheritAll="false"/>
+  </target>
+
+  <target name="source-distro" depends="timestamp">
+    <mkdir dir="${dist}" />
+    <zip
+       destfile="${dist}/${name}-${version}-${release}-src.zip"
+       excludes="third-party/jsch/com/**,tmp/**, third-party/*/docs/**">
+      <zipfileset dir="." prefix="data-connector-agent">
+        <include name="*-dist"/>
+        <include name="src/**"/>
+        <include name="CHANGE_LOG"/>
+        <include name="COPYING"/>
+        <include name="README"/>
+        <include name="config/**"/>
+        <include name="distribute/*"/>
+        <include name="distribute/debian/*"/>
+        <include name="third-party/**"/>
+      </zipfileset>
+      <zipfileset dir="." filemode="755" prefix="data-connector-agent">
+        <include name="third-party/java-service-wrapper/linux/googlesdc.sh"/>
+        <include name="third-party/java-service-wrapper/linux/bin/*"/>
+        <include name="configure.sh"/>
+      </zipfileset>
+    </zip>
+  </target>
+
+  <target name="inspecific-configuration" depends="clean">
+    <exec dir="." executable="./configure.sh">
+      <arg value="--noverify"/>
+      <arg value="--user=${target_user}"/>
+      <arg value="--group=${target_group}"/>
+      <arg value="--javahome=/usr"/>
+      <arg value="--prefix="/>
+      <arg value="--by_prefix_only"/>
+    </exec>
+    <exec dir="." executable="ant">
+      <arg value="compile" />
+    </exec>
+  </target>
+
+  <target name="binary-distro" depends="inspecific-configuration,init">
+    <mkdir dir="${dist}/${name}-${version}-${release}-bin" />
+    <mkdir dir="${dist}/${name}-${version}-${release}-bin/var/lib" />
+    <mkdir dir="${dist}/${name}-${version}-${release}-bin/var/log" />
+    <mkdir dir="${dist}/${name}-${version}-${release}-bin/var/run" />
+
+    <zip
+       destfile="${dist}/${name}-${version}-${release}-bin.zip"
+       basedir="${dist}/${name}-${version}-${release}-bin">
+      <zipfileset dir="build" filemode="444" dirmode="755" prefix="lib">
+        <include name="*.jar" />
+      </zipfileset>
+      <zipfileset dir="." filemode="755" dirmode="755" prefix="bin">
+        <include name="runclient.bat" />
+        <include name="runclient.sh" />
+        <include name="start.sh" />
+        <include name="stop.sh" />
+      </zipfileset>
+      <zipfileset dir="config" filemode="640" dirmode="750" prefix="etc" />
+      <zipfileset dir="third-party" prefix="lib/third-party" filemode="444"
+                  dirmode="755">
+        <include name="**/*.html" />
+        <include name="**/*.jar" />
+        <include name="**/*.txt" />
+        <include name="**/NOTICE" />
+        <include name="**/README" />
+        <include name="*.jar" />
+      </zipfileset>
+    </zip>
+  </target>
+
+  <path id="deb-classpath">
+    <fileset dir="third-party/ant-deb" includes="ant-deb-0.0.1.jar"/>
+  </path>
+
+  <taskdef resource="ant_deb_task.properties" classpathref="deb-classpath"/>
+
+  <target name="deb" depends="cfgdeb">
+    <mkdir dir="${dist}"/>
+
+    <deb todir="${dist}"
+         package="__DEBIAN_PACKAGE_NAME__"
+         section="net"
+         architecture="all"
+         postinst="distribute/debian/securedataconnector.postinst"
+         prerm="distribute/debian/securedataconnector.prerm"
+         postrm="distribute/debian/securedataconnector.postrm">
+      <version upstream="${version}" debian="${release}"/>
+      <maintainer name="Matt T. Proud"
+                  email="matt.proud@gmail.com"/>
+      <description synopsis="The Google Secure Data Connector Client package.">
+        Google Secure Data Connector is used to connect from Google Apps to internal network resources. The client is a Java application that
+        - connects to the Google Apps termination service,
+        - registers the resources published to Apps,
+        - registers the groups allowed to access the resources, and
+        - provides a proxy to the internal resources for those groups.
+
+        The current implementation permits access to HTTP and socket services.
+
+        http://code.google.com/p/google-secure-data-connector
+      </description>
+      <conffiles dir="config" prefix="__SYSCONFDIR__"
+                 filemode="644" dirmode="755">
+        <include name="resourceRules.xml"/>
+        <include name="localConfig.xml"/>
+        <include name="log4j.properties"/>
+      </conffiles>
+      <tarfileset dir="build" prefix="__LIBDIR__"
+                  filemode="644" dirmode="755">
+        <include name="agent.jar"/>
+        <include name="protocol-generated.jar"/>
+      </tarfileset>
+      <tarfileset dir="third-party" prefix="__LIBDIR__/third-party"
+                  filemode="644" dirmode="755"
+                  excludes="**/dist/, **/src/, **/build.xml, **ant-deb/**,
+                            **/java-service-wrapper/**, **/pANTkage/** ">
+        <include name="**"/>
+      </tarfileset>
+      <tarfileset dir="." prefix="__BINDIR__" filemode="755">
+        <include name="runclient.sh"/>
+        <include name="start.sh"/>
+        <include name="stop.sh"/>
+      </tarfileset>
+      <tarfileset dir="distribute/debian" prefix="__SYSV_INIT_SCRIPT_DIRECTORY__" filemode="755">
+        <include name="__FULLNAME__" />
+      </tarfileset>
+      <tarfileset dir="distribute/debian" prefix="/usr/share/doc/__DEBIAN_PACKAGE_NAME__">
+        <include name="changelog.Debian.gz"/>
+      </tarfileset>
+    </deb>
+  </target>
+  <!--
+     Need to make the target all build deb and rpm as well. Have a dependacy and configureation
+     issue that needs fixed fist.
+
+     In the mean time we can run ant deb and ant rpm separately and then all for tarballs.
+    -->
+
+  <target name="all" depends="clean-distro-all,source-distro,rpm,deb"/>
+
+</project>
+

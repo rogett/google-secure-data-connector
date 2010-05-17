@@ -13,35 +13,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# $Id: build.properties-dist 522 2010-01-28 15:54:58Z raycolline $
+# $Id$
 
 # Properties
-version=1.3-rc0
+version=__VERSION__
 projects.dir=..
-install.dir=${projects.dir}/install
 
 # Compile Properties
 COMPILE_DEBUG_FLAG=true
 COMPILE_DEBUG_LEVEL=source,lines,vars
 build=build
-deploy=deploy
-third-party=third-party
 bin=bin
 deb=deb
 src=src/java
 src-generated=src/java-generated
 classes=${build}/classes
-protoc=/usr/local/bin/protoc
+protoc=__PROTOC__
 
 # Install Properties
-install.prefix=${install.dir}/${version}
-install.sysconfdir=${install.prefix}/config
-install.localstatedir=${install.prefix}/lib
-install.libdir=${install.prefix}/lib
-install.bindir=${install.prefix}/bin
-install.user=daemon
-install.group=daemon
-agent.jarfile=${build}/agent-sdconly.jar
+install.prefix=__PREFIX__
+install.sysconfdir=__SYSCONFDIR__
+install.localstatedir=__LOCALSTATEDIR__
+install.libdir=__LIBDIR__
+install.bindir=__BINDIR__
+install.user=__USER__
+install.group=__GROUP__
+agent.jarfile=${build}/agent.jar
 agent-src.jarfile=${build}/agent-src.jar
-agent-deploy.jarfile=${build}/sdc-agent.jar
 generated.protocol.jarfile=${build}/protocol-generated.jar

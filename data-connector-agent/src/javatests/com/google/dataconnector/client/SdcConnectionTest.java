@@ -67,8 +67,8 @@ public class SdcConnectionTest extends TestCase {
         FrameInfo.Type.AUTHORIZATION));
     EasyMock.expectLastCall();
     EasyMock.replay(mockFrameSender);
+
   }
-  
   @Override
   protected void tearDown() throws Exception {
     mockPrincipal = null;
@@ -93,7 +93,7 @@ public class SdcConnectionTest extends TestCase {
     EasyMock.replay(mockFrameReceiver);
 
     SdcConnection sdcConnection = new SdcConnection(fakeLocalConf, null, mockFrameReceiver,
-        mockFrameSender, null ,null, null, null, null, null, null);
+        mockFrameSender, null ,null, null, null);
 
     assertTrue(sdcConnection.authorize());
     EasyMock.verify(mockFrameReceiver, mockFrameSender);
@@ -115,7 +115,7 @@ public class SdcConnectionTest extends TestCase {
     EasyMock.replay(mockFrameReceiver);
 
     SdcConnection sdcConnection = new SdcConnection(fakeLocalConf, null, mockFrameReceiver,
-        mockFrameSender, null ,null, null, null, null, null, null);
+        mockFrameSender, null ,null, null, null);
 
     assertFalse(sdcConnection.authorize());
     EasyMock.verify(mockFrameReceiver, mockFrameSender);
@@ -200,8 +200,7 @@ public class SdcConnectionTest extends TestCase {
     createMockSession(new LdapName("CN=\"" + EXPECTED_CN + "\",OU=\"foobar\",C=\"bar\""));
 
     // Execute
-    SdcConnection sdc = new SdcConnection(fakeLocalConf, null, null, null, null, null, null, null, 
-        null, null, null);
+    SdcConnection sdc = new SdcConnection(fakeLocalConf, null, null, null, null, null, null, null);
     sdc.verifySubjectInCertificate(mockSession);
 
     // Verify
@@ -216,8 +215,7 @@ public class SdcConnectionTest extends TestCase {
     createMockSession(new LdapName("CN=\"" + "BADNESS" + "\",OU=\"foobar\",C=\"bar\""));
 
     // Execute
-    SdcConnection sdc = new SdcConnection(fakeLocalConf, null, null, null, null, null, null, null, 
-        null, null, null);
+    SdcConnection sdc = new SdcConnection(fakeLocalConf, null, null, null, null, null, null, null);
     try {
       sdc.verifySubjectInCertificate(mockSession);
     } catch (ConnectionException e) {
@@ -235,8 +233,7 @@ public class SdcConnectionTest extends TestCase {
     EasyMock.expectLastCall().andThrow(new SSLPeerUnverifiedException("Fail"));
     EasyMock.replay(mockSession);
 
-    SdcConnection sdc = new SdcConnection(null, null, null, null, null, null, null, null,
-        null, null, null);
+    SdcConnection sdc = new SdcConnection(null, null, null, null, null, null, null, null);
     try {
       sdc.verifySubjectInCertificate(mockSession);
     } catch (ConnectionException e) {

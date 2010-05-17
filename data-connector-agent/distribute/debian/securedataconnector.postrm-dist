@@ -1,0 +1,44 @@
+#!/bin/bash
+#
+# Copyright 2008 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# $Id$
+
+set -e
+
+FULLNAME=__FULLNAME__
+LOCALSTATEDIR=__LOCALSTATEDIR__
+SYSCONFDIR=__SYSCONFDIR__
+USER=__USER__
+GROUP=__GROUP__
+
+PKG_NAME="google-secure-data-connector"
+
+installinit_error() {
+  exit $?
+}
+
+echo $PKG_NAME --- package name
+
+if [ "${1}" = "purge" ]; then
+  echo "You may want to consider deleting user:group ${USER}:${GROUP}"
+  echo "if appropriate."
+  echo "Please inspect ${LOCALSTATEDIR} and ${SYSCONFDIR} for trailing"
+  echo "artifacts."
+
+  update-rc.d -f ${FULLNAME} remove
+
+  sleep 1
+fi

@@ -28,14 +28,33 @@ REM
 REM CLASSPATH DEFINITION
 REM
 
+set CLASSPATH=%CLASSPATH%;lib\agent.jar
+set CLASSPATH=%CLASSPATH%;lib\protocol-generated.jar
+set CLASSPATH=%CLASSPATH%;lib\third-party\aopalliance\aopalliance.jar
+set CLASSPATH=%CLASSPATH%;lib\third-party\apache-log4j\log4j-1.2.15.jar
+set CLASSPATH=%CLASSPATH%;lib\third-party\commons-cli\commons-cli-1.1.jar
+set CLASSPATH=%CLASSPATH%;lib\third-party\commons-logging\commons-logging-1.1.jar
+set CLASSPATH=%CLASSPATH%;lib\third-party\google-collect-1.0-rc2\google-collect-1.0-rc2.jar
+set CLASSPATH=%CLASSPATH%;lib\third-party\google-collect-1.0-rc2\google-collect-testfw-1.0-rc2.jar
+set CLASSPATH=%CLASSPATH%;lib\third-party\google-feedserver\commons-beanutils-1.8.0.jar
+set CLASSPATH=%CLASSPATH%;lib\third-party\google-feedserver\commons-beanutils-core-1.8.0.jar
+set CLASSPATH=%CLASSPATH%;lib\third-party\google-feedserver\commons-lang-2.4.jar
+set CLASSPATH=%CLASSPATH%;lib\third-party\google-feedserver\gdata-client-1.0.jar
+set CLASSPATH=%CLASSPATH%;lib\third-party\google-feedserver\gdata-core-1.0.jar
+set CLASSPATH=%CLASSPATH%;lib\third-party\google-feedserver\google-feedserver-java-client-2.0.jar
+set CLASSPATH=%CLASSPATH%;lib\third-party\guice\guice-2.0.jar
+set CLASSPATH=%CLASSPATH%;lib\third-party\jsocks\jsocks.jar
+set CLASSPATH=%CLASSPATH%;lib\third-party\json\json.jar
+set CLASSPATH=%CLASSPATH%;lib\third-party\protobuf\protobuf-java-2.2.0.jar
+
 REM
 REM ARGUMENT DEFINTION
 REM 
 
-set DEPLOY_JAR=build\sdc-agent.jar
-set LOCALCONFIG_FILE=config\localConfig.xml
-set RULES_FILE=config\resourceRules.xml
-set LOGGING_PROPERTIES=config\log4j.properties
+set ENTRYPOINT_CLASS=com.google.dataconnector.client.Client
+set LOCALCONFIG_FILE=etc\localConfig.xml
+set RULES_FILE=etc\resourceRules.xml
+set LOGGING_PROPERTIES=etc\log4j.properties
 
 REM
 REM AGENT INVOCATION LOOP
@@ -44,7 +63,8 @@ REM
 :INVOKEAGENT
 
 java ^
-  -jar %DEPLOY_JAR% ^
+  -cp %CLASSPATH% ^
+  %ENTRYPOINT_CLASS% ^
   -localConfigFile %LOCALCONFIG_FILE% ^
   -rulesFile %RULES_FILE% ^
   -log4jPropertiesFile %LOGGING_PROPERTIES%

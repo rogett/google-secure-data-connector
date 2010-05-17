@@ -16,6 +16,7 @@
  */
 package com.google.dataconnector.client;
 
+import com.google.common.base.Preconditions;
 import com.google.dataconnector.client.HealthCheckHandler.FailCallback;
 import com.google.dataconnector.protocol.FrameReceiver;
 import com.google.dataconnector.protocol.FrameSender;
@@ -26,8 +27,6 @@ import com.google.dataconnector.registration.v4.Registration;
 import com.google.dataconnector.util.ConnectionException;
 import com.google.dataconnector.util.LocalConf;
 import com.google.dataconnector.util.SSLSocketFactoryInit;
-import com.google.dataconnector.util.ShutdownManager;
-import com.google.dataconnector.util.Stoppable;
 import com.google.inject.Inject;
 import com.google.protobuf.InvalidProtocolBufferException;
 
@@ -53,7 +52,7 @@ import javax.security.cert.X509Certificate;
  * @author rayc@google.com (Ray Colline)
  * @author vnori@google.com (Vasu Nori)
  */
-public class SdcConnection implements FailCallback, Stoppable {
+public class SdcConnection implements FailCallback {
 
   // Logging instance
   private static final Logger LOG = Logger.getLogger(SdcConnection.class);
@@ -65,11 +64,9 @@ public class SdcConnection implements FailCallback, Stoppable {
     "TLS_RSA_WITH_AES_128_CBC_SHA"
   };
 
-  public static final String INITIAL_HANDSHAKE_MSG = "v5.0 " +
+  public static final String INITIAL_HANDSHAKE_MSG = "v4.0 " +
      SdcConnection.class.getPackage().getImplementationVersion() + "\n";
 
-  private final static boolean RUN_HEALTH_CHECK = false;
-  
   // Dependencies.
   private final LocalConf localConf;
   private final SSLSocketFactoryInit sslSocketFactoryInit;
@@ -78,11 +75,8 @@ public class SdcConnection implements FailCallback, Stoppable {
   private final Registration registration;
   private final SocksDataHandler socksDataHandler;
   private final HealthCheckHandler healthCheckHandler;
-  private final FetchRequestHandler agentRequestHandler;
   private final ResourcesFileWatcher resourcesFileWatcher;
-  private final ShutdownManager shutdownManager;
-  private final SocketSessionRequestHandler socketSessionRequestHandler;
-  
+
   // Fields
   private SSLSocket socket;
 
@@ -96,10 +90,6 @@ public class SdcConnection implements FailCallback, Stoppable {
   * @param registration
   * @param socksDataHandler
   * @param healthCheckHandler
-  * @param agentRequestHandler
-  * @param socketSessionRequestHandler,
-  * @param resourcesFileWatcher
-  * @param shutdownManager
   */
   @Inject
   public SdcConnection(final LocalConf localConf,
@@ -109,10 +99,7 @@ public class SdcConnection implements FailCallback, Stoppable {
       final Registration registration,
       final SocksDataHandler socksDataHandler,
       final HealthCheckHandler healthCheckHandler,
-      final FetchRequestHandler agentRequestHandler,
-      final SocketSessionRequestHandler socketSessionRequestHandler,
-      final ResourcesFileWatcher resourcesFileWatcher,
-      final ShutdownManager shutdownManager) {
+      final ResourcesFileWatcher resourcesFileWatcher) {
     this.localConf = localConf;
     this.sslSocketFactoryInit = sslSocketFactoryInit;
     this.frameReceiver = frameReceiver;
@@ -120,10 +107,7 @@ public class SdcConnection implements FailCallback, Stoppable {
     this.registration = registration;
     this.socksDataHandler = socksDataHandler;
     this.healthCheckHandler = healthCheckHandler;
-    this.agentRequestHandler = agentRequestHandler;
-    this.socketSessionRequestHandler = socketSessionRequestHandler;
     this.resourcesFileWatcher = resourcesFileWatcher;
-    this.shutdownManager = shutdownManager;
   }
 
   /**
@@ -137,10 +121,6 @@ public class SdcConnection implements FailCallback, Stoppable {
     LOG.info("Connecting to SDC server");
 
     try {
-      // Set runtime dependency.
-      // TODO(rayc) figure out a cooler way to do this.
-      registration.setHealthCheckHandler(healthCheckHandler);
-      
       // Setup SSL connection and verify.
       LOG.debug("setting up SSLSocket with customized SSLSocketFacory");
       final SSLSocketFactory sslSocketFactory = sslSocketFactoryInit
@@ -180,52 +160,28 @@ public class SdcConnection implements FailCallback, Stoppable {
       frameReceiver.registerDispatcher(FrameInfo.Type.REGISTRATION, registration);
 
       // Setup Healthcheck
-      if (RUN_HEALTH_CHECK) {
-        healthCheckHandler.setFrameSender(frameSender);
-        healthCheckHandler.setFailCallback(this);
-        frameReceiver.registerDispatcher(FrameInfo.Type.HEALTH_CHECK, healthCheckHandler);
-        healthCheckHandler.start();
-      }
+      healthCheckHandler.setFrameSender(frameSender);
+      healthCheckHandler.setFailCallback(this);
+      frameReceiver.registerDispatcher(FrameInfo.Type.HEALTH_CHECK, healthCheckHandler);
+      healthCheckHandler.start();
 
       // Setup Socket Data.
       socksDataHandler.setFrameSender(frameSender);
       frameReceiver.registerDispatcher(FrameInfo.Type.SOCKET_DATA, socksDataHandler);
 
-      // Setup AgentRequest handler
-      agentRequestHandler.setFrameSender(frameSender);
-      frameReceiver.registerDispatcher(FrameInfo.Type.FETCH_REQUEST, agentRequestHandler);
-
-      // Setup SocketSessionRequestHandler
-      socketSessionRequestHandler.setFrameSender(frameSender);
-      frameReceiver.registerDispatcher(FrameInfo.Type.SOCKET_SESSION, socketSessionRequestHandler);
-
       // a thread to watch for changes in the resources.xml file
       // make this thread a daemon - so it can't hold up the process from exiting
       LOG.info("starting a thread to watch resources file");
+      resourcesFileWatcher.setDaemon(true);
       resourcesFileWatcher.setFrameSender(frameSender);
       resourcesFileWatcher.start();
 
-      // Add to shutdown manager so it gets gracefully shutdown.
-      shutdownManager.addStoppable(this);
       frameReceiver.startDispatching();
     } catch (IOException e) {
       throw new ConnectionException(e);
     } catch (FramingException e) {
       throw new ConnectionException(e);
     }
-  }
-  
-  /** 
-   * Kills active SDC connection and cleans up resources.
-   */
-  @Override
-  public void shutdown() {
-    try {
-      // should cause frame receiver to exit its loop as the read call will throw an IOException.
-      socket.close();
-    } catch (IOException e) {
-      LOG.debug("Socket exception when closing.", e);
-    } 
   }
 
   /**
@@ -319,13 +275,12 @@ public class SdcConnection implements FailCallback, Stoppable {
    */
   @Override
   public void handleFailure() {
-    LOG.error("Closing SDC connection due to health check failure.");
-    // Will cause connect() to unblock.
-    this.shutdown();
+    Preconditions.checkNotNull(socket, "Socket should not be null when handleFailure is called.");
+    try {
+      LOG.error("Closing SDC connection due to health check failure.");
+      socket.close();
+    } catch (IOException e) {
+      LOG.fatal("Could not close socket upon health check failure!");
+    }
   }
-  
-  public boolean hasConnectedSuccessfully() {
-    return healthCheckHandler.hasHadAtleastOneSuccessfulHealthCheck();
-  }
-  
 }

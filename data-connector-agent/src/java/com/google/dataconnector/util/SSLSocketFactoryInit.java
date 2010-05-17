@@ -87,7 +87,7 @@ public class SSLSocketFactoryInit {
       if (keystorePath != null) { // The customer specified their own keystore.
         initializeSslEngineWithCustomKeystore(localConf, password, keystorePath, context);
       } else {
-        initializeSslEngineWithDefaultKeystore(localConf, context);
+        initializeSslEngineWithDefaultKeystore(context);
       }
       if (context.getSocketFactory() == null) {
         throw new GeneralSecurityException("socketFactory not created");
@@ -105,18 +105,13 @@ public class SSLSocketFactoryInit {
    * Use the JVM default as trusted store. This would be located somewhere around
    * jdk.../jre/lib/security/cacerts, and will contain widely used CAs.
    */
-  private void initializeSslEngineWithDefaultKeystore(final LocalConf localConf, 
-      final SSLContext context) throws KeyManagementException {
-    if (!localConf.getAllowUnverifiedCertificates()) {
-      context.init(null, null, null);
-    } else {
-      // Use bogus trust all manager
-      context.init(null, new TrustManager[] { new TrustAllTrustManager() }, null);
-    }
+  private void initializeSslEngineWithDefaultKeystore(final SSLContext context)
+      throws KeyManagementException {
+    context.init(null, null, null);
   }
 
   /**
-   * use the customer supplied keystore.
+   * use the customer suplied keystore.
    */
   private void initializeSslEngineWithCustomKeystore(final LocalConf localConf,
       final char[] password, final String keystorePath, final SSLContext context) throws

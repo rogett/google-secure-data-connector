@@ -1,0 +1,304 @@
+#! /bin/bash
+#
+# Copyright 2008 Google Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# $Id$
+
+### BEGIN INIT INFO
+# Provides:          dataconnector
+# Required-Start:    $local_fs $network $remote_fs
+# Required-Stop:     $local_fs $remote_fs
+# Default-Start:     2 3 4 5
+# Default-Stop:      S 0 1 6
+# Short-Description: Start secure link client
+# Description:       Basic stop/start commands for dataconnector.
+#                    Provides a wrapper for the java application suitable for
+#                    linux systems. Startup options will improve as the
+#                    dataconnector client develops.
+### END INIT INFO
+
+# Author: Sebastian Welsh <sebastianw@google.com>
+
+# Do NOT "set -e"
+
+FULLNAME=__FULLNAME__
+INITSCRIPT=__INITSCRIPT__
+BINDIR=__BINDIR__
+LIBDIR=__LIBDIR__
+LOCALSTATEDIR=__LOCALSTATEDIR__
+LOGDIR=__LOGDIR__
+RUNDIR=__RUNDIR__
+SYSCONFDIR=__SYSCONFDIR__
+VERSION=__VERSION__
+
+RULES_FILE="${LOCALSTATEDIR}/rules"
+LOGFILE="${LOGDIR}/dataconnector"
+PID_FILE="${RUNDIR}/${FULLNAME}"
+START_TIMEOUT=15
+
+# PATH should only include /usr/* if it runs after the mountnfs.sh script
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+DESC="Securelink client for Google Apps"
+NAME="dataconnector"
+
+DAEMON=$(which java)
+
+[ -x "${DAEMON}" ] || { echo "No Java interpreter found!" >&2 ; exit 1 ; }
+
+START_MARKER="-- Starting dataconnector --"
+STOP_MARKER="-- Stopped dataconnector --"
+
+create_directory_if_absent() {
+  directory="${!1}"
+
+  if [ ! -d "${directory}" ]; then
+    mkdir -p "${directory}"
+  fi
+}
+
+create_directory_if_absent LOGDIR
+create_directory_if_absent LOCALSTATEDIR
+create_directory_if_absent RUNDIR
+
+# Load the VERBOSE setting and other rcS variables
+[ -f /etc/default/rcS ] && . /etc/default/rcS
+
+# Define LSB log_* functions.
+# Depend on lsb-base (>= 3.0-6) to ensure that this file is present.
+. /lib/lsb/init-functions
+
+
+# Returns 0 if the agent is running.
+# Returns 1 if the agent is not running.
+is_running()
+{
+  # There is a chance that multiple agents of different releases are running.
+
+  # If no PID file is present, do not consider it running.
+  [ -f "${PID_FILE}" ] || return 1
+
+  # Make sure that the provided PID looks to be the agent.
+  pid=$(< "${PID_FILE}")
+  if ps -p ${pid} -o comm,args | tail -1 | grep -q runclient.sh; then
+    return 0
+  else
+    echo "Google Secure Data Connector is not running according to ${PID_FILE}" >&2
+    return 1
+  fi
+}
+
+
+get_rules()
+{
+  # Sweep back through the log to find the most recently registered rules.
+  rule_match="ClientRegistrationUtil  - Registering rules: (.*)"
+  rules=$(tac "${LOGFILE}" | while read line; do
+    [[ "${line}" =~ "${rule_match}" ]] && echo ${BASH_REMATCH[1]} && break
+    # Only process the log until we get to the previous session.
+    [[ "${line}" =~ "${START_MARKER}" || "${line}" =~ "${STOP_MARKER}" ]] && break
+  done)
+  echo $rules
+}
+
+check_startup()
+{
+  # At the moment, checking startup can only be done by examining the logs.
+  # Look for some key events within a reasonable startup period (15s)
+  # Client startup events occur in this sequence:
+  # - Start HTTP proxy
+  # - Connect to WTS server
+  # - Start socks proxy
+  # - Authenticate to WTS
+  # - Register rules
+  # Look through the log for these events in reverse order: All must be
+  # successful for the client to have started successfully.
+  # Return the following at the end of the startup period:
+  # - 0: Startup complete
+  # - 1: Startup failed
+
+  # There are 6 things to check- set a unique value for each so we can get a
+  # meaningful error state
+  status=(1 2 4 8 16 32)
+  declare -i result=0
+
+  # Go from the bottom of the logfile:
+  # First, set some match variables. Do this, rather than inline, as bash
+  # escapes pattern operators (E14 in the bash FAQ)
+  match1="com.wpg.proxy.Proxy  - Proxy started on:"
+  match2="Starting SOCKS Proxy on:"
+  match3="ClientRegistrationUtil  - Login .* successful"
+  match4="ClientRegistrationUtil  - Registration .* successful"
+  match5="SecureDataConnection  - Login successful as"
+  # TODO(sebastian): add failure conditions as well.
+  # Annoyingly, read spawns a subshell, which means that the parsing results
+  # get dropped and I can't return the status array. The easy workaround it to
+  # simply print it out as a bunch of numbers and capture it into a new
+  # variable.
+  declare -i timer=0
+  while (( ${timer} < ${START_TIMEOUT} )) ; do
+    result=0
+    response=$(tac "${LOGFILE}" | \
+      while read line; do
+        [[ "${line}" =~ "${match1}" ]] && status[0]=0
+        [[ "${line}" =~ "${match2}" ]] && status[1]=0
+        [[ "${line}" =~ "${match3}" ]] && status[2]=0
+        [[ "${line}" =~ "${match4}" ]] && status[3]=0
+        [[ "${line}" =~ "${match5}" ]] && status[4]=0
+        [[ "${line}" =~ "${match6}" ]] && status[5]=0
+        # Only process the log until the start of this session
+        [[ "${line}" =~ "${START_MARKER}" ]] && echo ${status[@]} && break
+        # If we get here, the client failed to start normally.
+        [[ "${line}" =~ "${STOP_MARKER}" ]] && echo 128 && break
+      done)
+    for i in ${response}; do
+      result+=${i}
+    done
+    # Results we should exit on:
+    # - 0:  means all tests passed.
+    # - 128: a processing error occurred.
+    if (( ${result} == 0 )); then  # SUCCESS- all checks passed
+      return 0
+    elif (( ${result} == 128 )); then  # HORROR- an error has caused ruin
+      return 1
+    else  # PATIENCE- keep on truckin'
+      timer+=1
+      sleep 1
+    fi
+  done
+  return 1
+}
+
+
+#
+# Function that starts the daemon/service
+#
+do_start()
+{
+  # Return
+  #   0 if daemon has been started
+  #   1 if daemon was already running
+  #   2 if daemon could not be started
+  is_running
+  case "$?" in
+    0)# Is already running.
+      return 1
+      ;;
+    1)# Is not running. Start it.
+      echo ${START_MARKER} >> "${LOGFILE}"
+
+      # start.sh emits the PID of the runner agent script.
+      last_pid=$( "${BINDIR}"/start.sh )
+
+      # Make sure the client started
+      if [[ is_running ]]; then
+        # Monitor the startup logs to confirm the agent connected OK.
+        check_startup
+        started_ok=$?
+        if [[ ${started_ok} ]]; then
+          get_rules > "${RULES_FILE}"
+          return 0
+        fi
+      fi
+      # Fall through if it's not running, or the startup checks fail.
+      do_stop
+      return 2
+      ;;
+  esac
+}
+
+#
+# Function that stops the daemon/service
+#
+do_stop()
+{
+  # Return
+  #   0 if daemon has been stopped
+  #   1 if daemon was already stopped
+  #   2 if daemon could not be stopped
+  is_running
+  case "$?" in
+    0) "${BINDIR}/stop.sh"
+       if (( ${?} == 0 )); then
+         echo ${STOP_MARKER} >> "${LOGFILE}"
+         # Sterilise the rules file
+         echo '' > "${RULES_FILE}"
+         return 0
+       else
+         echo "Stopping runner failed." >> "${LOGFILE}"
+         return 2
+       fi
+       ;;
+    1) echo ${STOP_MARKER} >> "${LOGFILE}"
+       return 1
+       ;;
+  esac
+}
+
+case "$1" in
+  start)
+    [ "${VERBOSE}" != "no" ] && log_daemon_msg "Starting ${DESC}" "${NAME}" "${VERSION}"
+    do_start
+    case "$?" in
+      0|1) [ "${VERBOSE}" != "no" ] && log_end_msg 0 ;;
+      2) [ "${VERBOSE}" != "no" ] && log_end_msg 1 ;;
+    esac
+    ;;
+  stop)
+    [ "${VERBOSE}" != "no" ] && log_daemon_msg "Stopping ${DESC}" "${NAME}"
+    do_stop
+    case "$?" in
+      0|1) [ "${VERBOSE}" != "no" ] && log_end_msg 0 ;;
+      2) [ "${VERBOSE}" != "no" ] && log_end_msg 1 ;;
+    esac
+    ;;
+  restart|force-reload)
+    log_daemon_msg "Restarting ${DESC}" "${NAME}"
+    do_stop
+    case "$?" in
+      0|1)
+        sleep 2
+        do_start
+        case "$?" in
+          0) log_end_msg 0 ;;
+          1) log_end_msg 1 ;; # Old process is still running
+          *) log_end_msg 2 ;; # Failed to start
+        esac
+        ;;
+      *)
+        # Failed to stop
+        log_end_msg 1
+        ;;
+    esac
+    ;;
+  status)
+    log_daemon_msg "Checking ${DESC}" "${NAME}"
+    is_running
+    case "$?" in
+      0) log_end_msg 0 ;;
+      1) log_end_msg 1
+         exit 1
+         ;;
+    esac
+    ;;
+  get_rules)
+    get_rules
+    ;;
+  *)
+    echo "Usage: ${INITSCRIPT} {start|stop|status|restart|force-reload|get_rules}" >&2
+    exit 3
+    ;;
+esac
+
+:

@@ -1,0 +1,10 @@
+The ant build.xml in this directory allows one to build both debian 
+packages and RPMs for the secure data connector.  It builds them 
+assuming the --lsb option and locations for the dependent RPMs.
+
+This script is brittle and currently only works easily on Ubuntu Hardy
+for the debian packages. 
+
+TODO(rayc) Fill in RPM details when Darrell returns.
+
+

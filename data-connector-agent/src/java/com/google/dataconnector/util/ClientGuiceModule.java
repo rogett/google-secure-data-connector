@@ -28,6 +28,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.net.UnknownHostException;
 import java.util.Properties;
 import java.util.concurrent.SynchronousQueue;
@@ -88,6 +89,18 @@ public class ClientGuiceModule extends AbstractModule {
     } catch (IOException e) {
       throw new RuntimeException("Invalid socks properties", e);
     }
+  }
+
+  /**
+   * creates a singleton instance of {@link HealthCheckRequestHandler} with a
+   * ServerSocket listening on an ephemeral port.
+   *
+   * @return created singleton instance of HealthCheckRequestHandler
+   * @throws IOException thrown if ServerSocket couldn't be created
+   */
+  @Provides @Singleton
+  public HealthCheckRequestHandler getHealthCheckRequestHandler() throws IOException {
+    return new HealthCheckRequestHandler(new ServerSocket(0));
   }
 
   @Provides @Singleton @Named("localhost")

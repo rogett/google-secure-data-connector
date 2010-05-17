@@ -24,10 +24,9 @@ import com.google.dataconnector.protocol.proto.SdcFrame.FrameInfo;
 import com.google.dataconnector.protocol.proto.SdcFrame.HealthCheckInfo;
 import com.google.dataconnector.protocol.proto.SdcFrame.ServerSuppliedConf;
 import com.google.dataconnector.util.ClockUtil;
-import com.google.dataconnector.util.ShutdownManager;
-import com.google.dataconnector.util.Stoppable;
-import com.google.common.base.Preconditions;
+import com.google.gdata.util.common.base.Preconditions;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import org.apache.log4j.Logger;
@@ -41,11 +40,11 @@ import org.apache.log4j.Logger;
  * @author rayc@google.com (Ray Colline)
  * @author vnori@google.com (Vasu Nori)
  */
-public class HealthCheckHandler extends Thread implements Dispatchable, Stoppable {
+@Singleton
+public class HealthCheckHandler extends Thread implements Dispatchable {
 
   // amount of time (in sec) to wait for registration info to be received from SDC server
-  private static final int TIME_TO_WAIT_FOR_SERVERSUPPLIED_CONF = 60;
-  private static final int POLL_INTERVAL_FOR_SERVERSUPPLIED_CONF = 5;
+  private static final int TIME_TO_WAIT_FOR_SERVERSUPPLIED_CONF = 5;
 
   /**
    * Call back interface for when health check fails.
@@ -60,7 +59,6 @@ public class HealthCheckHandler extends Thread implements Dispatchable, Stoppabl
 
   // Injected Dependencies
   private final ClockUtil clock;
-  private final ShutdownManager shutdownManager;
 
   // Runtime Dependencies
   private FrameSender frameSender;
@@ -69,13 +67,10 @@ public class HealthCheckHandler extends Thread implements Dispatchable, Stoppabl
 
   // Class fields.
   private long lastHealthCheckReceivedStamp = 0;
-  private boolean hadAtleastOneSuccessfulHealthCheck = false;
 
   @Inject
-  public HealthCheckHandler(final ClockUtil clock, final ShutdownManager shutdownManager) {
+  public HealthCheckHandler(final ClockUtil clock) {
     this.clock = clock;
-    this.shutdownManager = shutdownManager;
-    this.setName(this.getClass().getName());
   }
 
   /**
@@ -98,9 +93,6 @@ public class HealthCheckHandler extends Thread implements Dispatchable, Stoppabl
     Preconditions.checkNotNull(frameSender, "Must define frameSender before starting.");
     Preconditions.checkNotNull(failCallback, "Must define remoteFailSwitch before starting.");
 
-    // Add to shutdown manager
-    shutdownManager.addStoppable(this);
-    
     try {
       // don't start doing anything until the config info is received from the SDC server
       waitUntilServerConfigIsReceived();
@@ -134,8 +126,6 @@ public class HealthCheckHandler extends Thread implements Dispatchable, Stoppabl
           failCallback.handleFailure();
           return;
         } else {
-          // We set this to indicate we have received some valid frames from the server.
-          hadAtleastOneSuccessfulHealthCheck = true;
           LOG.debug("Health check ok, last received " +
               (clock.currentTimeMillis() - lastHealthCheckReceivedStamp) + "ms ago.");
         }
@@ -146,18 +136,10 @@ public class HealthCheckHandler extends Thread implements Dispatchable, Stoppabl
   }
 
   private void waitUntilServerConfigIsReceived() throws InterruptedException {
-    long totalWaitTime = 0;
     while (serverSuppliedConf == null) {
-      if (totalWaitTime > TIME_TO_WAIT_FOR_SERVERSUPPLIED_CONF) {
-        LOG.error("Did not recieve server supplied healthcheck configuration in " +
-            TIME_TO_WAIT_FOR_SERVERSUPPLIED_CONF + " seconds.");
-        failCallback.handleFailure();
-        break;
-      }
       LOG.info("healthcheck config is not yet received from the SDC server. will check again in " +
-          POLL_INTERVAL_FOR_SERVERSUPPLIED_CONF + " sec");
-      sleep(POLL_INTERVAL_FOR_SERVERSUPPLIED_CONF * 1000);
-      totalWaitTime += POLL_INTERVAL_FOR_SERVERSUPPLIED_CONF;
+          TIME_TO_WAIT_FOR_SERVERSUPPLIED_CONF + " sec");
+      sleep(TIME_TO_WAIT_FOR_SERVERSUPPLIED_CONF * 1000);
     }
   }
 
@@ -171,17 +153,5 @@ public class HealthCheckHandler extends Thread implements Dispatchable, Stoppabl
 
   public synchronized void setServerSuppliedConf(final ServerSuppliedConf serverSuppliedConf) {
     this.serverSuppliedConf = serverSuppliedConf;
-  }
-
-  /**
-   * Shuts down health-check interval watcher.
-   */
-  @Override
-  public void shutdown() {
-    this.interrupt();
-  }
-
-  public boolean hasHadAtleastOneSuccessfulHealthCheck() {
-    return hadAtleastOneSuccessfulHealthCheck;
   }
 }

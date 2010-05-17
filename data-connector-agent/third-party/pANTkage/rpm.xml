@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Copyright 2008 Google Inc.
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+
+$Id$
+-->
+<project name="pANTkage">
+  <target name="rpm" depends="source-distro">
+    <property file="third-party/pANTkage/rpm.properties"/>
+    <exec executable="third-party/pANTkage/rpm_env.py"/>
+    <exec executable="third-party/pANTkage/gen_spec.py">
+       <arg line="--name=${name} --release=${release} --version=${version} --license=${license} --summary=${summary} --description=${description} --type=src --group=${group} --deps=${deps}"/>
+    </exec>
+    <exec executable="third-party/pANTkage/gen_spec.py">
+      <arg line="--name=${name} --release=${release} --version=${version} --license=${license} --summary=${summary} --description=${description} --group=${group} --deps=${deps}"/>
+    </exec>
+    <exec executable="mv">
+      <arg line="${name}.spec rpm/SPECS/"/>
+    </exec>
+    <exec executable="cp">
+      <arg line="${sourcedir}${name}-${version}-${release}-src.tar.gz rpm/SOURCES/"/>
+    </exec>
+    <rpm
+      specFile="${name}.spec"
+      topDir="rpm/"
+      cleanBuildDir="true"
+      command="-bb"
+      failOnError="true"/>
+    <rpm
+      specFile="${name}.spec"
+      topDir="rpm/"
+      cleanBuildDir="true"
+      command="-bs"
+      failOnError="true"/>
+<!-- NOT USING THE SOURCE RPM -->
+    <exec executable="rm">
+      <arg line="rpm/SRPMS/${name}-${version}-${release}.src.rpm distribute/dist/"/>
+    </exec>
+    <exec executable="mv">
+      <arg line="rpm/RPMS/noarch/${name}-${version}-${release}.noarch.rpm distribute/dist/"/>
+    </exec>
+    <exec executable="rm">
+      <arg line="-rf rpm/SPECS"/>
+    </exec>
+    <exec executable="rm">
+      <arg line="-rf rpm/SOURCES"/>
+    </exec>
+    <exec executable="third-party/pANTkage/rpm_env.py">
+      <arg line="--clean y"/>
+    </exec>
+  </target>
+</project>

@@ -50,7 +50,7 @@ public class InputStreamConnectorTest extends TestCase {
     super.setUp();
     bis = new ByteArrayInputStream(expectedPayload);
     sendQueue = new LinkedBlockingQueue<FrameInfo>(1000);
-    frameSender = new FrameSender(sendQueue, null);
+    frameSender = new FrameSender(sendQueue);
   }
 
   public void testReceiveInputAndCreateFrames() throws Exception {
