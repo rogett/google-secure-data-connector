@@ -1,53 +1,117 @@
-$Id$
+README for Secure Data Connector, version 1.3-rc0
 
-= Secure Data Connector Install Instructions for GNU/Linux or Cygwin
+This is distribution contains the binary and source for the Google
+Secure Data Connector, version 1.3-rc0.  This is a pre-release
+version; however, the agent's supported features (see below) are
+considered stable.
 
-Prerequisites:
+Features New to This Version
+----------------------------
+- Performance optimization by fetching the requested http(s)
+  resource via embedded http client (Apached HttpClient 4.0).
+  A new protocol is introduced whereby fetching of resources by 
+  http/https inside the firewall is performed locally by the
+  embedded http client.  This new protocol performs better compared
+  to the existing SOCKS proxy protocol by reducing network traffic
+  between the agent and the cloud.  It has been shown to improve
+  latencies for fetching URL resources (e.g. from Google AppEngine
+  applications) significantly.
 
-If you want to make changes to the SDC protocol defintion file it will
-require the Google Protocol Buffer compiler. Make sure its in the path.
-It can be downloaded from here:
-  - http://code.google.com/p/protobuf/downloads/list
-  - follow the README to install.
-  - We include the generated protocol buffer classes should protoc be
-    unavailable.
+- Agent retries with back-off on connection problems. When the agent
+  cannot connect with the cloud, it makes another attempt after a
+  variable back-off timer.
 
-Read these docs:
-  - http://code.google.com/securedataconnector/docs/1.0/config.html
+- Password file support.  Instead of specifying the password for
+  connecting to the cloud, a new element <passwordFile> in the 
+  resource configuration xml now allows a password file to be
+  referenced.
 
-1) ant
+- Simplified start up.  All of the dependencies of the agent are now
+  bundled up in a single executable jar file.  In addition, OpenSSH
+  is no longer required.  This greatly simplifies running the agent
+  such that only JDK/JRE 1.6 and the agent jar (lib/sdc-agent.jar)
+  are required.  The agent can now be started up as simply as
+  'java -jar sdc-agent.jar <options>'
 
-This compiles all the source and dependencies into one jar.
+Features Still Under Development / Experimental
+-----------------------------------------------
+- New protocol for socket sessions has been introduced to support
+  generic socket connections initiated from the cloud to a host:port
+  within the firewall.  This when released will support use cases
+  such as connecting from the cloud to databases within the firewall
+  via JDBC.
 
-2) Read and perform "Configuring Google Apps Domain Parameters" in the
-"Configuring" section of the User's Guide:
-   URL: http://code.google.com/securedataconnector/docs/1.0/config.html
+Deprecated with this Release
+----------------------------
+- SOCKS proxy / protocol is now deprecated but remains in the agent
+  for legacy reasons.  Its functionality has been replaced by the
+  embedded http/https client and the new Fetch protocol.
 
-3) Read and perfom "Configuring the Connection to Google Apps" in the
-"Configuring" section of the User's Guide:
-   URL: http://code.google.com/securedataconnector/docs/1.0/config.html
-   - copy config/localConfiguration.xml-dist to config/localConfiguration.xml
-     eg: cp config/localConfiguration.xml-dist  config/localConfiguration.xml
-   - edit config/localConfiguration.xml and set values according to your
-   needs and requirements.
+- Various flavors of the Linux distributions/ packages have been 
+  deprecated now that the agent packaging, installation, and startup
+  have been greatly simplified.  By simplifying the agent distribution
+  and the start/stop process, the user can more easily incorporate
+  the agent into their own environment and system management processes.
 
-4) Read and perform "Configuring Resource Rules" in the "Configuring"
-section of the User's Guide:
-   URL: http://code.google.com/securedataconnector/docs/1.0/config.html#ConfiguringResourceRules
-   - copy config/resourceRules.xml-dist to config/resourceRules.xml
-     eg: cp config/resourceRules.xml-dist  config/resourceRules.xml
-   - edit config/resourceRules.xml and set values according to your
-   needs and requirements.
 
-5) start agent and verify connectivity in the log.
-  sh runclient.sh
-  tail -f logs/agent.log
+Install / Configuration
+-----------------------
+This distribution zip file is organized into the following 
+subdirectories:
+	- bin/ - The start/ stop shell scripts 
+	- lib/ - Contains the single agent executable jar file.
+	- config/ - Contains the sample/template resource rule xml
+	file, as well as config files for connection properties
+	and logging.
+	- src/ - Contains the source code from the 1.3-rc0 release
+	branch, packaged in a single jar file.
 
-Other useful targets:
+Since the agent is now distributed as a single executable jar file,
+installation directory of the agent is by default where this zip file's
+contents reside.  Configuration of the agent should follow the online
+documentation at:
+   URL: http://code.google.com/securedataconnector/docs/1.3/config.html
 
-1) ant clean (returns to prebuilt but configured state)
-2) ant test (runs unit tests)
+Once the agent is configured, starting up the agent can be as simple as
 
-= Secure Data Connector Install Instructions for Windows
+java -jar lib/sdc-agent.jar <options>
 
-There are no instructions yet.  However we have provided a runclient.bat.
+where <options> include the flags that tells the agent the location of
+the various configuration files.
+
+Scripts in the bin directory (./bin/start.sh and ./bin/stop.sh) are
+provided to simplify starting up and stopping the agent.  To run the 
+script, cd to the directory where this README file is found and run:
+
+./bin/start.sh
+
+This uses the currrent directory as the starting point and will
+launch the agent using java in /usr/bin/java and the configuration
+files in the ./config directory.  It also generates a file (agent.pid)
+in the current directory to indicate the process id of the agent
+processes. A log file will be produced in the ./log directory.
+
+To modify the location of the various configuration and logging files,
+open up the bin/runagent.sh file and modify any or all of the following
+variables:
+OVERRIDE_JAVABIN = path to the Java runtime. (default /usr/bin/java)
+OVERRIDE_DEPLOYJAR = path to the agent jar (default to ./lib/sdc-agent.jar)
+OVERRIDE_RUNDIR = path to directory where agent process id file is stored.
+OVERRIDE_SYSCONFDIR = path to directory where configuration files are stored.
+
+To stop the agent, simply run this command from the current directory:
+
+./bin/stop.sh
+
+The stop.sh script looks for the ./agent.pid file to determine the agent
+processes to terminate.
+
+With these simplified packaging and start/shutdown of the agent, you are
+encouraged to modify the scripts as appropriate to better integrate the
+agent into your environment and system management processes.
+
+
+
+
+
+
