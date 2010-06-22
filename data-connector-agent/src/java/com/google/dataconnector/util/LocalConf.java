@@ -50,6 +50,8 @@ public class LocalConf {
   private Integer sdcServerPort = DEFAULT_GOOGLE_SDC_PORT;
   @Flag(help = "Google Apps domain to associate agent with.")
   private String domain;
+  @Flag(help = "Run the heartbeat thread.")
+  private Boolean runHeartBeatThread = true;
 
   @Flag(help = "Any valid admin user on the domain. This is only used for authentication.")
   private String user;
@@ -234,6 +236,14 @@ public class LocalConf {
 
   public Boolean getAllowUnverifiedCertificates() {
     return allowUnverifiedCertificates;
+  }
+
+  public Boolean getRunHeartBeatThread() {
+    return runHeartBeatThread;
+  }
+
+  public void setRunHeartBeatThread(Boolean runHeartBeatThread) {
+    this.runHeartBeatThread = runHeartBeatThread;
   }
 
   @Deprecated // We do not want to break any one's existing conf file even though this is a no-op.

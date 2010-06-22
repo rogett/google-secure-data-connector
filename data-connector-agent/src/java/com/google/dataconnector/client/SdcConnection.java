@@ -68,8 +68,6 @@ public class SdcConnection implements FailCallback, Stoppable {
   public static final String INITIAL_HANDSHAKE_MSG = "v5.0 " +
      SdcConnection.class.getPackage().getImplementationVersion() + "\n";
 
-  private final static boolean RUN_HEALTH_CHECK = false;
-  
   // Dependencies.
   private final LocalConf localConf;
   private final SSLSocketFactoryInit sslSocketFactoryInit;
@@ -180,7 +178,8 @@ public class SdcConnection implements FailCallback, Stoppable {
       frameReceiver.registerDispatcher(FrameInfo.Type.REGISTRATION, registration);
 
       // Setup Healthcheck
-      if (RUN_HEALTH_CHECK) {
+      if (localConf.getRunHeartBeatThread()) {
+        LOG.info("Starting hearbeat/ health check thread.");
         healthCheckHandler.setFrameSender(frameSender);
         healthCheckHandler.setFailCallback(this);
         frameReceiver.registerDispatcher(FrameInfo.Type.HEALTH_CHECK, healthCheckHandler);

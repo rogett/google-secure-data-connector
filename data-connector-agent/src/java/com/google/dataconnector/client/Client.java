@@ -48,10 +48,10 @@ import java.util.Properties;
  * @author rayc@google.com (Ray Colline)
  */
 public class Client {
-  
+
   // Logging instance
   private static final Logger LOG = Logger.getLogger(Client.class);
-  
+
   // Constants
   private static final long MAX_BACKOFF_TIME = 5 * 60 * 1000; // 5 minutes
 
@@ -60,7 +60,7 @@ public class Client {
   private final SdcConnection secureDataConnection;
   private final JsocksStarter jsocksStarter;
   private final ShutdownManager shutdownManager;
-  
+
   /* Local fields */
   private static long unsuccessfulAttempts = 0;
 
@@ -82,7 +82,7 @@ public class Client {
    * Reads flags and config files, validates configuration and starts agent.
    */
   public void parseFlagsValidateAndConnect(final String[] args) {
-    
+
     // validate the localConf.xml file and the input args
     try {
       BeanCliHelper beanCliHelper = new BeanCliHelper();
@@ -96,15 +96,14 @@ public class Client {
       LOG.fatal("Configuration error", e);
       return;
     }
-    
+
     // Set log4j properties.  We do not expect this file to change often so we do not use the
     // cooler, yet more resource intensive, "configureAndWatch".
     PropertyConfigurator.configure(localConf.getLog4jPropertiesFile());
     if (localConf.getDebug()) {
       Logger.getRootLogger().setLevel(Level.DEBUG);
     }
-    
-    
+
     // Connect
     try {
       // If the password file is specified, then read its contents and override
@@ -120,12 +119,12 @@ public class Client {
       secureDataConnection.connect();
     } catch (IOException e ) {
       LOG.fatal("Cannot read password file.", e);
-    }	catch (ConnectionException e) {
+    } catch (ConnectionException e) {
       LOG.fatal("Connection failed.", e);
     } finally {
       shutdownManager.shutdownAll();
     }
-    
+
     // Check whether connection was successful or not.
     if (secureDataConnection.hasConnectedSuccessfully()) {
       unsuccessfulAttempts = 0;
@@ -136,7 +135,7 @@ public class Client {
       unsuccessfulAttempts++;
     }
   }
-  
+
   /**
    * Entry point for the Secure Data Connector binary.  Sets up logging, parses flags and
    * creates ClientConf.
@@ -156,7 +155,7 @@ public class Client {
         shutdownManager.shutdownAll();
       }
     });
-    
+
     // Starts the client in a loop that exponentially backs off. 
     while (true) {
       try {
@@ -174,7 +173,7 @@ public class Client {
               " Next connect in " + backOffTime + " milliseconds.");
         } else if (unsuccessfulAttempts == -1) {
           // We are being told to quit probably because we were only configured to start once.
-          break; 
+          break;
         }
         injector.getInstance(Client.class).parseFlagsValidateAndConnect(args);
       } catch (Exception e) { // This is an outside server loop. Catch everything.
@@ -183,7 +182,7 @@ public class Client {
       }
     }
   }
-  
+
   /**
    * Returns a base set of logging properties so we can log fatal errors before config parsing is
    * done.
