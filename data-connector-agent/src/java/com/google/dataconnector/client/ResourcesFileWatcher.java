@@ -17,15 +17,6 @@
 
 package com.google.dataconnector.client;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.security.DigestInputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-
-import org.apache.log4j.Logger;
-
 import com.google.common.base.Preconditions;
 import com.google.dataconnector.protocol.FrameSender;
 import com.google.dataconnector.registration.v4.Registration;
@@ -36,6 +27,15 @@ import com.google.dataconnector.util.ShutdownManager;
 import com.google.dataconnector.util.Stoppable;
 import com.google.dataconnector.util.SystemUtil;
 import com.google.inject.Inject;
+
+import org.apache.log4j.Logger;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * <p>A watcher thread that keeps track of the resource rules message digest.</p>
@@ -55,6 +55,7 @@ public class ResourcesFileWatcher extends Thread implements Stoppable {
 
   // Runtime dependencies.
   private FrameSender frameSender;
+  private MessageDigest md5Digest;
 
 
   /**
@@ -73,7 +74,12 @@ public class ResourcesFileWatcher extends Thread implements Stoppable {
     this.registration = registration;
     this.fileUtil = fileUtil;
     this.systemUtil = systemUtil;
-    
+
+    try {
+      this.md5Digest = MessageDigest.getInstance("MD5");
+    } catch (NoSuchAlgorithmException e) {
+      this.md5Digest = null;
+    }
     // Set thread info
     this.setName(this.getClass().getName());
     this.setDaemon(true);
@@ -86,44 +92,81 @@ public class ResourcesFileWatcher extends Thread implements Stoppable {
     this.frameSender = frameSender;
   }
 
+  /**
+   * Given the previously known digest (possibly null), re-read the config file
+   * and upload if the new digest differs from the old one.  After that, return
+   * the new digest.  In case of exception during upload, return the input digest
+   * so that it's as if the exception never happened and a re-read on the next
+   * try will force another upload attempt.
+   * 
+   * @param lastDigest The last digest.
+   * @return The new digest.
+   * @throws IOException
+   */
+  private byte[] checkFileContentAndUploadIfNecessary(byte[] lastDigest) throws IOException {
+    final String resourcesFile = localConf.getRulesFile();
+    DigestInputStream digestInputStream = null;
+    try {
+      digestInputStream = new DigestInputStream(
+          fileUtil.getFileInputStream(resourcesFile), 
+          md5Digest);
+
+      while (digestInputStream.read() != -1) {
+      }
+
+      final byte[] currentDigest = digestInputStream.getMessageDigest().digest();
+
+      /* There is no need to trigger a re-registration, since this will be automatically handled
+       * in agent connection.
+       */
+      if (lastDigest == null) {
+        lastDigest = currentDigest;
+        return currentDigest;
+      }
+
+      if (!MessageDigest.isEqual(lastDigest, currentDigest)) {
+        try {
+          LOG.info("Detected change in the content of resources file " + resourcesFile +
+          "; re-registering with server.");
+          LOG.info("Last digest was " + lastDigest + "; new digest is " + currentDigest);
+
+          // Upload the new registration.
+          registration.sendRegistrationInfo(frameSender);
+          
+          return currentDigest;
+        } catch (RegistrationException e) {
+          LOG.error("Could not register new resources with server; will retry.", e);
+        }
+        // In all cases other than successful upload, just return the input.
+        return lastDigest;
+      }
+
+      return currentDigest;
+    } catch (IOException e) {
+      LOG.error("Exception while accessing config file:", e);
+      throw e;
+    } finally {
+      if (digestInputStream != null) {
+        digestInputStream.close();  // Closes underlying inputStream from file.
+        LOG.debug("Closed md5 digest stream on " + resourcesFile);
+      }
+    }
+  }
+  
   @Override
   public void run() {
     Preconditions.checkNotNull(frameSender);
+    FileInputStream currentStream = null;;
     
     byte[] lastDigest = null;
 
     try {
-      final MessageDigest md5Digest = MessageDigest.getInstance("MD5");
-      while (true) {
-        final String resourcesFile = localConf.getRulesFile();
-        final FileInputStream currentStream = fileUtil.getFileInputStream(resourcesFile);
-        final DigestInputStream digestInputStream = new DigestInputStream(currentStream, md5Digest);
+      // Run the check only when the MD5 digest is available.
+      // TODO Implement an alternative based on file timestamp.
+      while (this.md5Digest != null) {
 
-        while (digestInputStream.read() != -1) {
-        }
-
-        final byte[] currentDigest = digestInputStream.getMessageDigest().digest();
-
-        /* There is no need to trigger a re-registration, since this will be automatically handled
-         * in agent connection.
-         */
-        if (lastDigest == null) {
-          lastDigest = currentDigest;
-          continue;
-        }
-
-        if (!MessageDigest.isEqual(lastDigest, currentDigest)) {
-          try {
-            LOG.info("Detected change in the content of resources file " + resourcesFile +
-            "; re-registering with server.");
-            LOG.info("Last digest was " + lastDigest + "; new digest is " + currentDigest);
-            registration.sendRegistrationInfo(frameSender);
-            lastDigest = currentDigest;
-          } catch (RegistrationException e) {
-            LOG.error("Could not register new resources with server; will retry.", e);
-          }
-        }
-
+        lastDigest = this.checkFileContentAndUploadIfNecessary(lastDigest);
+        
         // sleep for a FileWatcherThreadSleepTimer min and check again
         systemUtil.sleep(localConf.getFileWatcherThreadSleepTimer() * 60 * 1000L);
       }
@@ -133,8 +176,6 @@ public class ResourcesFileWatcher extends Thread implements Stoppable {
       LOG.fatal("Could not read configuration.", e);
     } catch (IOException e) {
       LOG.fatal("IOException.", e);
-    } catch (NoSuchAlgorithmException e) {
-      LOG.fatal("NoSuchAlgorithmException.", e);
     } finally {
       LOG.info("FileWatcher thread exiting. " +
       "Any changes in resources file will require restarting agent manually.");

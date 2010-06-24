@@ -16,21 +16,12 @@
  */
 package com.google.dataconnector.client;
 
-import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.isA;
 import static org.easymock.classextension.EasyMock.createMock;
 import static org.easymock.classextension.EasyMock.replay;
 import static org.easymock.classextension.EasyMock.verify;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-
-import junit.framework.TestCase;
-
-import org.easymock.classextension.EasyMock;
 
 import com.google.dataconnector.protocol.FrameSender;
 import com.google.dataconnector.registration.v4.Registration;
@@ -40,6 +31,14 @@ import com.google.dataconnector.util.RegistrationException;
 import com.google.dataconnector.util.ShutdownManager;
 import com.google.dataconnector.util.Stoppable;
 import com.google.dataconnector.util.SystemUtil;
+
+import junit.framework.TestCase;
+
+import org.easymock.classextension.EasyMock;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 
 /**
  * Tests for the {@link ResourcesFileWatcher} class.
@@ -87,15 +86,12 @@ public class ResourcesFileWatcherTest extends TestCase {
    * No change in content, so no new registration should result.
    */
   public void testRun_noChangeNoReRegistration() throws InterruptedException, IOException {
-    // Expected operation:
-    //   1st time - Read.
-    //   2nd time - Read.
     expect(fileUtil.getFileInputStream(TEST_FILE)).andReturn(fileInputStream);
     expect(fileInputStream.read()).andReturn(1);
     expect(fileInputStream.read()).andReturn(-1);
-    expect(fileUtil.getFileInputStream(TEST_FILE)).andReturn(fileInputStream);
-    expect(fileInputStream.read()).andReturn(1);
-    expect(fileInputStream.read()).andReturn(-1);
+    fileInputStream.close();
+    EasyMock.expectLastCall();
+
     // Exit loop with fake exception.
     systemUtil.sleep(localConf.getFileWatcherThreadSleepTimer() * 60 * 1000L);
     expectLastCall().andThrow(new InterruptedException());
@@ -116,20 +112,29 @@ public class ResourcesFileWatcherTest extends TestCase {
    */
   public void testRun_changeRequiresReRegistration() throws InterruptedException,
       RegistrationException, IOException {
-    // Expected operation:
-    //   1st time - Read.
-    //   2nd time - Read.
-    expect(fileUtil.getFileInputStream(TEST_FILE)).andReturn(fileInputStream);
-    expect(fileInputStream.read()).andReturn(1);
-    expect(fileInputStream.read()).andReturn(-1);
     expect(fileUtil.getFileInputStream(TEST_FILE)).andReturn(fileInputStream);
     expect(fileInputStream.read()).andReturn(2);
     expect(fileInputStream.read()).andReturn(-1);
+
+    fileInputStream.close();
+    EasyMock.expectLastCall();
+
+    // Exit loop with fake exception.
+    systemUtil.sleep(localConf.getFileWatcherThreadSleepTimer() * 60 * 1000L);
+    expectLastCall();
+
+    expect(fileUtil.getFileInputStream(TEST_FILE)).andReturn(fileInputStream);
+    expect(fileInputStream.read()).andReturn(3);
+    expect(fileInputStream.read()).andReturn(-1);
+
+    registration.sendRegistrationInfo(frameSender);
+
+    fileInputStream.close();
+    EasyMock.expectLastCall();
+
     // Exit loop with fake exception.
     systemUtil.sleep(localConf.getFileWatcherThreadSleepTimer() * 60 * 1000L);
     expectLastCall().andThrow(new InterruptedException());
-
-    registration.sendRegistrationInfo(frameSender);
 
     replayAll();
 
@@ -153,16 +158,28 @@ public class ResourcesFileWatcherTest extends TestCase {
     expect(fileUtil.getFileInputStream(TEST_FILE)).andReturn(fileInputStream);
     expect(fileInputStream.read()).andReturn(1);
     expect(fileInputStream.read()).andReturn(-1);
-    expect(fileUtil.getFileInputStream(TEST_FILE)).andReturn(fileInputStream);
-    expect(fileInputStream.read()).andReturn(2);
-    expect(fileInputStream.read()).andReturn(-1);
+    fileInputStream.close();
+    EasyMock.expectLastCall();
     expect(fileUtil.getFileInputStream(TEST_FILE)).andReturn(fileInputStream);
     expect(fileInputStream.read()).andReturn(2);
     expect(fileInputStream.read()).andReturn(-1);
 
     registration.sendRegistrationInfo(frameSender);
     expectLastCall().andThrow(new RegistrationException(""));
+
+    fileInputStream.close();
+    EasyMock.expectLastCall();
+
+    systemUtil.sleep(localConf.getFileWatcherThreadSleepTimer() * 60 * 1000L);
+
+    expect(fileUtil.getFileInputStream(TEST_FILE)).andReturn(fileInputStream);
+    expect(fileInputStream.read()).andReturn(2);
+    expect(fileInputStream.read()).andReturn(-1);
+
     registration.sendRegistrationInfo(frameSender);
+
+    fileInputStream.close();
+    EasyMock.expectLastCall();
 
     systemUtil.sleep(localConf.getFileWatcherThreadSleepTimer() * 60 * 1000L);
     // Exit loop with fake exception.
