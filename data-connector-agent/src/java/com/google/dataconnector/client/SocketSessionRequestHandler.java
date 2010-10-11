@@ -27,6 +27,8 @@ import com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply;
 import com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionRequest;
 import com.google.dataconnector.protocol.proto.SdcFrame.SocketSessionReply.Status;
 import com.google.dataconnector.util.ClockUtil;
+import com.google.dataconnector.util.SdcKeysManager;
+import com.google.dataconnector.util.SessionEncryption;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.protobuf.ByteString;
@@ -47,9 +49,10 @@ import java.net.UnknownHostException;
  */
 public class SocketSessionRequestHandler implements Dispatchable {
 
-  private static Logger logger = Logger.getLogger(SocketSessionRequestHandler.class);
+  private static Logger LOG = Logger.getLogger(SocketSessionRequestHandler.class);
 
   // Injected Dependencies.
+  private final SdcKeysManager sdcKeysManager;
   private final SocketSessionManager sessionManager;
   private final Injector injector;
   private final ClockUtil clock;
@@ -68,8 +71,9 @@ public class SocketSessionRequestHandler implements Dispatchable {
   }
   
   @Inject
-  public SocketSessionRequestHandler(SocketSessionManager manager,
+  public SocketSessionRequestHandler(SdcKeysManager km, SocketSessionManager manager,
       Injector injector, ClockUtil clock) {
+    this.sdcKeysManager = km;
     this.sessionManager = manager;
     this.injector = injector;
     this.clock = clock;
@@ -88,17 +92,30 @@ public class SocketSessionRequestHandler implements Dispatchable {
 
   @Override
   public void dispatch(FrameInfo frameInfo) throws FramingException {
-    Preconditions.checkNotNull(frameInfo);
-    if (!frameInfo.hasPayload()) {
-      logger.debug("No payload in received FrameInfo: " + frameInfo);
-      return; // Nothing to do.
+    // Session encryption: decrypt the message from the cloud:
+    if (!this.sdcKeysManager.hasSessionEncryption()) {
+      LOG.warn("Cannot decrypt message for fetch protocol: no session encryption.");
+      return;
     }
 
+
     try {
+
+      SocketSessionData dataFromTunnel = 
+        sdcKeysManager.getSessionEncryption().getFrom(frameInfo,
+          new SessionEncryption.Parse<SocketSessionData>() {
+          public SocketSessionData parse(ByteString s) throws InvalidProtocolBufferException {
+            return SocketSessionData.parseFrom(s);
+          }
+      });
+      
+      if (dataFromTunnel == null) {
+        LOG.warn("Cannot decrypt data from tunnel.  Dropping request.");
+        return;
+      }
+      
       // This is the case where data is coming from the cloud.  This should
       // happen more frequently than the requests for connection / close.
-      SocketSessionData dataFromTunnel = 
-        SocketSessionData.parseFrom(frameInfo.getPayload());
       handleSocketSessionData(dataFromTunnel);
 
     } catch (InvalidProtocolBufferException e) {
@@ -106,7 +123,15 @@ public class SocketSessionRequestHandler implements Dispatchable {
       SocketSessionRequest request = null;
       SocketSessionReply.Builder replyBuilder = null;
       try {
-        request = SocketSessionRequest.parseFrom(frameInfo.getPayload());
+        request = 
+          sdcKeysManager.getSessionEncryption().getFrom(frameInfo,
+              new SessionEncryption.Parse<SocketSessionRequest>() {
+              public SocketSessionRequest parse(ByteString s) 
+                throws InvalidProtocolBufferException {
+                return SocketSessionRequest.parseFrom(s);
+              }
+          });
+
         replyBuilder = SocketSessionReply.newBuilder()
           .setSocketHandle(request.getSocketHandle())
           .setVerb(request.getVerb())
@@ -120,7 +145,7 @@ public class SocketSessionRequestHandler implements Dispatchable {
         sendToCloud(reply);
         this.sessionManager.notifySent(reply.getSocketHandle(), reply);
       } catch (InvalidProtocolBufferException e2) {
-        logger.warn("Unknown message type: " + frameInfo.getType() +
+        LOG.warn("Unknown message type: " + frameInfo.getType() +
             ":" + frameInfo);
           throw new FramingException("Unknown message type: " + frameInfo.getType() +
               ":" + frameInfo);
@@ -130,7 +155,7 @@ public class SocketSessionRequestHandler implements Dispatchable {
   
   protected void handleSocketSessionRequest(SocketSessionRequest request,
       SocketSessionReply.Builder replyBuilder) {
-    logger.debug(String.format("SocketSessionRequest handle=%s,verb=%s", 
+    LOG.debug(String.format("SocketSessionRequest handle=%s,verb=%s", 
         request.getSocketHandle().toStringUtf8(), request.getVerb()));
     switch (request.getVerb()) {
       case CREATE:
@@ -168,13 +193,13 @@ public class SocketSessionRequestHandler implements Dispatchable {
         }
         break;
         default:
-          logger.warn("Unknown message type: " + request.getVerb() +
+          LOG.warn("Unknown message type: " + request.getVerb() +
               ":" + request.toString());
     }
   }
   
   protected void handleSocketSessionData(SocketSessionData data) {
-    logger.debug("WRITE " + data.getData().size() + " bytes, data = [" +
+    LOG.debug("WRITE " + data.getData().size() + " bytes, data = [" +
         new String(data.getData().toByteArray()) + "]");
     this.sessionManager.write(data.getSocketHandle(), data.getData().toByteArray(),
         data.getStreamOffset());
@@ -185,7 +210,7 @@ public class SocketSessionRequestHandler implements Dispatchable {
       InetAddress found = InetAddress.getByName(hostname);
       return new InetSocketAddress(found, port);
     } catch (UnknownHostException e) {
-      logger.warn(handle.toStringUtf8() + ": Host unknown: " + hostname, e);
+      LOG.warn(handle.toStringUtf8() + ": Host unknown: " + hostname, e);
     }
     return null;
   }
@@ -196,10 +221,21 @@ public class SocketSessionRequestHandler implements Dispatchable {
    */
   boolean sendToCloud(SocketSessionReply reply) {
     Preconditions.checkNotNull(frameSender);
-    logger.debug("REPLY: handle=" + reply.getSocketHandle().toStringUtf8() +
+    // Encrypt the reply.
+    // Session encryption: decrypt the message from the cloud:
+    if (!this.sdcKeysManager.hasSessionEncryption()) {
+      LOG.warn("Cannot encrypt message for fetch protocol: no session encryption. Not sent.");
+      return false;
+    }
+
+    LOG.debug("REPLY: handle=" + reply.getSocketHandle().toStringUtf8() +
         ": verb=" + reply.getVerb() + ", status=" + reply.getStatus() +
         ", latency=" + reply.getLatency());
-    logger.debug("Sending reply =" + reply);
+    LOG.debug("Sending reply =" + reply);
+    
+    FrameInfo frame = this.sdcKeysManager.getSessionEncryption().toFrameInfo(
+        FrameInfo.Type.SOCKET_SESSION, reply);
+
     frameSender.sendFrame(FrameInfo.Type.SOCKET_SESSION, reply.toByteString());
     return true;
   }
@@ -210,7 +246,7 @@ public class SocketSessionRequestHandler implements Dispatchable {
    */
   boolean sendToCloud(SocketSessionData data) {
     Preconditions.checkNotNull(frameSender);
-    logger.debug("DATA: handle=" + data.getSocketHandle().toStringUtf8() +
+    LOG.debug("DATA: handle=" + data.getSocketHandle().toStringUtf8() +
         ", offset=" + data.getStreamOffset() + ", data=" + data.getData().toStringUtf8());
     frameSender.sendFrame(FrameInfo.Type.SOCKET_SESSION, data.toByteString());
     return true;

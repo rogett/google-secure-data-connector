@@ -65,7 +65,7 @@ public class SdcConnection implements FailCallback, Stoppable {
     "TLS_RSA_WITH_AES_128_CBC_SHA"
   };
 
-  public static final String INITIAL_HANDSHAKE_MSG = "v5.0 " +
+  public static final String INITIAL_HANDSHAKE_MSG = "v5.1 " +
      SdcConnection.class.getPackage().getImplementationVersion() + "\n";
 
   // Dependencies.
@@ -154,7 +154,7 @@ public class SdcConnection implements FailCallback, Stoppable {
       }
 
       // send a message to initiate handshake with tunnelserver
-      LOG.info("Sending initial handshake msg");
+      LOG.info("Sending initial handshake msg: " + INITIAL_HANDSHAKE_MSG);
       final byte[] handshake = INITIAL_HANDSHAKE_MSG.getBytes();
       socket.getOutputStream().write(handshake);
       socket.getOutputStream().flush();

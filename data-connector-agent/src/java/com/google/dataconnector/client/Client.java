@@ -25,6 +25,7 @@ import com.google.dataconnector.util.LocalConfValidator;
 import com.google.dataconnector.util.ShutdownManager;
 import com.google.feedserver.util.BeanCliHelper;
 import com.google.feedserver.util.ConfigurationBeanException;
+import com.google.gdata.util.common.util.Base64;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
@@ -82,6 +83,8 @@ public class Client {
    * Reads flags and config files, validates configuration and starts agent.
    */
   public void parseFlagsValidateAndConnect(final String[] args) {
+    LOG.info("****************************************************************");
+    LOG.info("Agent handshake version = " + SdcConnection.INITIAL_HANDSHAKE_MSG);
 
     // validate the localConf.xml file and the input args
     try {

@@ -16,18 +16,25 @@
  */
 package com.google.dataconnector.client;
 
-import java.net.MalformedURLException;
-import java.util.concurrent.ThreadPoolExecutor;
-
-import org.easymock.classextension.EasyMock;
+import com.google.dataconnector.client.FetchRequestHandler.StrategyType;
+import com.google.dataconnector.protocol.proto.SdcFrame.FetchReply;
+import com.google.dataconnector.protocol.proto.SdcFrame.FetchRequest;
+import com.google.dataconnector.protocol.proto.SdcFrame.FrameInfo;
+import com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader;
+import com.google.dataconnector.util.ClockUtil;
+import com.google.dataconnector.util.SdcKeysManager;
+import com.google.dataconnector.util.SessionEncryption;
+import com.google.inject.Injector;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 
 import junit.framework.TestCase;
 
-import com.google.dataconnector.client.FetchRequestHandler.StrategyType;
-import com.google.dataconnector.protocol.proto.SdcFrame.FetchRequest;
-import com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader;
-import com.google.dataconnector.util.ClockUtil;
-import com.google.inject.Injector;
+import org.easymock.classextension.EasyMock;
+
+import java.net.MalformedURLException;
+import java.util.UUID;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * Tests for the AgentRequest handler.
@@ -38,12 +45,80 @@ public class FetchRequestHandlerTest extends TestCase {
 	@Override
 	protected void setUp() throws Exception {
 	}
+	
+	public void testGetFromFrameInfo() throws Exception {
+	  FetchRequest request = FetchRequest.newBuilder()
+	    .setId("requestId").setStrategy("HttpClient")
+	    .setResource("http://www.google.com").build();
+	  
+      String sessionId = UUID.randomUUID().toString();
+
+      SdcKeysManager sm = new SdcKeysManager();
+      sm.storeSessionKey(sessionId,
+          SessionEncryption.JCE_ALGO, SessionEncryption.newKeyBytes());
+	  
+	  FrameInfo frameInfo = FrameInfo.newBuilder()
+	    .setSessionId(sessionId)
+	    .setPayload(sm.getSessionEncryption().encrypt(request.toByteString())).build();
+
+	  FetchRequestHandler handler = new FetchRequestHandler(
+	      sm,
+	      EasyMock.createMock(ThreadPoolExecutor.class),
+	      EasyMock.createMock(Injector.class),
+	      EasyMock.createMock(ClockUtil.class));
+
+	  FetchRequest parsed = sm.getSessionEncryption().getFrom(frameInfo,
+	      new SessionEncryption.Parse<FetchRequest>() {
+	    public FetchRequest parse(ByteString s) throws InvalidProtocolBufferException {
+	      return FetchRequest.parseFrom(s);
+	    }
+	  });
+	  assertEquals(request, parsed);
+
+      FrameInfo frameInfo2 = FrameInfo.newBuilder()
+        .setSessionId(UUID.randomUUID().toString())
+        .setPayload(sm.getSessionEncryption().encrypt(request.toByteString())).build();
+
+      FetchRequest parsed2 = sm.getSessionEncryption().getFrom(frameInfo2,
+          new SessionEncryption.Parse<FetchRequest>() {
+        public FetchRequest parse(ByteString s) throws InvalidProtocolBufferException {
+          return FetchRequest.parseFrom(s);
+        }
+      });
+      assertNull(parsed2);
+
+	}
+
+    public void testSendReply() throws Exception {
+      String sessionId = UUID.randomUUID().toString();
+
+      SdcKeysManager sm = new SdcKeysManager();
+      sm.storeSessionKey(sessionId,
+          SessionEncryption.JCE_ALGO, SessionEncryption.newKeyBytes());
+
+      FetchReply reply = FetchReply.newBuilder()
+        .setId(UUID.randomUUID().toString())
+        .setStatus(0).build();
+      
+      FetchRequestHandler handler = new FetchRequestHandler(
+          sm,
+          EasyMock.createMock(ThreadPoolExecutor.class),
+          EasyMock.createMock(Injector.class),
+          EasyMock.createMock(ClockUtil.class));
+      
+      FrameInfo frame = sm.getSessionEncryption().toFrameInfo(
+          FrameInfo.Type.FETCH_REQUEST, reply);
+      
+      assertTrue(frame.hasSessionId());
+      assertEquals(reply.toByteString(), sm.getSessionEncryption().decrypt(frame.getPayload()));
+    }
 
 	public void testValidateFetchRequest() throws Exception {
 		FetchRequest request = FetchRequest.newBuilder()
 		 .setId("requestId").setStrategy("HttpClient").setResource("badUrl").build();
 		
 		FetchRequestHandler handler = new FetchRequestHandler(
+		        EasyMock.createMock(SdcKeysManager.class),
 				EasyMock.createMock(ThreadPoolExecutor.class),
 				EasyMock.createMock(Injector.class),
 				EasyMock.createMock(ClockUtil.class));
@@ -75,6 +150,7 @@ public class FetchRequestHandlerTest extends TestCase {
 		 .setId("").setStrategy("HttpClient").setResource("badUrl").build();
 		
 		handler = new FetchRequestHandler(
+		        EasyMock.createMock(SdcKeysManager.class),
 				EasyMock.createMock(ThreadPoolExecutor.class),
 				EasyMock.createMock(Injector.class),
 				EasyMock.createMock(ClockUtil.class));

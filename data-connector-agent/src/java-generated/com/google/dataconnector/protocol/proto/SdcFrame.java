@@ -192,6 +192,13 @@ public final class SdcFrame {
     public boolean hasPayload() { return hasPayload; }
     public com.google.protobuf.ByteString getPayload() { return payload_; }
     
+    // optional string sessionId = 4;
+    public static final int SESSIONID_FIELD_NUMBER = 4;
+    private boolean hasSessionId;
+    private java.lang.String sessionId_ = "";
+    public boolean hasSessionId() { return hasSessionId; }
+    public java.lang.String getSessionId() { return sessionId_; }
+    
     public final boolean isInitialized() {
       return true;
     }
@@ -206,6 +213,9 @@ public final class SdcFrame {
       }
       if (hasPayload()) {
         output.writeBytes(3, getPayload());
+      }
+      if (hasSessionId()) {
+        output.writeString(4, getSessionId());
       }
       getUnknownFields().writeTo(output);
     }
@@ -227,6 +237,10 @@ public final class SdcFrame {
       if (hasPayload()) {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(3, getPayload());
+      }
+      if (hasSessionId()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeStringSize(4, getSessionId());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -386,6 +400,9 @@ public final class SdcFrame {
         if (other.hasPayload()) {
           setPayload(other.getPayload());
         }
+        if (other.hasSessionId()) {
+          setSessionId(other.getSessionId());
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
@@ -427,6 +444,10 @@ public final class SdcFrame {
             }
             case 26: {
               setPayload(input.readBytes());
+              break;
+            }
+            case 34: {
+              setSessionId(input.readString());
               break;
             }
           }
@@ -491,6 +512,27 @@ public final class SdcFrame {
       public Builder clearPayload() {
         result.hasPayload = false;
         result.payload_ = getDefaultInstance().getPayload();
+        return this;
+      }
+      
+      // optional string sessionId = 4;
+      public boolean hasSessionId() {
+        return result.hasSessionId();
+      }
+      public java.lang.String getSessionId() {
+        return result.getSessionId();
+      }
+      public Builder setSessionId(java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  result.hasSessionId = true;
+        result.sessionId_ = value;
+        return this;
+      }
+      public Builder clearSessionId() {
+        result.hasSessionId = false;
+        result.sessionId_ = getDefaultInstance().getSessionId();
         return this;
       }
     }
@@ -2389,6 +2431,27 @@ public final class SdcFrame {
     public boolean hasHealthCheckWakeUpInterval() { return hasHealthCheckWakeUpInterval; }
     public int getHealthCheckWakeUpInterval() { return healthCheckWakeUpInterval_; }
     
+    // optional string sessionId = 6;
+    public static final int SESSIONID_FIELD_NUMBER = 6;
+    private boolean hasSessionId;
+    private java.lang.String sessionId_ = "";
+    public boolean hasSessionId() { return hasSessionId; }
+    public java.lang.String getSessionId() { return sessionId_; }
+    
+    // optional string keyAlgo = 7;
+    public static final int KEYALGO_FIELD_NUMBER = 7;
+    private boolean hasKeyAlgo;
+    private java.lang.String keyAlgo_ = "";
+    public boolean hasKeyAlgo() { return hasKeyAlgo; }
+    public java.lang.String getKeyAlgo() { return keyAlgo_; }
+    
+    // optional bytes keyBytes = 8;
+    public static final int KEYBYTES_FIELD_NUMBER = 8;
+    private boolean hasKeyBytes;
+    private com.google.protobuf.ByteString keyBytes_ = com.google.protobuf.ByteString.EMPTY;
+    public boolean hasKeyBytes() { return hasKeyBytes; }
+    public com.google.protobuf.ByteString getKeyBytes() { return keyBytes_; }
+    
     public final boolean isInitialized() {
       return true;
     }
@@ -2400,6 +2463,15 @@ public final class SdcFrame {
       }
       if (hasHealthCheckWakeUpInterval()) {
         output.writeInt32(5, getHealthCheckWakeUpInterval());
+      }
+      if (hasSessionId()) {
+        output.writeString(6, getSessionId());
+      }
+      if (hasKeyAlgo()) {
+        output.writeString(7, getKeyAlgo());
+      }
+      if (hasKeyBytes()) {
+        output.writeBytes(8, getKeyBytes());
       }
       getUnknownFields().writeTo(output);
     }
@@ -2417,6 +2489,18 @@ public final class SdcFrame {
       if (hasHealthCheckWakeUpInterval()) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(5, getHealthCheckWakeUpInterval());
+      }
+      if (hasSessionId()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeStringSize(6, getSessionId());
+      }
+      if (hasKeyAlgo()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeStringSize(7, getKeyAlgo());
+      }
+      if (hasKeyBytes()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(8, getKeyBytes());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -2573,6 +2657,15 @@ public final class SdcFrame {
         if (other.hasHealthCheckWakeUpInterval()) {
           setHealthCheckWakeUpInterval(other.getHealthCheckWakeUpInterval());
         }
+        if (other.hasSessionId()) {
+          setSessionId(other.getSessionId());
+        }
+        if (other.hasKeyAlgo()) {
+          setKeyAlgo(other.getKeyAlgo());
+        }
+        if (other.hasKeyBytes()) {
+          setKeyBytes(other.getKeyBytes());
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
@@ -2604,6 +2697,18 @@ public final class SdcFrame {
             }
             case 40: {
               setHealthCheckWakeUpInterval(input.readInt32());
+              break;
+            }
+            case 50: {
+              setSessionId(input.readString());
+              break;
+            }
+            case 58: {
+              setKeyAlgo(input.readString());
+              break;
+            }
+            case 66: {
+              setKeyBytes(input.readBytes());
               break;
             }
           }
@@ -2644,6 +2749,69 @@ public final class SdcFrame {
       public Builder clearHealthCheckWakeUpInterval() {
         result.hasHealthCheckWakeUpInterval = false;
         result.healthCheckWakeUpInterval_ = 0;
+        return this;
+      }
+      
+      // optional string sessionId = 6;
+      public boolean hasSessionId() {
+        return result.hasSessionId();
+      }
+      public java.lang.String getSessionId() {
+        return result.getSessionId();
+      }
+      public Builder setSessionId(java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  result.hasSessionId = true;
+        result.sessionId_ = value;
+        return this;
+      }
+      public Builder clearSessionId() {
+        result.hasSessionId = false;
+        result.sessionId_ = getDefaultInstance().getSessionId();
+        return this;
+      }
+      
+      // optional string keyAlgo = 7;
+      public boolean hasKeyAlgo() {
+        return result.hasKeyAlgo();
+      }
+      public java.lang.String getKeyAlgo() {
+        return result.getKeyAlgo();
+      }
+      public Builder setKeyAlgo(java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  result.hasKeyAlgo = true;
+        result.keyAlgo_ = value;
+        return this;
+      }
+      public Builder clearKeyAlgo() {
+        result.hasKeyAlgo = false;
+        result.keyAlgo_ = getDefaultInstance().getKeyAlgo();
+        return this;
+      }
+      
+      // optional bytes keyBytes = 8;
+      public boolean hasKeyBytes() {
+        return result.hasKeyBytes();
+      }
+      public com.google.protobuf.ByteString getKeyBytes() {
+        return result.getKeyBytes();
+      }
+      public Builder setKeyBytes(com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  result.hasKeyBytes = true;
+        result.keyBytes_ = value;
+        return this;
+      }
+      public Builder clearKeyBytes() {
+        result.hasKeyBytes = false;
+        result.keyBytes_ = getDefaultInstance().getKeyBytes();
         return this;
       }
     }
@@ -7096,73 +7264,75 @@ public final class SdcFrame {
   static {
     java.lang.String[] descriptorData = {
       "\n:src/java/com/google/dataconnector/prot" +
-      "ocol/sdc_frame.proto\022\tsdc_frame\"\316\001\n\tFram" +
+      "ocol/sdc_frame.proto\022\tsdc_frame\"\341\001\n\tFram" +
       "eInfo\022\020\n\010sequence\030\001 \001(\003\022\'\n\004type\030\002 \001(\0162\031." +
       "sdc_frame.FrameInfo.Type\022\017\n\007payload\030\003 \001(" +
-      "\014\"u\n\004Type\022\017\n\013SOCKET_DATA\020\000\022\020\n\014REGISTRATI" +
-      "ON\020\001\022\020\n\014HEALTH_CHECK\020\002\022\021\n\rAUTHORIZATION\020" +
-      "\003\022\021\n\rFETCH_REQUEST\020\004\022\022\n\016SOCKET_SESSION\020\005" +
-      "\"\224\001\n\016SocketDataInfo\022\024\n\014connectionId\030\001 \002(" +
-      "\003\022.\n\005state\030\002 \002(\0162\037.sdc_frame.SocketDataI" +
-      "nfo.State\022\017\n\007segment\030\003 \001(\014\"+\n\005State\022\t\n\005S",
-      "TART\020\000\022\014\n\010CONTINUE\020\001\022\t\n\005CLOSE\020\002\"\300\002\n\021Auth" +
-      "orizationInfo\022\r\n\005email\030\001 \001(\t\0227\n\010authType" +
-      "\030\002 \001(\0162%.sdc_frame.AuthorizationInfo.Aut" +
-      "hType\022\020\n\010password\030\003 \001(\t\0227\n\006result\030\005 \001(\0162" +
-      "\'.sdc_frame.AuthorizationInfo.ResultCode" +
-      "\022\025\n\rstatusMessage\030\006 \001(\t\"g\n\nResultCode\022\006\n" +
-      "\002OK\020\001\022\021\n\rACCESS_DENIED\020\002\022,\n(ACCESS_DENIE" +
-      "D_CAPTCHA_REQUIRED_TO_UNLOCK\020\003\022\020\n\014SERVER" +
-      "_ERROR\020\004\"\030\n\010AuthType\022\014\n\010PASSWORD\020\001\"4\n\013Re" +
-      "sourceKey\022\n\n\002ip\030\001 \002(\t\022\014\n\004port\030\002 \002(\005\022\013\n\003k",
-      "ey\030\003 \002(\003\"\313\001\n\020RegistrationInfo\022\013\n\003xml\030\001 \001" +
-      "(\t\022\025\n\rstatusMessage\030\002 \001(\t\0226\n\006result\030\003 \001(" +
-      "\0162&.sdc_frame.RegistrationInfo.ResultCod" +
-      "e\0229\n\022serverSuppliedConf\030\004 \001(\0132\035.sdc_fram" +
-      "e.ServerSuppliedConf\" \n\nResultCode\022\006\n\002OK" +
-      "\020\001\022\n\n\006FAILED\020\002\"S\n\022ServerSuppliedConf\022\032\n\022" +
-      "healthCheckTimeout\030\004 \001(\005\022!\n\031healthCheckW" +
-      "akeUpInterval\030\005 \001(\005\"\313\001\n\017HealthCheckInfo\022" +
-      "\021\n\ttimeStamp\030\001 \001(\003\0221\n\006source\030\002 \001(\0162!.sdc" +
-      "_frame.HealthCheckInfo.Source\022-\n\004type\030\003 ",
-      "\001(\0162\037.sdc_frame.HealthCheckInfo.Type\" \n\006" +
-      "Source\022\n\n\006CLIENT\020\001\022\n\n\006SERVER\020\002\"!\n\004Type\022\013" +
-      "\n\007REQUEST\020\001\022\014\n\010RESPONSE\020\002\"+\n\rMessageHead" +
-      "er\022\013\n\003key\030\001 \002(\t\022\r\n\005value\030\002 \002(\t\"{\n\014FetchR" +
-      "equest\022\n\n\002id\030\001 \002(\t\022\020\n\010resource\030\002 \002(\t\022\020\n\010" +
-      "strategy\030\003 \001(\t\022)\n\007headers\030\004 \003(\0132\030.sdc_fr" +
-      "ame.MessageHeader\022\020\n\010contents\030\005 \001(\014\"v\n\nF" +
-      "etchReply\022\n\n\002id\030\001 \002(\t\022\016\n\006status\030\002 \002(\005\022)\n" +
-      "\007headers\030\003 \003(\0132\030.sdc_frame.MessageHeader" +
-      "\022\020\n\010contents\030\004 \001(\014\022\017\n\007latency\030\005 \001(\003\"\264\001\n\024",
-      "SocketSessionRequest\022*\n\004verb\030\001 \002(\0162\034.sdc" +
-      "_frame.SocketSessionVerb\022\024\n\014socketHandle" +
-      "\030\002 \002(\014\022\020\n\010hostname\030\003 \002(\t\022\014\n\004port\030\004 \001(\005\022)" +
-      "\n\007headers\030\005 \003(\0132\030.sdc_frame.MessageHeade" +
-      "r\022\017\n\007timeout\030\006 \001(\003\"\253\002\n\022SocketSessionRepl" +
-      "y\022*\n\004verb\030\001 \002(\0162\034.sdc_frame.SocketSessio" +
-      "nVerb\022\024\n\014socketHandle\030\002 \002(\014\0224\n\006status\030\003 " +
-      "\002(\0162$.sdc_frame.SocketSessionReply.Statu" +
-      "s\022\020\n\010hostname\030\004 \002(\t\022\014\n\004port\030\005 \001(\005\022)\n\007hea" +
-      "ders\030\006 \003(\0132\030.sdc_frame.MessageHeader\022\017\n\007",
-      "latency\030\007 \001(\003\"A\n\006Status\022\006\n\002OK\020\001\022\t\n\005ERROR" +
-      "\020\002\022\020\n\014UNKNOWN_HOST\020\003\022\022\n\016CANNOT_CONNECT\020\004" +
-      "\"\\\n\021SocketSessionData\022\024\n\014socketHandle\030\001 " +
-      "\002(\014\022\014\n\004data\030\002 \001(\014\022\024\n\014streamOffset\030\003 \001(\003\022" +
-      "\r\n\005close\030\004 \001(\010\"\274\001\n\025RegistrationRequestV4" +
-      "\022\017\n\007agentId\030\001 \002(\t\022\027\n\017socksServerPort\030\002 \002" +
-      "(\005\022\027\n\017healthCheckPort\030\003 \002(\005\022\035\n\025healthChe" +
-      "ckGadgetUser\030\004 \003(\t\022+\n\013resourceKey\030\005 \003(\0132" +
-      "\026.sdc_frame.ResourceKey\022\024\n\014resourcesXml\030" +
-      "\006 \002(\t\"\347\001\n\026RegistrationResponseV4\022\025\n\rstat",
-      "usMessage\030\001 \001(\t\022<\n\006result\030\002 \002(\0162,.sdc_fr" +
-      "ame.RegistrationResponseV4.ResultCode\0229\n" +
-      "\022serverSuppliedConf\030\003 \001(\0132\035.sdc_frame.Se" +
-      "rverSuppliedConf\"=\n\nResultCode\022\006\n\002OK\020\001\022\025" +
-      "\n\021ERRORS_IN_REQUEST\020\002\022\020\n\014SERVER_ERROR\020\003*" +
-      "7\n\021SocketSessionVerb\022\n\n\006CREATE\020\001\022\013\n\007CONN" +
-      "ECT\020\002\022\t\n\005CLOSE\020\003B)\n\'com.google.dataconne" +
-      "ctor.protocol.proto"
+      "\014\022\021\n\tsessionId\030\004 \001(\t\"u\n\004Type\022\017\n\013SOCKET_D" +
+      "ATA\020\000\022\020\n\014REGISTRATION\020\001\022\020\n\014HEALTH_CHECK\020" +
+      "\002\022\021\n\rAUTHORIZATION\020\003\022\021\n\rFETCH_REQUEST\020\004\022" +
+      "\022\n\016SOCKET_SESSION\020\005\"\224\001\n\016SocketDataInfo\022\024" +
+      "\n\014connectionId\030\001 \002(\003\022.\n\005state\030\002 \002(\0162\037.sd" +
+      "c_frame.SocketDataInfo.State\022\017\n\007segment\030",
+      "\003 \001(\014\"+\n\005State\022\t\n\005START\020\000\022\014\n\010CONTINUE\020\001\022" +
+      "\t\n\005CLOSE\020\002\"\300\002\n\021AuthorizationInfo\022\r\n\005emai" +
+      "l\030\001 \001(\t\0227\n\010authType\030\002 \001(\0162%.sdc_frame.Au" +
+      "thorizationInfo.AuthType\022\020\n\010password\030\003 \001" +
+      "(\t\0227\n\006result\030\005 \001(\0162\'.sdc_frame.Authoriza" +
+      "tionInfo.ResultCode\022\025\n\rstatusMessage\030\006 \001" +
+      "(\t\"g\n\nResultCode\022\006\n\002OK\020\001\022\021\n\rACCESS_DENIE" +
+      "D\020\002\022,\n(ACCESS_DENIED_CAPTCHA_REQUIRED_TO" +
+      "_UNLOCK\020\003\022\020\n\014SERVER_ERROR\020\004\"\030\n\010AuthType\022" +
+      "\014\n\010PASSWORD\020\001\"4\n\013ResourceKey\022\n\n\002ip\030\001 \002(\t",
+      "\022\014\n\004port\030\002 \002(\005\022\013\n\003key\030\003 \002(\003\"\313\001\n\020Registra" +
+      "tionInfo\022\013\n\003xml\030\001 \001(\t\022\025\n\rstatusMessage\030\002" +
+      " \001(\t\0226\n\006result\030\003 \001(\0162&.sdc_frame.Registr" +
+      "ationInfo.ResultCode\0229\n\022serverSuppliedCo" +
+      "nf\030\004 \001(\0132\035.sdc_frame.ServerSuppliedConf\"" +
+      " \n\nResultCode\022\006\n\002OK\020\001\022\n\n\006FAILED\020\002\"\211\001\n\022Se" +
+      "rverSuppliedConf\022\032\n\022healthCheckTimeout\030\004" +
+      " \001(\005\022!\n\031healthCheckWakeUpInterval\030\005 \001(\005\022" +
+      "\021\n\tsessionId\030\006 \001(\t\022\017\n\007keyAlgo\030\007 \001(\t\022\020\n\010k" +
+      "eyBytes\030\010 \001(\014\"\313\001\n\017HealthCheckInfo\022\021\n\ttim",
+      "eStamp\030\001 \001(\003\0221\n\006source\030\002 \001(\0162!.sdc_frame" +
+      ".HealthCheckInfo.Source\022-\n\004type\030\003 \001(\0162\037." +
+      "sdc_frame.HealthCheckInfo.Type\" \n\006Source" +
+      "\022\n\n\006CLIENT\020\001\022\n\n\006SERVER\020\002\"!\n\004Type\022\013\n\007REQU" +
+      "EST\020\001\022\014\n\010RESPONSE\020\002\"+\n\rMessageHeader\022\013\n\003" +
+      "key\030\001 \002(\t\022\r\n\005value\030\002 \002(\t\"{\n\014FetchRequest" +
+      "\022\n\n\002id\030\001 \002(\t\022\020\n\010resource\030\002 \002(\t\022\020\n\010strate" +
+      "gy\030\003 \001(\t\022)\n\007headers\030\004 \003(\0132\030.sdc_frame.Me" +
+      "ssageHeader\022\020\n\010contents\030\005 \001(\014\"v\n\nFetchRe" +
+      "ply\022\n\n\002id\030\001 \002(\t\022\016\n\006status\030\002 \002(\005\022)\n\007heade",
+      "rs\030\003 \003(\0132\030.sdc_frame.MessageHeader\022\020\n\010co" +
+      "ntents\030\004 \001(\014\022\017\n\007latency\030\005 \001(\003\"\264\001\n\024Socket" +
+      "SessionRequest\022*\n\004verb\030\001 \002(\0162\034.sdc_frame" +
+      ".SocketSessionVerb\022\024\n\014socketHandle\030\002 \002(\014" +
+      "\022\020\n\010hostname\030\003 \002(\t\022\014\n\004port\030\004 \001(\005\022)\n\007head" +
+      "ers\030\005 \003(\0132\030.sdc_frame.MessageHeader\022\017\n\007t" +
+      "imeout\030\006 \001(\003\"\253\002\n\022SocketSessionReply\022*\n\004v" +
+      "erb\030\001 \002(\0162\034.sdc_frame.SocketSessionVerb\022" +
+      "\024\n\014socketHandle\030\002 \002(\014\0224\n\006status\030\003 \002(\0162$." +
+      "sdc_frame.SocketSessionReply.Status\022\020\n\010h",
+      "ostname\030\004 \002(\t\022\014\n\004port\030\005 \001(\005\022)\n\007headers\030\006" +
+      " \003(\0132\030.sdc_frame.MessageHeader\022\017\n\007latenc" +
+      "y\030\007 \001(\003\"A\n\006Status\022\006\n\002OK\020\001\022\t\n\005ERROR\020\002\022\020\n\014" +
+      "UNKNOWN_HOST\020\003\022\022\n\016CANNOT_CONNECT\020\004\"\\\n\021So" +
+      "cketSessionData\022\024\n\014socketHandle\030\001 \002(\014\022\014\n" +
+      "\004data\030\002 \001(\014\022\024\n\014streamOffset\030\003 \001(\003\022\r\n\005clo" +
+      "se\030\004 \001(\010\"\274\001\n\025RegistrationRequestV4\022\017\n\007ag" +
+      "entId\030\001 \002(\t\022\027\n\017socksServerPort\030\002 \002(\005\022\027\n\017" +
+      "healthCheckPort\030\003 \002(\005\022\035\n\025healthCheckGadg" +
+      "etUser\030\004 \003(\t\022+\n\013resourceKey\030\005 \003(\0132\026.sdc_",
+      "frame.ResourceKey\022\024\n\014resourcesXml\030\006 \002(\t\"" +
+      "\347\001\n\026RegistrationResponseV4\022\025\n\rstatusMess" +
+      "age\030\001 \001(\t\022<\n\006result\030\002 \002(\0162,.sdc_frame.Re" +
+      "gistrationResponseV4.ResultCode\0229\n\022serve" +
+      "rSuppliedConf\030\003 \001(\0132\035.sdc_frame.ServerSu" +
+      "ppliedConf\"=\n\nResultCode\022\006\n\002OK\020\001\022\025\n\021ERRO" +
+      "RS_IN_REQUEST\020\002\022\020\n\014SERVER_ERROR\020\003*7\n\021Soc" +
+      "ketSessionVerb\022\n\n\006CREATE\020\001\022\013\n\007CONNECT\020\002\022" +
+      "\t\n\005CLOSE\020\003B)\n\'com.google.dataconnector.p" +
+      "rotocol.proto"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -7174,7 +7344,7 @@ public final class SdcFrame {
           internal_static_sdc_frame_FrameInfo_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_sdc_frame_FrameInfo_descriptor,
-              new java.lang.String[] { "Sequence", "Type", "Payload", },
+              new java.lang.String[] { "Sequence", "Type", "Payload", "SessionId", },
               com.google.dataconnector.protocol.proto.SdcFrame.FrameInfo.class,
               com.google.dataconnector.protocol.proto.SdcFrame.FrameInfo.Builder.class);
           internal_static_sdc_frame_SocketDataInfo_descriptor =
@@ -7214,7 +7384,7 @@ public final class SdcFrame {
           internal_static_sdc_frame_ServerSuppliedConf_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_sdc_frame_ServerSuppliedConf_descriptor,
-              new java.lang.String[] { "HealthCheckTimeout", "HealthCheckWakeUpInterval", },
+              new java.lang.String[] { "HealthCheckTimeout", "HealthCheckWakeUpInterval", "SessionId", "KeyAlgo", "KeyBytes", },
               com.google.dataconnector.protocol.proto.SdcFrame.ServerSuppliedConf.class,
               com.google.dataconnector.protocol.proto.SdcFrame.ServerSuppliedConf.Builder.class);
           internal_static_sdc_frame_HealthCheckInfo_descriptor =

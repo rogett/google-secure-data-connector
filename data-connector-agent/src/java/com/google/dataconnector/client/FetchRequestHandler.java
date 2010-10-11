@@ -35,9 +35,13 @@ import com.google.dataconnector.protocol.proto.SdcFrame.FetchReply;
 import com.google.dataconnector.protocol.proto.SdcFrame.FetchRequest;
 import com.google.dataconnector.protocol.proto.SdcFrame.FrameInfo;
 import com.google.dataconnector.protocol.proto.SdcFrame.MessageHeader;
+import com.google.dataconnector.util.AgentConfigurationException;
 import com.google.dataconnector.util.ClockUtil;
+import com.google.dataconnector.util.SdcKeysManager;
+import com.google.dataconnector.util.SessionEncryption;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 /**
@@ -88,6 +92,7 @@ public class FetchRequestHandler implements Dispatchable {
   private static Logger LOG = Logger.getLogger(FetchRequestHandler.class);
 
   // Injected Dependencies.
+  private final SdcKeysManager sdcKeysManager;
   private final ThreadPoolExecutor threadPoolExecutor;
   private final Injector injector;
   private final ClockUtil clock;
@@ -99,12 +104,14 @@ public class FetchRequestHandler implements Dispatchable {
    * Constructor with dependency on thread pool for asynchronous fetch and
    * sending of replies.
    * 
+   * @param km The session key manager.
    * @param threadPoolExecutor The thread pool.
    * @param injector The injector.
    */
   @Inject
-  public FetchRequestHandler(ThreadPoolExecutor threadPoolExecutor, Injector injector,
-      ClockUtil clock) {
+  public FetchRequestHandler(SdcKeysManager km, ThreadPoolExecutor threadPoolExecutor,
+      Injector injector, ClockUtil clock) {
+    this.sdcKeysManager = km;
     this.threadPoolExecutor = threadPoolExecutor;
     this.injector = injector;
     this.clock = clock;
@@ -122,22 +129,29 @@ public class FetchRequestHandler implements Dispatchable {
    */
   @Override
   public void dispatch(FrameInfo frameInfo) throws FramingException {
-    Preconditions.checkNotNull(frameInfo);
-    if (!frameInfo.hasPayload()) {
-      LOG.info("No payload in received FrameInfo: " + frameInfo);
-      return; // Nothing to do.
+    // Session encryption: decrypt the message from the cloud:
+    if (!this.sdcKeysManager.hasSessionEncryption()) {
+      LOG.warn("Cannot decrypt message for fetch protocol: no session encryption.");
+      return;
     }
 
-    FetchRequest request = null;
+    FetchRequest request; 
     try {
-      request = FetchRequest.parseFrom(frameInfo.getPayload());
+      request = sdcKeysManager.getSessionEncryption().getFrom(frameInfo,
+          new SessionEncryption.Parse<FetchRequest>() {
+        public FetchRequest parse(ByteString s) throws InvalidProtocolBufferException {
+          return FetchRequest.parseFrom(s);
+        }
+      });
     } catch (InvalidProtocolBufferException e) {
       throw new FramingException(e);
     }
 
+    if (request == null) {
+      return;
+    }
     // Now we have the request.  Check the request:
     FetchReply.Builder replyBuilder = FetchReply.newBuilder().setId(request.getId());
-
     try {
       validate(request);
     } catch (IllegalArgumentException e) {
@@ -163,7 +177,7 @@ public class FetchRequestHandler implements Dispatchable {
       throw new FramingException(e);
     }
   }
-
+  
   /**
    * Simple enum defined to map the FetchRequest's scheme field to an enum
    * and a strategy class.
@@ -292,10 +306,22 @@ public class FetchRequestHandler implements Dispatchable {
    */
   void sendReply(FetchReply reply) {
     Preconditions.checkNotNull(frameSender);
+    // Encrypt the reply.
+    // Session encryption: decrypt the message from the cloud:
+    if (!this.sdcKeysManager.hasSessionEncryption()) {
+      LOG.warn("Cannot encrypt message for fetch protocol: no session encryption. Not sent.");
+      return;
+    }
     LOG.info(reply.getId() + ": Sending reply status=" + reply.getStatus() +
-             ", latency=" + reply.getLatency());
+        ", latency=" + reply.getLatency());
     LOG.debug("Sending reply =" + reply);
-    frameSender.sendFrame(FrameInfo.Type.FETCH_REQUEST, reply.toByteString());
+
+    FrameInfo frame = this.sdcKeysManager.getSessionEncryption().toFrameInfo(
+        FrameInfo.Type.FETCH_REQUEST, reply);
+
+    if (frame != null) {
+      frameSender.sendFrame(frame);
+    }
   }
 
   /**

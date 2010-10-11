@@ -16,6 +16,7 @@
  */
 package com.google.dataconnector.registration.v4;
 
+import com.google.common.base.Preconditions;
 import com.google.dataconnector.client.HealthCheckHandler;
 import com.google.dataconnector.protocol.Dispatchable;
 import com.google.dataconnector.protocol.FrameSender;
@@ -25,24 +26,26 @@ import com.google.dataconnector.protocol.proto.SdcFrame.RegistrationRequestV4;
 import com.google.dataconnector.protocol.proto.SdcFrame.RegistrationResponseV4;
 import com.google.dataconnector.protocol.proto.SdcFrame.ResourceKey;
 import com.google.dataconnector.protocol.proto.SdcFrame.ServerSuppliedConf;
-import com.google.dataconnector.registration.v4.Registration;
-import com.google.dataconnector.registration.v4.ResourceRuleUrlUtil;
+import com.google.dataconnector.util.AgentConfigurationException;
 import com.google.dataconnector.util.FileUtil;
 import com.google.dataconnector.util.LocalConf;
+import com.google.dataconnector.util.Pair;
 import com.google.dataconnector.util.RegistrationException;
 import com.google.dataconnector.util.SdcKeysManager;
-import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
+import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import org.apache.log4j.Logger;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import javax.crypto.KeyGenerator;
 import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.stream.XMLStreamException;
 
@@ -152,10 +155,11 @@ public class Registration implements Dispatchable {
 
       // create keys for all urls in the list received above
       for (final String u : urlList) {
-        resourceKeyList.add((ResourceKey.newBuilder()
+        ResourceKey.Builder builder = ResourceKey.newBuilder()
             .setIp(resourceRuleUrlUtil.getHostnameFromRule(u))
             .setPort(resourceRuleUrlUtil.getPortFromRule(u))
-            .setKey(new Random().nextLong()).build()));
+            .setKey(new Random().nextLong());
+        resourceKeyList.add(builder.build());
       }
     } catch (FileNotFoundException e) {
       throw new RegistrationException(e);
@@ -189,8 +193,18 @@ public class Registration implements Dispatchable {
         LOG.info("registration successful. Received config info from the SDC server\n" +
             regResponse.getServerSuppliedConf().toString());
         healthCheckHandler.setServerSuppliedConf(serverSuppliedConf);
+        
+        // Support for session-based encryption:
+        if (serverSuppliedConf.hasKeyAlgo() && serverSuppliedConf.hasKeyBytes()) {
+          this.sdcKeysManager.storeSessionKey(
+              serverSuppliedConf.getSessionId(),
+              serverSuppliedConf.getKeyAlgo(), 
+              serverSuppliedConf.getKeyBytes().toByteArray());
+        }
       }
     } catch (InvalidProtocolBufferException e) {
+      throw new RegistrationException(e);
+    } catch (AgentConfigurationException e) {
       throw new RegistrationException(e);
     }
   }
