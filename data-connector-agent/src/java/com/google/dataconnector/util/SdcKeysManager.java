@@ -18,10 +18,10 @@
 package com.google.dataconnector.util;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.dataconnector.protocol.proto.SdcFrame.ResourceKey;
-import com.google.gdata.util.common.base.Preconditions;
 import com.google.inject.Singleton;
 
 import org.apache.log4j.Logger;

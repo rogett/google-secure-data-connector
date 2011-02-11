@@ -2,9 +2,9 @@
 
 package com.google.dataconnector.util;
 
+import com.google.common.base.Preconditions;
 import com.google.dataconnector.protocol.FramingException;
 import com.google.dataconnector.protocol.proto.SdcFrame.FrameInfo;
-import com.google.gdata.util.common.base.Preconditions;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.GeneratedMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
