@@ -164,7 +164,8 @@ public class Client {
       try {
         // Only try to back-off if we have unsuccessful connections.
         if (unsuccessfulAttempts > 0) {
-          long backOffTime = Math.min(MAX_BACKOFF_TIME, (1 << unsuccessfulAttempts) * 1000L);
+          long backOffTime = (long) Math.min(
+              MAX_BACKOFF_TIME, Math.pow(2, unsuccessfulAttempts) * 1000L);
           try {
             // Sleep for the amount of time needed.
             Thread.sleep(backOffTime);
