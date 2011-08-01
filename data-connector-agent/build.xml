@@ -130,6 +130,7 @@ $Id: build.xml-dist 525 2010-02-17 01:03:08Z davidc616 $
         <pathelement path="third-party/jsocks/jsocks.jar"/>
         <pathelement path="third-party/json/json.jar"/>
         <pathelement path="third-party/protobuf/protobuf-java-2.4.1.jar"/>
+        <pathelement path="third-party/smack/smack.jar"/>
       </classpath>
     </javac>
 
