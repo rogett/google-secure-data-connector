@@ -28,6 +28,7 @@ message FrameInfo {
     AUTHORIZATION = 3;
     FETCH_REQUEST = 4;
     SOCKET_SESSION = 5; // Asynchronous session data.
+    SHUTDOWN_QUEUE = 6;  // Shutdown FrameServer thread.
   }
 
   optional int64 sequence = 1;
