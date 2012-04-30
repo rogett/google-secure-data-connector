@@ -147,6 +147,9 @@ public class FrameSender extends Thread implements Stoppable {
         // Wait for a frame to become available.
         final FrameInfo frameInfo = FrameInfo.newBuilder(sendQueue.take()).setSequence(sequence)
             .build();
+        if (frameInfo.getType() == FrameInfo.Type.SHUTDOWN_QUEUE) {
+          break;
+        }
         writeOneFrame(frameInfo);
       }
     } catch (InterruptedException e) {

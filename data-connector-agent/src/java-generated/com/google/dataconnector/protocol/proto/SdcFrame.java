@@ -135,6 +135,7 @@ public final class SdcFrame {
       AUTHORIZATION(3, 3),
       FETCH_REQUEST(4, 4),
       SOCKET_SESSION(5, 5),
+      SHUTDOWN_QUEUE(6, 6),
       ;
       
       public static final int SOCKET_DATA_VALUE = 0;
@@ -143,6 +144,7 @@ public final class SdcFrame {
       public static final int AUTHORIZATION_VALUE = 3;
       public static final int FETCH_REQUEST_VALUE = 4;
       public static final int SOCKET_SESSION_VALUE = 5;
+      public static final int SHUTDOWN_QUEUE_VALUE = 6;
       
       
       public final int getNumber() { return value; }
@@ -155,6 +157,7 @@ public final class SdcFrame {
           case 3: return AUTHORIZATION;
           case 4: return FETCH_REQUEST;
           case 5: return SOCKET_SESSION;
+          case 6: return SHUTDOWN_QUEUE;
           default: return null;
         }
       }
@@ -185,7 +188,7 @@ public final class SdcFrame {
       }
       
       private static final Type[] VALUES = {
-        SOCKET_DATA, REGISTRATION, HEALTH_CHECK, AUTHORIZATION, FETCH_REQUEST, SOCKET_SESSION, 
+        SOCKET_DATA, REGISTRATION, HEALTH_CHECK, AUTHORIZATION, FETCH_REQUEST, SOCKET_SESSION, SHUTDOWN_QUEUE, 
       };
       
       public static Type valueOf(
@@ -11157,75 +11160,75 @@ public final class SdcFrame {
   static {
     java.lang.String[] descriptorData = {
       "\n:src/java/com/google/dataconnector/prot" +
-      "ocol/sdc_frame.proto\022\tsdc_frame\"\341\001\n\tFram" +
+      "ocol/sdc_frame.proto\022\tsdc_frame\"\366\001\n\tFram" +
       "eInfo\022\020\n\010sequence\030\001 \001(\003\022\'\n\004type\030\002 \001(\0162\031." +
       "sdc_frame.FrameInfo.Type\022\017\n\007payload\030\003 \001(" +
-      "\014\022\021\n\tsessionId\030\004 \001(\t\"u\n\004Type\022\017\n\013SOCKET_D" +
-      "ATA\020\000\022\020\n\014REGISTRATION\020\001\022\020\n\014HEALTH_CHECK\020" +
-      "\002\022\021\n\rAUTHORIZATION\020\003\022\021\n\rFETCH_REQUEST\020\004\022" +
-      "\022\n\016SOCKET_SESSION\020\005\"\224\001\n\016SocketDataInfo\022\024" +
-      "\n\014connectionId\030\001 \002(\003\022.\n\005state\030\002 \002(\0162\037.sd" +
-      "c_frame.SocketDataInfo.State\022\017\n\007segment\030",
-      "\003 \001(\014\"+\n\005State\022\t\n\005START\020\000\022\014\n\010CONTINUE\020\001\022" +
-      "\t\n\005CLOSE\020\002\"\300\002\n\021AuthorizationInfo\022\r\n\005emai" +
-      "l\030\001 \001(\t\0227\n\010authType\030\002 \001(\0162%.sdc_frame.Au" +
-      "thorizationInfo.AuthType\022\020\n\010password\030\003 \001" +
-      "(\t\0227\n\006result\030\005 \001(\0162\'.sdc_frame.Authoriza" +
-      "tionInfo.ResultCode\022\025\n\rstatusMessage\030\006 \001" +
-      "(\t\"g\n\nResultCode\022\006\n\002OK\020\001\022\021\n\rACCESS_DENIE" +
-      "D\020\002\022,\n(ACCESS_DENIED_CAPTCHA_REQUIRED_TO" +
-      "_UNLOCK\020\003\022\020\n\014SERVER_ERROR\020\004\"\030\n\010AuthType\022" +
-      "\014\n\010PASSWORD\020\001\"4\n\013ResourceKey\022\n\n\002ip\030\001 \002(\t",
-      "\022\014\n\004port\030\002 \002(\005\022\013\n\003key\030\003 \002(\003\"\313\001\n\020Registra" +
-      "tionInfo\022\013\n\003xml\030\001 \001(\t\022\025\n\rstatusMessage\030\002" +
-      " \001(\t\0226\n\006result\030\003 \001(\0162&.sdc_frame.Registr" +
-      "ationInfo.ResultCode\0229\n\022serverSuppliedCo" +
-      "nf\030\004 \001(\0132\035.sdc_frame.ServerSuppliedConf\"" +
-      " \n\nResultCode\022\006\n\002OK\020\001\022\n\n\006FAILED\020\002\"\211\001\n\022Se" +
-      "rverSuppliedConf\022\032\n\022healthCheckTimeout\030\004" +
-      " \001(\005\022!\n\031healthCheckWakeUpInterval\030\005 \001(\005\022" +
-      "\021\n\tsessionId\030\006 \001(\t\022\017\n\007keyAlgo\030\007 \001(\t\022\020\n\010k" +
-      "eyBytes\030\010 \001(\014\"\313\001\n\017HealthCheckInfo\022\021\n\ttim",
-      "eStamp\030\001 \001(\003\0221\n\006source\030\002 \001(\0162!.sdc_frame" +
-      ".HealthCheckInfo.Source\022-\n\004type\030\003 \001(\0162\037." +
-      "sdc_frame.HealthCheckInfo.Type\" \n\006Source" +
-      "\022\n\n\006CLIENT\020\001\022\n\n\006SERVER\020\002\"!\n\004Type\022\013\n\007REQU" +
-      "EST\020\001\022\014\n\010RESPONSE\020\002\"+\n\rMessageHeader\022\013\n\003" +
-      "key\030\001 \002(\t\022\r\n\005value\030\002 \002(\t\"{\n\014FetchRequest" +
-      "\022\n\n\002id\030\001 \002(\t\022\020\n\010resource\030\002 \002(\t\022\020\n\010strate" +
-      "gy\030\003 \001(\t\022)\n\007headers\030\004 \003(\0132\030.sdc_frame.Me" +
-      "ssageHeader\022\020\n\010contents\030\005 \001(\014\"v\n\nFetchRe" +
-      "ply\022\n\n\002id\030\001 \002(\t\022\016\n\006status\030\002 \002(\005\022)\n\007heade",
-      "rs\030\003 \003(\0132\030.sdc_frame.MessageHeader\022\020\n\010co" +
-      "ntents\030\004 \001(\014\022\017\n\007latency\030\005 \001(\003\"\264\001\n\024Socket" +
-      "SessionRequest\022*\n\004verb\030\001 \002(\0162\034.sdc_frame" +
-      ".SocketSessionVerb\022\024\n\014socketHandle\030\002 \002(\014" +
-      "\022\020\n\010hostname\030\003 \002(\t\022\014\n\004port\030\004 \001(\005\022)\n\007head" +
-      "ers\030\005 \003(\0132\030.sdc_frame.MessageHeader\022\017\n\007t" +
-      "imeout\030\006 \001(\003\"\253\002\n\022SocketSessionReply\022*\n\004v" +
+      "\014\022\021\n\tsessionId\030\004 \001(\t\"\211\001\n\004Type\022\017\n\013SOCKET_" +
+      "DATA\020\000\022\020\n\014REGISTRATION\020\001\022\020\n\014HEALTH_CHECK" +
+      "\020\002\022\021\n\rAUTHORIZATION\020\003\022\021\n\rFETCH_REQUEST\020\004" +
+      "\022\022\n\016SOCKET_SESSION\020\005\022\022\n\016SHUTDOWN_QUEUE\020\006" +
+      "\"\224\001\n\016SocketDataInfo\022\024\n\014connectionId\030\001 \002(" +
+      "\003\022.\n\005state\030\002 \002(\0162\037.sdc_frame.SocketDataI",
+      "nfo.State\022\017\n\007segment\030\003 \001(\014\"+\n\005State\022\t\n\005S" +
+      "TART\020\000\022\014\n\010CONTINUE\020\001\022\t\n\005CLOSE\020\002\"\300\002\n\021Auth" +
+      "orizationInfo\022\r\n\005email\030\001 \001(\t\0227\n\010authType" +
+      "\030\002 \001(\0162%.sdc_frame.AuthorizationInfo.Aut" +
+      "hType\022\020\n\010password\030\003 \001(\t\0227\n\006result\030\005 \001(\0162" +
+      "\'.sdc_frame.AuthorizationInfo.ResultCode" +
+      "\022\025\n\rstatusMessage\030\006 \001(\t\"g\n\nResultCode\022\006\n" +
+      "\002OK\020\001\022\021\n\rACCESS_DENIED\020\002\022,\n(ACCESS_DENIE" +
+      "D_CAPTCHA_REQUIRED_TO_UNLOCK\020\003\022\020\n\014SERVER" +
+      "_ERROR\020\004\"\030\n\010AuthType\022\014\n\010PASSWORD\020\001\"4\n\013Re",
+      "sourceKey\022\n\n\002ip\030\001 \002(\t\022\014\n\004port\030\002 \002(\005\022\013\n\003k" +
+      "ey\030\003 \002(\003\"\313\001\n\020RegistrationInfo\022\013\n\003xml\030\001 \001" +
+      "(\t\022\025\n\rstatusMessage\030\002 \001(\t\0226\n\006result\030\003 \001(" +
+      "\0162&.sdc_frame.RegistrationInfo.ResultCod" +
+      "e\0229\n\022serverSuppliedConf\030\004 \001(\0132\035.sdc_fram" +
+      "e.ServerSuppliedConf\" \n\nResultCode\022\006\n\002OK" +
+      "\020\001\022\n\n\006FAILED\020\002\"\211\001\n\022ServerSuppliedConf\022\032\n" +
+      "\022healthCheckTimeout\030\004 \001(\005\022!\n\031healthCheck" +
+      "WakeUpInterval\030\005 \001(\005\022\021\n\tsessionId\030\006 \001(\t\022" +
+      "\017\n\007keyAlgo\030\007 \001(\t\022\020\n\010keyBytes\030\010 \001(\014\"\313\001\n\017H",
+      "ealthCheckInfo\022\021\n\ttimeStamp\030\001 \001(\003\0221\n\006sou" +
+      "rce\030\002 \001(\0162!.sdc_frame.HealthCheckInfo.So" +
+      "urce\022-\n\004type\030\003 \001(\0162\037.sdc_frame.HealthChe" +
+      "ckInfo.Type\" \n\006Source\022\n\n\006CLIENT\020\001\022\n\n\006SER" +
+      "VER\020\002\"!\n\004Type\022\013\n\007REQUEST\020\001\022\014\n\010RESPONSE\020\002" +
+      "\"+\n\rMessageHeader\022\013\n\003key\030\001 \002(\t\022\r\n\005value\030" +
+      "\002 \002(\t\"{\n\014FetchRequest\022\n\n\002id\030\001 \002(\t\022\020\n\010res" +
+      "ource\030\002 \002(\t\022\020\n\010strategy\030\003 \001(\t\022)\n\007headers" +
+      "\030\004 \003(\0132\030.sdc_frame.MessageHeader\022\020\n\010cont" +
+      "ents\030\005 \001(\014\"v\n\nFetchReply\022\n\n\002id\030\001 \002(\t\022\016\n\006",
+      "status\030\002 \002(\005\022)\n\007headers\030\003 \003(\0132\030.sdc_fram" +
+      "e.MessageHeader\022\020\n\010contents\030\004 \001(\014\022\017\n\007lat" +
+      "ency\030\005 \001(\003\"\264\001\n\024SocketSessionRequest\022*\n\004v" +
       "erb\030\001 \002(\0162\034.sdc_frame.SocketSessionVerb\022" +
-      "\024\n\014socketHandle\030\002 \002(\014\0224\n\006status\030\003 \002(\0162$." +
-      "sdc_frame.SocketSessionReply.Status\022\020\n\010h",
-      "ostname\030\004 \002(\t\022\014\n\004port\030\005 \001(\005\022)\n\007headers\030\006" +
-      " \003(\0132\030.sdc_frame.MessageHeader\022\017\n\007latenc" +
-      "y\030\007 \001(\003\"A\n\006Status\022\006\n\002OK\020\001\022\t\n\005ERROR\020\002\022\020\n\014" +
-      "UNKNOWN_HOST\020\003\022\022\n\016CANNOT_CONNECT\020\004\"\\\n\021So" +
-      "cketSessionData\022\024\n\014socketHandle\030\001 \002(\014\022\014\n" +
-      "\004data\030\002 \001(\014\022\024\n\014streamOffset\030\003 \001(\003\022\r\n\005clo" +
-      "se\030\004 \001(\010\"\274\001\n\025RegistrationRequestV4\022\017\n\007ag" +
-      "entId\030\001 \002(\t\022\027\n\017socksServerPort\030\002 \002(\005\022\027\n\017" +
-      "healthCheckPort\030\003 \002(\005\022\035\n\025healthCheckGadg" +
-      "etUser\030\004 \003(\t\022+\n\013resourceKey\030\005 \003(\0132\026.sdc_",
-      "frame.ResourceKey\022\024\n\014resourcesXml\030\006 \002(\t\"" +
-      "\347\001\n\026RegistrationResponseV4\022\025\n\rstatusMess" +
-      "age\030\001 \001(\t\022<\n\006result\030\002 \002(\0162,.sdc_frame.Re" +
-      "gistrationResponseV4.ResultCode\0229\n\022serve" +
-      "rSuppliedConf\030\003 \001(\0132\035.sdc_frame.ServerSu" +
-      "ppliedConf\"=\n\nResultCode\022\006\n\002OK\020\001\022\025\n\021ERRO" +
-      "RS_IN_REQUEST\020\002\022\020\n\014SERVER_ERROR\020\003*7\n\021Soc" +
-      "ketSessionVerb\022\n\n\006CREATE\020\001\022\013\n\007CONNECT\020\002\022" +
-      "\t\n\005CLOSE\020\003B)\n\'com.google.dataconnector.p" +
-      "rotocol.proto"
+      "\024\n\014socketHandle\030\002 \002(\014\022\020\n\010hostname\030\003 \002(\t\022" +
+      "\014\n\004port\030\004 \001(\005\022)\n\007headers\030\005 \003(\0132\030.sdc_fra" +
+      "me.MessageHeader\022\017\n\007timeout\030\006 \001(\003\"\253\002\n\022So" +
+      "cketSessionReply\022*\n\004verb\030\001 \002(\0162\034.sdc_fra" +
+      "me.SocketSessionVerb\022\024\n\014socketHandle\030\002 \002" +
+      "(\014\0224\n\006status\030\003 \002(\0162$.sdc_frame.SocketSes",
+      "sionReply.Status\022\020\n\010hostname\030\004 \002(\t\022\014\n\004po" +
+      "rt\030\005 \001(\005\022)\n\007headers\030\006 \003(\0132\030.sdc_frame.Me" +
+      "ssageHeader\022\017\n\007latency\030\007 \001(\003\"A\n\006Status\022\006" +
+      "\n\002OK\020\001\022\t\n\005ERROR\020\002\022\020\n\014UNKNOWN_HOST\020\003\022\022\n\016C" +
+      "ANNOT_CONNECT\020\004\"\\\n\021SocketSessionData\022\024\n\014" +
+      "socketHandle\030\001 \002(\014\022\014\n\004data\030\002 \001(\014\022\024\n\014stre" +
+      "amOffset\030\003 \001(\003\022\r\n\005close\030\004 \001(\010\"\274\001\n\025Regist" +
+      "rationRequestV4\022\017\n\007agentId\030\001 \002(\t\022\027\n\017sock" +
+      "sServerPort\030\002 \002(\005\022\027\n\017healthCheckPort\030\003 \002" +
+      "(\005\022\035\n\025healthCheckGadgetUser\030\004 \003(\t\022+\n\013res",
+      "ourceKey\030\005 \003(\0132\026.sdc_frame.ResourceKey\022\024" +
+      "\n\014resourcesXml\030\006 \002(\t\"\347\001\n\026RegistrationRes" +
+      "ponseV4\022\025\n\rstatusMessage\030\001 \001(\t\022<\n\006result" +
+      "\030\002 \002(\0162,.sdc_frame.RegistrationResponseV" +
+      "4.ResultCode\0229\n\022serverSuppliedConf\030\003 \001(\013" +
+      "2\035.sdc_frame.ServerSuppliedConf\"=\n\nResul" +
+      "tCode\022\006\n\002OK\020\001\022\025\n\021ERRORS_IN_REQUEST\020\002\022\020\n\014" +
+      "SERVER_ERROR\020\003*7\n\021SocketSessionVerb\022\n\n\006C" +
+      "REATE\020\001\022\013\n\007CONNECT\020\002\022\t\n\005CLOSE\020\003B)\n\'com.g" +
+      "oogle.dataconnector.protocol.proto"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
